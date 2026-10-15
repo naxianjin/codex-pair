@@ -26,6 +26,10 @@ accept 发出 window-handshake 问题，A 领取、发送关联 reply 并完成�
 - `init`、`join`、`assign`、`send`、`claim`、`complete`、`integrate`、`status`、`daemon`、`relay`、`relay-stop`、`pause`、`resume`、`stop` 是统一命令入口，由 A 实现。
 - 本机已验证 Codex CLI 0.162.1、Python 3.14.5；运行需要 Python 3.10+。使用 [官方 queue](https://learn.chatgpt.com/docs/developer-commands?surface=cli) 和 [app-server](https://learn.chatgpt.com/docs/app-server)。脚本不改模型、登录或权限配置。
 
+## 提供方与能力边界
+
+仅支持官方 Codex CLI 的 OpenAI 官方账号与 DeepSeek API。DeepSeek 沿用原 CLI 已配置的 Responses API；桥只投递和观察，不代替另一窗口执行 API 推理，不接管其凭据。提供方与模型应依据目标 thread/read 的 modelProvider/model 识别，不把 account/read 的账号邮箱作为 API 必需条件。持久化 proof 使用身份和 Git 校验所需的白名单最小字段，不保存完整线程响应、认证头或 Key。status 中的提供方、模型及能力状态不得包含机密；未验证能力须明确标注，不能由提供方名称推定工具可用。实现与真实验收分别报告，详细清单见 [deepseek.md](deepseek.md)。
+
 ## 通信、回执与恢复
 
 - 已有 CLI 默认 queue 后端，完整 UUID 与实际 cwd 从官方 API 验证。用参数数组调用 `codex queue`，正文封装为 ASCII JSON 避开 Windows 中文参数代码页损坏。已实测空闲自动启动、繁忙后排队；回执 Queued 仅说明入队。
@@ -157,13 +161,13 @@ A 的当前 CLI 可在自身的串行工具调用中整合：必须同时匹配 
 
 ## 验证与双窗口人工步骤
 
-`python -m unittest discover -v` 运行本地测试。显式设置 CODEX_PAIR_REAL_TEST=1、CODEX_PAIR_REAL_CORE_TEST=1、CODEX_PAIR_REAL_INTEGRATION=1 后，可运行 tests.test_transport.RealTransportTests、tests.test_core.RealCoreTests、tests.test_integration.RealIntegrationTests。双账号集成测试还须设置 `CODEX_PAIR_HOME_A` 与 `CODEX_PAIR_HOME_B`，通过 account/read 的匿名身份摘要确认不同真实账号。旧真实测试可能保留原验证状态位置；新双账号验证证据和 worktree 使用项目 `.codex-pair/`。真实测试只创建独立测试会话，集成 worktree 保留。不能把单账号真实测试或模拟路由测试报告成双账号通过。
+`python -m unittest discover -v` 运行本地测试。显式设置 CODEX_PAIR_REAL_TEST=1、CODEX_PAIR_REAL_CORE_TEST=1、CODEX_PAIR_REAL_INTEGRATION=1 后，可运行 tests.test_transport.RealTransportTests、tests.test_core.RealCoreTests、tests.test_integration.RealIntegrationTests。双账号集成测试还须设置 `CODEX_PAIR_HOME_A` 与 `CODEX_PAIR_HOME_B`，OpenAI 官方账号通过 account/read 的匿名身份摘要确认不同真实账号。此条件不套用于 DeepSeek API；API 会话按提供方、模型、UUID 与 cwd 核实，不能将不同 home 视为不同账号的证明。旧真实测试可能保留原验证状态位置；新双账号验证证据和 worktree 使用项目 `.codex-pair/`。真实测试只创建独立测试会话，集成 worktree 保留。不能把单账号真实测试或模拟路由测试报告成双账号通过。
 
 在目标 Codex 会话内可用 `join --current-session` 替代手填 `--session`；它要求环境中的 CODEX_THREAD_ID 和当前实际 cwd，仍通过本成员账号的 app-server 验证会话。普通 PowerShell 中没有该上下文时会报错，不会猜最近 UUID。
 
 旧数据库留在原 home/codex-pair/<ID>，只从原账号查找，不扫描其他账号。首次打开 schema 1/2/3 时，取得旧 daemon 与派发锁、确认无未决投递后，先创建 schema-v<版本>-<时间>.backup.sqlite3，再事务升级到 schema 4。补充旧账号字段、移除成员 cwd 唯一限制并增加窗口邀请设置，外键须完整。旧成员继承原 home，历史、领取令牌和路径不搬动。低层 init 默认项目内隔离布局，普通使用走 start/accept；旧 Python Store API 未传 state_root 时保留旧路径语义。
 
-两个可见 TUI 窗口的人工验收：在 A/B 各自目录启动 codex，让各自用实际 UUID 执行 join；第三个终端运行 daemon。按上述命令分配任务、提问、关联回复、提交交付，再 integrate 并测试。记录 UUID、消息 ID、提交 SHA 和 status，不能只检查 Queued 回执。禁止模拟键盘或根据窗口标题推测 UUID。未执行的可见双窗口验收必须明确列为未完成。
+两个可见原窗口的验收优先使用上述 start/accept 邀请和后台桥，不要求第三个终端。以下仅为低层手动测试：在 A/B 各自目录启动 codex，让各自用实际 UUID 执行 join；第三个终端运行 daemon。按上述命令分配任务、提问、关联回复、提交交付，再 integrate 并测试。记录 UUID、消息 ID、提交 SHA 和 status，不能只检查 Queued 回执。禁止模拟键盘或根据窗口标题推测 UUID。未执行的可见双窗口验收必须明确列为未完成。
 
 ## Git 接口返回结构
 

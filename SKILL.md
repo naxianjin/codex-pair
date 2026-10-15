@@ -1,13 +1,15 @@
 ---
 name: codex-pair
-description: 让用户当前打开的两个官方 Codex CLI 窗口协作，通过邀请加入、本地消息桥问答、分工、交付与整合。仅适用于 OpenAI 官方账号登录，不适用于其他 AI 的 API；不固定账号目录，不另开模型会话，普通单窗口 Git 操作无需启用。
+description: 让用户当前打开的两个官方 Codex CLI 窗口协作，通过邀请加入、本地消息桥问答、分工、交付与整合。支持 OpenAI 官方账号与已配置 DeepSeek API 的官方 Codex CLI，不支持其他提供方；不固定账号目录，不另开模型会话，普通单窗口 Git 操作无需启用。
 ---
 
 # Codex Pair
 
 ## 适用范围
 
-本技能仅适用于通过 OpenAI 官方账号登录的官方 Codex CLI，不适用于其他 AI 的 API、第三方模型提供方或兼容 API 接入方式。账号目录可以不同，但参与窗口都应满足此范围。本项目由个人维护，并非 OpenAI 官方项目。
+本技能适用于官方 Codex CLI 的 OpenAI 官方账号与已配置的 DeepSeek API，可同类或混合配对；不支持其他提供方。各窗口保留自身 CODEX_HOME、模型与权限设置。本项目由个人维护，并非 OpenAI 官方项目。
+
+涉及 DeepSeek 时，先读 [接入边界与验收清单](references/deepseek.md)。仅使用原 CLI 已配置的 Responses API，不安装或改写 API 配置，不收集或复制 Key。模型对话成功、工具执行成功、原窗口自动协作通过必须分别验证。
 
 协作对象是用户选中的两个现有窗口。同账号或不同账号均可；各窗口的账号目录、会话 UUID 和实际 cwd 由自身环境与 CLI API 验证，用户无需配置是哪两个 .codex-*。A 统筹整合，B 参与开发，双方均可提问与反馈。
 

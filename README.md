@@ -2,13 +2,13 @@
 
 让两个已经打开的 Codex CLI 窗口一起开发项目。A 发起协作，B 接受邀请，双方通过本地消息桥讨论问题、分配任务、交付代码，由 A 负责 Git 整合。
 
-**仅适用于通过 OpenAI 官方账号登录的官方 Codex CLI，不适用于其他 AI 的 API、第三方模型提供方或兼容 API 接入方式。**
+**支持官方 Codex CLI 的 OpenAI 官方账号与已配置的 DeepSeek API，可同类或混合配对；不支持其他提供方。**
 
 本项目由个人维护，与 OpenAI 无隶属关系。上面的“官方账号”仅指 Codex CLI 的登录方式。
 
 ## 使用方式
 
-1. 在两个已登录的官方 Codex CLI 窗口中操作，可以使用同一账号，也可以使用不同账号。
+1. 在两个已登录 OpenAI 官方账号或已配置 DeepSeek API 的官方 Codex CLI 窗口中操作，保留各自环境。
 2. 在窗口 A 调用 `$codex-pair`，告诉它项目位置和要做的任务。
 3. 把 A 输出的 `CODEX_PAIR_JOIN_V1` 指令粘贴到窗口 B。
 4. B 在原窗口加入。脚本读取各窗口的会话和账号环境，在后台启动本地消息桥，不需要手动填写账号目录或打开第三个终端。
@@ -16,12 +16,12 @@
 
 第一次邀请需要手动粘贴，用来确定哪个窗口是 B。脚本不会根据窗口标题或最近使用的会话替你选择，也不会向未登记的窗口发送邀请。
 
-详细说明见 [SKILL.md](SKILL.md)、[首次接入流程](references/onboarding.md) 和 [协作协议](references/protocol.md)。
+详细说明见 [SKILL.md](SKILL.md)、[首次接入流程](references/onboarding.md) 和 [协作协议](references/protocol.md)。DeepSeek 的配置边界、能力验证与未验证项见 [DeepSeek 接入与验收](references/deepseek.md)；技能不配置 API，也不复制 Key。
 
 ## 环境与安装
 
 - Windows；Python 3.10+；Git。
-- 已通过官方账号登录的官方 Codex CLI，且 `queue` 和 `app-server` 接口可用。已有验证使用 CLI 0.162.1，其他版本仍需检查接口兼容性。
+- 已登录 OpenAI 官方账号或已配置 DeepSeek API 的官方 Codex CLI，且 `queue` 和 `app-server` 接口可用。已有验证使用 CLI 0.162.1，其他版本仍需检查接口兼容性。
 
 ### 直接下载 Skill（推荐）
 
@@ -82,6 +82,6 @@ python -m unittest discover -v
 
 已有离线测试记录共 90 项：87 项通过，3 项需要真实 Codex 环境的测试默认跳过。测试涉及账号路由、任务原子领取、重复邀请、同账号双会话、项目外 cwd、工作树串行与并行、消息桥恢复、启动锁竞争、旧库升级、安装哈希，以及下载包解压安装。
 
-两个独立官方账号的后台托管会话已验证过问答、交付、去重、重启和冲突整合。两个可见 TUI 窗口的新入口流程尚未完成完整实机问答验收。使用时应检查 `status.window_flow.communication=verified`，确认自动通信验证通过。
+两个独立官方账号的后台托管会话已验证过问答、交付、去重、重启和冲突整合。当前开发配对的两个 OpenAI 原窗口已完成邀请与握手，并实际领取了文档任务；这不代表完整开发交付验收或 DeepSeek 验收通过。使用时应检查 `status.window_flow.communication=verified`，确认该配对自动通信验证通过。DeepSeek×DeepSeek 与 OpenAI×DeepSeek 两个方向的可见原窗口真实验收均待执行。
 
 `queue` 返回接受回执，只能说明消息已入队，不能证明模型已经回复。CLI 接口无法唤醒原窗口时，需要手动转交消息；文件信箱不代表自动通信成功。脚本不模拟键盘，也不自动批准服务端请求。
