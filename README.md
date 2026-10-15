@@ -1,35 +1,49 @@
 # codex-pair
 
-让两个已经打开的 Codex CLI 窗口一起开发项目。A 发起协作，B 接受邀请，双方通过本地消息桥讨论问题、分配任务、交付代码，由 A 负责 Git 整合。
+codex-pair 是给两个已打开的 Codex CLI 窗口用的协作技能。A 负责分工和整合，B 接受邀请后参与开发；双方通过本机消息桥提问、回复、测试和交付代码。
 
-**支持官方 Codex CLI 的 OpenAI 官方账号与已配置的 DeepSeek API，可同类或混合配对；不支持其他提供方。**
+目前接入范围为官方 Codex CLI 中的 OpenAI 账号和已配置的 DeepSeek API，允许同类或混合配对。DeepSeek 的代码适配与离线测试已完成，原窗口双向通信、工具执行和完整交付仍待实测。其他模型提供方暂未接入。
 
-本项目由个人维护，与 OpenAI 无隶属关系。上面的“官方账号”仅指 Codex CLI 的登录方式。
+这是个人维护的项目，与 OpenAI 无隶属关系。
 
 ## 使用方式
 
-1. 在两个已登录 OpenAI 官方账号或已配置 DeepSeek API 的官方 Codex CLI 窗口中操作，保留各自环境。
-2. 在窗口 A 调用 `$codex-pair`，告诉它项目位置和要做的任务。
-3. 把 A 输出的 `CODEX_PAIR_JOIN_V1` 指令粘贴到窗口 B。
-4. B 在原窗口加入。脚本读取各窗口的会话和账号环境，在后台启动本地消息桥，不需要手动填写账号目录或打开第三个终端。
-5. 连接问答验证通过后，A 分配任务，双方在约定的文件范围内开发、测试并交付。
+1. 打开两个可用的 Codex CLI 窗口。各自登录 OpenAI 账号或配置 DeepSeek API，安装技能。
+2. 在 A 中输入 `$codex-pair`，给出项目路径和任务。
+3. 把 A 返回的整段 `CODEX_PAIR_JOIN_V1` 指令粘贴到 B。
+4. B 在原窗口接受邀请，消息桥自动在后台启动。连接问答通过后，A 开始分配任务。
 
-第一次邀请需要手动粘贴，用来确定哪个窗口是 B。脚本不会根据窗口标题或最近使用的会话替你选择，也不会向未登记的窗口发送邀请。
+粘贴邀请用来确认你选中的 B，只需在首次配对时做一次。会话 UUID、工作目录和有效 `CODEX_HOME` 由各窗口自行读取并核验，无需手填，也不用另开终端运行消息桥。
 
-详细说明见 [SKILL.md](SKILL.md)、[首次接入流程](references/onboarding.md) 和 [协作协议](references/protocol.md)。DeepSeek 的配置边界、能力验证与未验证项见 [DeepSeek 接入与验收](references/deepseek.md)；技能不配置 API，也不复制 Key。
+用法见 [SKILL.md](SKILL.md)、[首次接入流程](references/onboarding.md) 和 [协作协议](references/protocol.md)。使用 DeepSeek 前请阅读 [接入与验收说明](references/deepseek.md)：API 由原 CLI 配置，技能不代填或复制 Key，不改模型和权限设置。
 
 ## 环境与安装
 
-- Windows；Python 3.10+；Git。
-- 已登录 OpenAI 官方账号或已配置 DeepSeek API 的官方 Codex CLI，且 `queue` 和 `app-server` 接口可用。已有验证使用 CLI 0.162.1，其他版本仍需检查接口兼容性。
+- Windows、Python 3.10+、Git。
+- 官方 Codex CLI，需要可用的 `queue` 和 `app-server` 接口。本机验证版本为 0.162.1，其他版本需检查接口兼容性。
 
-### 直接下载 Skill（推荐）
+### 安装当前源码
+
+`main` 已包含 DeepSeek 适配和领取回执修复。克隆后，用当前窗口的配置目录安装：
+
+```powershell
+git clone https://github.com/naxianjin/codex-pair.git
+Set-Location codex-pair
+$pairAccountRoot = if ($env:CODEX_HOME) { $env:CODEX_HOME } else { Join-Path $env:USERPROFILE '.codex' }
+python scripts/install_skill.py --source . --home $pairAccountRoot
+```
+
+安装位置为 `<有效 CODEX_HOME>/skills/codex-pair/`。两个窗口使用不同配置目录时，各安装一份；同一配置目录下的两个会话可以共用已安装的技能。安装器会备份旧版并逐文件核对 SHA-256，认证文件、模型配置和会话记录保持原状。
+
+WindowsApps 里的 `python` 可能只是系统占位程序。命令无法运行时，换成已安装的 Python 可执行文件路径。
+
+### 下载发布包
+
+当前发布包为 [v1.0.0](https://github.com/naxianjin/codex-pair/releases/tag/v1.0.0)，早于本次改动，未包含 DeepSeek 适配和领取恢复命令。需要这两项功能请按上面的源码方式安装。
 
 [下载 codex-pair.zip](https://github.com/naxianjin/codex-pair/releases/latest/download/codex-pair.zip) · [SHA-256 校验文件](https://github.com/naxianjin/codex-pair/releases/latest/download/SHA256SUMS.txt) · [版本发布页](https://github.com/naxianjin/codex-pair/releases/latest)
 
-解压后会得到 `codex-pair/` 文件夹，包含安装所需的 `SKILL.md`、`agents/`、`scripts/` 和 `references/`。下载包不含源码测试、Git 历史、账号配置和协作记录。
-
-在各窗口使用的账号环境中运行以下 PowerShell 命令，可以直接下载安装，无需克隆仓库：
+发布包解压后得到 `codex-pair/`，含 `SKILL.md`、`agents/`、`scripts/` 和 `references/`。包内不含测试、Git 历史、账号配置或本机协作记录。可在各窗口环境中下载安装：
 
 ```powershell
 $pairAccountRoot = if ($env:CODEX_HOME) { $env:CODEX_HOME } else { Join-Path $env:USERPROFILE '.codex' }
@@ -40,39 +54,15 @@ Expand-Archive -LiteralPath (Join-Path $pairDownload 'codex-pair.zip') -Destinat
 python (Join-Path $pairDownload 'codex-pair/scripts/install_skill.py') --source (Join-Path $pairDownload 'codex-pair') --home $pairAccountRoot
 ```
 
-安装位置为 `<有效 CODEX_HOME>/skills/codex-pair/SKILL.md`。安装器会备份已有版本，并校验安装文件的哈希。手动安装时，将整个 `codex-pair` 文件夹放入对应环境的 `skills` 目录；替换旧版前请自行备份。
-
-### 从源码安装
-
-克隆仓库：
-
-```powershell
-git clone https://github.com/naxianjin/codex-pair.git
-Set-Location codex-pair
-```
-
-用可运行的 Python 安装到当前 CLI 的账号目录：
-
-```powershell
-python scripts/install_skill.py --source . --home $env:CODEX_HOME
-```
-
-如果未设置 `CODEX_HOME`，则使用官方 CLI 默认账号目录：
-
-```powershell
-python scripts/install_skill.py --source . --home (Join-Path $env:USERPROFILE '.codex')
-```
-
-两个窗口分别使用各自的账号目录，不要为协作而改成同一个目录。安装器对文件逐一校验 SHA-256，不复制或修改认证文件。如果 WindowsApps 下的 `python` 只是占位程序，请换成实际的 Python 可执行路径。
-
-已有窗口可以直接读取克隆目录中的 `SKILL.md`，不必为此重开窗口。B 没有安装技能时，也可以读取邀请中指向的那份技能。
+手动安装时，将整个 `codex-pair` 文件夹放入对应环境的 `skills` 目录，替换前备份旧版。已打开的窗口可以显式读取最新版 `SKILL.md`，无需重开；B 未安装时也能读取邀请所指向的技能文件。
 
 ## 工作目录与记录
 
-- 使用两个现有 CLI 会话，不自动另开模型会话，也不强制创建 worktree。
-- 会话根目录和任务工作目录可以不同。共用一个工作树时，代码任务和模型回合串行执行；已有独立 worktree 时可以并行。
-- 共享 SQLite、邀请、日志和归档保存在目标项目的 `.codex-pair/` 中，不放进双方的账号目录。
-- `.codex-pair/`、数据库、认证文件和缓存不提交到 Git。暂停或停止会保留代码及历史，不删除工作树，也不复制凭据。
+技能沿用两个原会话，不另开模型会话，也不强制创建 worktree。会话根目录可以在项目外，任务使用的工作目录会单独记录。共用工作树时，代码任务和模型回合串行执行；已有独立 worktree 时允许并行。
+
+共享 SQLite、邀请、日志和归档保存在项目的 `.codex-pair/` 下，通过本地 Git 排除规则避开提交。暂停或停止协作会保留代码和历史，不删除工作树。
+
+自动领取使用 `claim --compact`，避免长任务的输出被工具截断。若领取成功但回执丢失，原会话可用 `recover-claim` 取回原令牌，核实进度后继续。重复领取仍返回 `claimed=false`，不会重置或重派任务；具体恢复条件见 [协作协议](references/protocol.md)。
 
 ## 验证与限制
 
@@ -80,8 +70,10 @@ python scripts/install_skill.py --source . --home (Join-Path $env:USERPROFILE '.
 python -m unittest discover -v
 ```
 
-已有离线测试记录共 90 项：87 项通过，3 项需要真实 Codex 环境的测试默认跳过。测试涉及账号路由、任务原子领取、重复邀请、同账号双会话、项目外 cwd、工作树串行与并行、消息桥恢复、启动锁竞争、旧库升级、安装哈希，以及下载包解压安装。
+当前共 111 项测试：108 项通过，3 项需显式启用的真实环境测试默认跳过。覆盖会话和提供方识别、账号路由、领取去重与恢复、凭据隔离、回合状态、旧库兼容、Git 交付、安装和打包。
 
-两个独立官方账号的后台托管会话已验证过问答、交付、去重、重启和冲突整合。当前开发配对的两个 OpenAI 原窗口已完成邀请与握手，并实际领取了文档任务；这不代表完整开发交付验收或 DeepSeek 验收通过。使用时应检查 `status.window_flow.communication=verified`，确认该配对自动通信验证通过。DeepSeek×DeepSeek 与 OpenAI×DeepSeek 两个方向的可见原窗口真实验收均待执行。
+本次开发中，两个 OpenAI 原窗口已通过邀请和双向握手，完成文档、测试的分工、提交与整合，当前配对的 `status.window_flow.communication=verified`。此前还用独立账号的后台托管会话验证过问答、去重、重启和冲突整合。
 
-`queue` 返回接受回执，只能说明消息已入队，不能证明模型已经回复。CLI 接口无法唤醒原窗口时，需要手动转交消息；文件信箱不代表自动通信成功。脚本不模拟键盘，也不自动批准服务端请求。
+DeepSeek 目前已在不继承 API Key 的只读观察进程中，成功读取原会话的提供方和模型信息。DeepSeek×DeepSeek、OpenAI×DeepSeek 及反向组合的原窗口双向通信、工具执行和完整交付仍待实测，离线测试不能代替这些结果。
+
+`queue` 返回接受回执只表示消息入队。自动通信通过还需要关联问答、业务回执和模型回合完成记录。接口无法唤醒原窗口时，可改用逐成员 relay 或手动交接；手动交接会明确标记。技能不模拟键盘，也不自动批准权限请求。
