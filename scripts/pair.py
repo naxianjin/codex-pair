@@ -8,14 +8,17 @@ from pathlib import Path
 import sqlite3
 import subprocess
 import sys
+import time
 import uuid
 
 try:
-    from .pair_core import Daemon, PairError, Store, effective_home
+    from .pair_core import Daemon, FileLock, PairError, Store, dumps, effective_home
     from .pair_transport import AppServer, QueueTransport, TransportError, TransportPool, canonical_path
+    from . import pair_git
 except ImportError:
-    from pair_core import Daemon, PairError, Store, effective_home
+    from pair_core import Daemon, FileLock, PairError, Store, dumps, effective_home
     from pair_transport import AppServer, QueueTransport, TransportError, TransportPool, canonical_path
+    import pair_git
 
 
 class Parser(argparse.ArgumentParser):
@@ -44,6 +47,7 @@ def build_parser():
     cmd=command('init','初始化仓库外的协作状态')
     cmd.add_argument('--project',required=True)
     cmd.add_argument('--base-ref',default='HEAD')
+    cmd.add_argument('--worktree-root',help='创建或验证 <ID>-a、<ID>-b 工作目录；省略时绑定已有 worktree')
     cmd=command('join','绑定已有 CLI 会话，或创建独占托管会话')
     cmd.add_argument('--member',choices=['A','B'],required=True)
     cmd.add_argument('--worktree',required=True)
@@ -51,12 +55,14 @@ def build_parser():
     group.add_argument('--session',help='已有 CLI 的完整会话 UUID')
     group.add_argument('--new-session',action='store_true',help='为此协作创建独占 app-server 会话')
     cmd.add_argument('--backend',choices=['queue','shared','managed'],help='已有会话默认 queue，新会话为 managed')
+    cmd.add_argument('--branch',help='已有 worktree 的预期分支；有 init 计划时必须与计划一致')
     cmd=command('assign','分配任务；依赖和范围检查通过后才激活')
     cmd.add_argument('--task',required=True)
     cmd.add_argument('--title',required=True)
     cmd.add_argument('--to',choices=['A','B'],required=True)
     cmd.add_argument('--allow',action='append',required=True,help='仓库相对修改范围，可重复')
     cmd.add_argument('--depends-on',action='append',default=[])
+    cmd.add_argument('--base-ref',help='任务提交基准；默认使用协作基准')
     body(cmd)
     cmd=command('send','先持久化，再由 daemon 投递')
     cmd.add_argument('--from',dest='sender',choices=['A','B'],required=True)
@@ -76,7 +82,7 @@ def build_parser():
     cmd.add_argument('--token',required=True)
     cmd.add_argument('--commit',action='append',default=[],help='交付的完整提交 SHA，可重复')
     body(cmd,True)
-    cmd=command('integrate','整合明确交付的提交（等待 B 的模块交付后连接）')
+    cmd=command('integrate','检查交付范围并按 SHA 整合；自动暂停新投递并保留冲突')
     cmd.add_argument('--task')
     cmd.add_argument('--worktree')
     cmd.add_argument('--commit',action='append',default=[])
@@ -113,22 +119,200 @@ def validate_actor(store,args):
         observer.validate(member)
 
 
+def git_run(cwd,*args,input=None):
+    result=subprocess.run(['git','-C',str(cwd),*args],input=input,capture_output=True)
+    if result.returncode:
+        raise PairError(result.stderr.decode('utf-8',errors='replace')+' / Git 检查失败')
+    return result.stdout.decode('utf-8').strip()
+
+
+def git_context(store):
+    context=store.git_context()
+    if context:return context
+    project=store.status()['pair']['project']
+    return store.configure_git(pair_git.inspect_repo(project))
+
+
+def worktree_proof(store,member_id,cwd,branch=None):
+    context=git_context(store)
+    planned=context['worktrees'].get(member_id.lower())
+    if planned and canonical_path(planned['path'])!=canonical_path(cwd):
+        raise PairError('Wrong planned worktree / 与初始化计划的工作目录不符')
+    if planned and branch and branch!=planned['branch']:
+        raise PairError('Wrong planned branch / 与初始化计划的分支不符')
+    current=pair_git.inspect_repo(cwd)
+    expected=planned['branch'] if planned else branch or current['branch']
+    if not expected:raise PairError('Detached worktree rejected / 不接受 detached HEAD')
+    proof=pair_git.validate_worktree(cwd,context['repo']['common_dir'],expected)
+    if not proof['valid']:raise PairError(dumps(proof))
+    base=store.status()['pair']['base_commit']
+    git_run(cwd,'merge-base','--is-ancestor',base,'HEAD')
+    return proof
+
+
+def receiver_proof(store,path):
+    context=git_context(store)
+    with store.transaction() as db:
+        members=[dict(r) for r in db.execute('SELECT * FROM members')]
+    requested=canonical_path(path)
+    for member in members:
+        if requested==member['cwd']:
+            proof=json.loads(member['proof']).get('git')
+            if not proof:proof=worktree_proof(store,member['id'],path)
+            validation=pair_git.validate_worktree(path,context['repo']['common_dir'],proof['branch'])
+            if not validation['valid']:raise PairError(dumps(validation))
+            with store.transaction() as db:
+                active=db.execute("SELECT id FROM tasks WHERE assignee=? AND status IN ('active','blocked')",(member['id'],)).fetchall()
+                live=db.execute("SELECT id FROM messages WHERE recipient=? AND delivery_status IN ('accepted','delivering','unknown') AND (remote_status IS NULL OR remote_status IN ('queued','inProgress'))",(member['id'],)).fetchall()
+            if active or live:
+                raise PairError('Receiver still has active or unresolved work / 接收方仍有执行中或结果未确定的工作')
+            return validation
+    if requested!=canonical_path(context['repo']['root']):
+        raise PairError('Unknown integration receiver / 整合目标必须是已绑定 worktree 或原项目目录')
+    validation=pair_git.validate_worktree(path,context['repo']['common_dir'],context['repo']['branch'])
+    if not validation['valid']:raise PairError(dumps(validation))
+    return validation
+
+
+def save_plan(store,plan,**changes):
+    plan.update(changes);plan['updated']=time.time()
+    keys=list(changes)+['updated']
+    with store.transaction() as db:
+        db.execute('UPDATE integrations SET '+','.join(key+'=?' for key in keys)+' WHERE id=?',
+                   [plan[key] for key in keys]+[plan['id']])
+        store.event(db,'integration_state',integration=plan['id'],status=plan['status'],next_index=plan['next_index'])
+
+
+def same_patch(worktree,first,second):
+    def patch_id(commit):
+        patch=subprocess.run(['git','-C',worktree,'show','--format=','--binary',commit],capture_output=True,check=True).stdout
+        result=subprocess.run(['git','patch-id','--stable'],input=patch,capture_output=True,check=True).stdout
+        return result.split()[0] if result.split() else None
+    return patch_id(first) is not None and patch_id(first)==patch_id(second)
+
+
+def apply_plan(store,plan,*,continuing=False):
+    worktree=plan['receiver'];commits=json.loads(plan['commits_json'])
+    if continuing and plan['status'] in ('conflict','applying','failed'):
+        cherry=subprocess.run(['git','-C',worktree,'rev-parse','--verify','--quiet','CHERRY_PICK_HEAD'],capture_output=True)
+        if cherry.returncode==0:
+            if cherry.stdout.decode().strip()!=commits[plan['next_index']]:
+                raise PairError('Different cherry-pick in progress / 当前 cherry-pick 不属于本交付计划')
+            result=pair_git.continue_integration(worktree)
+            if not result['success']:
+                save_plan(store,plan,status='conflict',result_json=dumps(result));return dict(result,integration_id=plan['id'])
+            save_plan(store,plan,next_index=plan['next_index']+1,status='running',current_commit=None)
+        else:
+            head=pair_git.inspect_repo(worktree)['head']
+            if head!=plan['before_head']:
+                parents=git_run(worktree,'rev-list','--parents','-n','1',head).split()[1:]
+                if parents!=[plan['before_head']] or not same_patch(worktree,head,commits[plan['next_index']]):
+                    raise PairError('Integration outcome ambiguous / 整合结果不明，HEAD 与计划证据不符，禁止重复应用')
+                save_plan(store,plan,next_index=plan['next_index']+1,status='running',current_commit=None)
+            elif plan['status']=='conflict':
+                raise PairError('Conflict state was changed externally / 冲突状态已被外部改变，请核对记录后显式中止计划')
+    while plan['next_index']<len(commits):
+        commit=commits[plan['next_index']]
+        before=pair_git.inspect_repo(worktree)['head']
+        already=subprocess.run(['git','-C',worktree,'merge-base','--is-ancestor',commit,'HEAD'],capture_output=True)
+        if already.returncode==0:
+            save_plan(store,plan,next_index=plan['next_index']+1,status='running');continue
+        if already.returncode!=1:raise PairError('Cannot inspect commit ancestry / 无法核实提交祖先关系')
+        save_plan(store,plan,status='applying',before_head=before,current_commit=commit)
+        try:result=pair_git.integrate_commits(worktree,[commit])
+        except pair_git.GitError as exc:
+            save_plan(store,plan,status='failed',result_json=dumps(exc.to_dict()));raise
+        if not result['success']:
+            result.update(integration_id=plan['id'],remaining_commits=commits[plan['next_index']+1:])
+            save_plan(store,plan,status='conflict',result_json=dumps(result));return result
+        save_plan(store,plan,next_index=plan['next_index']+1,status='running',current_commit=None)
+    result={'success':True,'status':'completed','integration_id':plan['id'],'integrated_commits':commits,
+            'head':pair_git.inspect_repo(worktree)['head'],'receiver':worktree,'collaboration_status':'paused'}
+    save_plan(store,plan,status='completed',result_json=dumps(result))
+    with store.transaction() as db:
+        db.execute("UPDATE tasks SET status='integrated',updated=? WHERE id=?",(time.time(),plan['task_id']))
+        store.event(db,'task_integrated',task=plan['task_id'],integration=plan['id'],head=result['head'])
+    return result
+
+
+def integrate(store,args):
+    with FileLock(store.directory/'integration.lock',timeout=30),FileLock(store.control_lock,timeout=30):
+        with store.transaction() as db:
+            db.execute("UPDATE collaborations SET status='paused',revision=revision+1")
+            store.event(db,'control',state='paused',reason='integration')
+        if args.continue_integration or args.abort:
+            with store.transaction() as db:
+                plans=[dict(r) for r in db.execute("SELECT * FROM integrations WHERE status NOT IN ('completed','aborted') ORDER BY created DESC")]
+            if args.task:plans=[p for p in plans if p['task_id']==args.task]
+            if args.worktree:plans=[p for p in plans if canonical_path(p['receiver'])==canonical_path(args.worktree)]
+            if len(plans)!=1:raise PairError('Specify exactly one unfinished integration / 必须明确选择一个未完成整合计划')
+            plan=plans[0];receiver_proof(store,plan['receiver'])
+            if args.abort:
+                cherry=subprocess.run(['git','-C',plan['receiver'],'rev-parse','--verify','--quiet','CHERRY_PICK_HEAD'],capture_output=True)
+                if cherry.returncode==0:
+                    if cherry.stdout.decode().strip()!=json.loads(plan['commits_json'])[plan['next_index']]:
+                        raise PairError('Different cherry-pick in progress / 当前 cherry-pick 不属于本计划')
+                    result=pair_git.abort_integration(plan['receiver'])
+                else:
+                    result={'success':True,'status':'aborted','head':pair_git.inspect_repo(plan['receiver'])['head']}
+                result.update(integration_id=plan['id'],previously_integrated_commits=json.loads(plan['commits_json'])[:plan['next_index']])
+                save_plan(store,plan,status='aborted',result_json=dumps(result));return result
+            return apply_plan(store,plan,continuing=True)
+        if not args.task:raise PairError('--task is required / 必须选择交付任务')
+        task=store.task(args.task)
+        if task['status'] not in ('delivered','integrated'):
+            raise PairError('Task has no accepted commit delivery / 任务尚未交付可验收的提交')
+        commits=json.loads(task['commits_json'] or '[]')
+        if args.commit and args.commit!=commits:
+            raise PairError('Commit list differs from delivery / 指定提交与任务交付列表不同')
+        if not commits:raise PairError('No commits supplied / 任务没有提交')
+        source=store.member(task['assignee']);worktree_proof(store,source['id'],source['cwd'])
+        proof=pair_git.check_delivery(source['cwd'],task['base_commit'] or store.status()['pair']['base_commit'],commits,json.loads(task['allowed_paths']))
+        if not proof['passed']:raise PairError('Delivery rejected / 交付校验失败: '+dumps(proof))
+        target=canonical_path(args.worktree or store.member('A')['cwd'])
+        receiver_proof(store,target)
+        with store.transaction() as db:
+            existing=db.execute("SELECT * FROM integrations WHERE task_id=? AND receiver=? ORDER BY created DESC LIMIT 1",(task['id'],target)).fetchone()
+            if existing and existing['status']=='completed':return json.loads(existing['result_json'])
+            if existing and existing['status']!='aborted':raise PairError('Unfinished integration exists / 已有未完成整合，请使用 --continue 或 --abort')
+            now=time.time();plan={'id':str(uuid.uuid4()),'task_id':task['id'],'receiver':target,'commits_json':dumps(commits),
+                'next_index':0,'status':'running','before_head':pair_git.inspect_repo(target)['head'],'current_commit':None,'result_json':None,'created':now,'updated':now}
+            db.execute('INSERT INTO integrations('+','.join(plan)+') VALUES('+','.join('?' for _ in plan)+')',list(plan.values()))
+            store.event(db,'integration_planned',integration=plan['id'],task=task['id'],commits=commits,receiver=target)
+        return apply_plan(store,plan)
+
+
 def execute(args):
     home=Path(getattr(args,'codex_home',None) or effective_home()).resolve()
     pair_id=getattr(args,'pair',None)
     if args.command=='init':
         project=canonical_path(args.project)
-        result=subprocess.run(['git','-C',project,'rev-parse','--verify','--end-of-options',args.base_ref+'^{commit}'],capture_output=True,text=True)
-        if result.returncode:
-            raise PairError(result.stderr.strip()+' / 无法解析基准提交')
-        store=Store.initialize(pair_id or str(uuid.uuid4()),project,result.stdout.strip(),home=home)
-        return store.status()
+        repo=pair_git.inspect_repo(project)
+        if canonical_path(repo['root'])!=project:raise PairError('Use repository root / 必须使用仓库根目录')
+        base=git_run(project,'rev-parse','--verify','--end-of-options',args.base_ref+'^{commit}')
+        store=Store.initialize(pair_id or str(uuid.uuid4()),project,base,home=home)
+        store.configure_git(repo)
+        if args.worktree_root:
+            root=Path(args.worktree_root).resolve()
+            expected={r:{'path':str(root/(store.pair_id+'-'+r)),'branch':'codex-pair/'+store.pair_id+'/'+r} for r in ('a','b')}
+            if all(Path(item['path']).exists() for item in expected.values()):
+                for item in expected.values():
+                    validation=pair_git.validate_worktree(item['path'],repo['common_dir'],item['branch'])
+                    if not validation['valid']:raise PairError(dumps(validation))
+                    git_run(item['path'],'merge-base','--is-ancestor',base,'HEAD')
+                trees=expected
+            else:
+                created=pair_git.create_worktrees(project,store.pair_id,base,str(root))
+                trees={r:created[r] for r in ('a','b')}
+            store.configure_git(repo,trees)
+        return dict(store.status(),git=store.git_context())
     if not pair_id:
         raise PairError('--pair is required / 必须指定协作 ID')
     store=Store(pair_id,home=home)
     executable=getattr(args,'codex',None)
     if args.command=='join':
         cwd=canonical_path(args.worktree)
+        git_proof=worktree_proof(store,args.member,cwd,args.branch)
         backend=args.backend or ('managed' if args.new_session else 'queue')
         if args.new_session:
             if backend!='managed':
@@ -138,6 +322,7 @@ def execute(args):
             if existing:
                 if existing['cwd']!=cwd or existing['backend']!='managed':
                     raise PairError('Member already bound differently / 成员已有不同绑定')
+                with AppServer(codex_home=home,executable=executable,cwd=cwd) as observer:observer.validate(existing)
                 return existing
             with AppServer(codex_home=home,executable=executable,cwd=cwd) as client:
                 thread=client.create_session(cwd)
@@ -147,14 +332,18 @@ def execute(args):
                 if completion['status']!='completed':
                     raise PairError('Session bootstrap failed / 会话初始化回合未完成')
                 proof=client.validate(member)
+                proof['git']=git_proof
                 return store.join(args.member,thread['id'],cwd,backend=backend,owned=True,proof=proof)
         if backend=='managed':
             raise PairError('Use --new-session for managed sessions / 独占会话须由 --new-session 创建')
         with AppServer(backend='shared' if backend=='shared' else 'managed',codex_home=home,executable=executable,cwd=cwd) as client:
             proof=client.validate({'session_uuid':args.session,'cwd':cwd})
+            proof['git']=git_proof
             return store.join(args.member,args.session,cwd,backend=backend,owned=False,proof=proof)
     if args.command=='assign':
-        return store.assign(args.task,args.title,args.to,args.allow,body=read_body(args),dependencies=args.depends_on)
+        member=store.member(args.to);worktree_proof(store,args.to,member['cwd'])
+        base=git_run(member['cwd'],'rev-parse','--verify','--end-of-options',args.base_ref+'^{commit}') if args.base_ref else None
+        return store.assign(args.task,args.title,args.to,args.allow,body=read_body(args),dependencies=args.depends_on,base_commit=base)
     if args.command=='send':
         return store.send(args.sender,args.to,read_body(args),kind=args.kind,task_id=args.task,
                           dedupe_key=args.dedupe_key,reply_to=args.reply_to,progress_note=args.progress_note)
@@ -162,9 +351,15 @@ def execute(args):
         validate_actor(store,args)
         if args.command=='claim':
             return store.claim(args.member,args.session,args.worktree,message_id=args.message)
+        if args.commit:
+            message=store.message(args.message)
+            if message['kind']!='task':raise PairError('Only task completion accepts commits / 只有任务完成可交付提交')
+            task=store.task(message['task_id'])
+            check=pair_git.check_delivery(args.worktree,task['base_commit'] or store.status()['pair']['base_commit'],args.commit,json.loads(task['allowed_paths']))
+            if not check['passed']:raise PairError('Delivery rejected / 交付校验失败: '+dumps(check))
         return store.complete(args.member,args.session,args.worktree,args.message,args.token,read_body(args),commits=args.commit)
     if args.command=='integrate':
-        raise PairError('Git integration awaits B delivery / Git 整合接口尚待 B 的明确交付提交；当前不会执行整合')
+        return integrate(store,args)
     if args.command=='status':
         if args.probe<0 or args.probe>30:
             raise PairError('--probe must be between 0 and 30 / 存活探测须在 0 至 30 秒之间')
@@ -195,9 +390,10 @@ def main(argv=None):
         return 0
     except KeyboardInterrupt:
         return 130
-    except (PairError,TransportError,OSError,sqlite3.Error,ValueError,KeyError) as exc:
+    except (PairError,TransportError,pair_git.GitError,OSError,sqlite3.Error,ValueError,KeyError) as exc:
         if '--json' in argv:
-            print(json.dumps({'ok':False,'error':str(exc),'type':type(exc).__name__},ensure_ascii=False))
+            print(json.dumps({'ok':False,'error':str(exc),'type':type(exc).__name__,
+                              'details':exc.to_dict() if isinstance(exc,pair_git.GitError) else None},ensure_ascii=False))
         else:
             print(str(exc),file=sys.stderr)
         return 1

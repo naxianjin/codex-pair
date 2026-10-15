@@ -6,7 +6,51 @@
 - B 是协作方：验证会话与 worktree、领取任务，只修改允许范围并提交交付。
 - 状态位于 `$CODEX_HOME/codex-pair/<协作ID>/`。状态数据由 A 的通信与状态模块定义和维护；不得复制凭据到该目录。
 - `init`、`join`、`assign`、`send`、`claim`、`complete`、`integrate`、`status`、`daemon`、`pause`、`resume`、`stop` 是统一命令入口，由 A 实现。
-- 消息传输、自动唤醒和守护进程行为均为 **待通信模块验证**，在集成测试提供证据前不得声称已实现。
+- 本机已验证 Codex CLI 0.162.1、Python 3.14.5；运行需要 Python 3.10+。使用 [官方 queue](https://learn.chatgpt.com/docs/developer-commands?surface=cli) 和 [app-server](https://learn.chatgpt.com/docs/app-server)。脚本不改模型、登录或权限配置。
+
+## 通信、回执与恢复
+
+- 已有 CLI 默认 queue 后端，完整 UUID 与实际 cwd 从官方 API 验证。用参数数组调用 `codex queue`，正文封装为 ASCII JSON 避开 Windows 中文参数代码页损坏。已实测空闲自动启动、繁忙后排队；回执 Queued 仅说明入队。
+- 旁路 app-server 只读目标元数据和回合，绝不 resume 已有 CLI。目标未加载时队列仍可持久化，不能声称已处理。历史 API 可能暂报 interrupted 且 completedAt 为空；只有持久化完成时间才能证明终态。
+- `join --new-session` 使用 managed 后端，成员独占 app-server CLI，通过 turn/start 启动。仅恢复本协作创建的持久会话。shared proxy 是可选后端，本机 socket 曾报 os error 10050，未将它列为通过验收。
+- delivery_status 是 pending/retry/delivering/accepted/unknown/failed；remote_status 是 queued/inProgress/有完成时间的 completed、failed、interrupted；process_status 是 unclaimed/claimed/completed。三者独立，模型结束不自动完成任务。
+- 消息、信封与尝试先写入 SQLite，再调用传输。确定尚未发送的临时错误最多重试三次（可设 1–10）；发送后超时或崩溃进入 unknown，绝不自动重发。用消息 ID、原始信封和回合记录对账；查不到记录不是未投递证明。仍不明时保留记录，由操作者核实，禁止重派执行中的任务。
+- SQLite 使用 WAL、外键和写事务。Windows junction 解析为真实有效 CODEX_HOME，未设置时用用户 ~/.codex。状态目录不得在项目内。模式升级保留记录。
+- 守护程序持有 OS 文件锁，不根据旧 PID、心跳或回复耗时抢占。Windows Job 清理其专属子进程；重启把 delivering 变成 unknown，对账 accepted/unknown，保留 claimed。status --probe 的随机挑战响应才确认可响应；无响应不等于失联。
+- 保留原权限配置。服务端审批请求记录为 server_request_pending 事件，不自动批准。
+
+## 统一入口示例
+
+令 `$py` 为有效 Python 可执行路径，`$script` 为本技能 scripts/pair.py，`$pair` 为协作 ID。本机 WindowsApps 的 python 可能只是占位程序，请选择实际 Python。
+
+```powershell
+& $py $script init --pair $pair --project 'D:\work\project' --base-ref HEAD --worktree-root 'D:\work\trees' --json
+& $py $script join --pair $pair --member A --session '<A-UUID>' --worktree '<A目录>' --json
+& $py $script join --pair $pair --member B --session '<B-UUID>' --worktree '<B目录>' --json
+# 独占托管会话可用 --new-session 替代 --session。
+& $py $script daemon --pair $pair --json
+```
+
+init 针对已有 Git 仓库；新项目先按授权初始化并提交最小骨架。省略 worktree-root 可绑定已有工作树。两个计划目录都存在时验证复用，部分资源冲突只报告，绝不清理。所有命令有 --help、--json；公共选项可放在子命令前或后。成功 JSON 是 `{ok:true,result:...}`，失败是 `{ok:false,error,type,details}` 并非零退出。
+
+```powershell
+& $py $script assign --pair $pair --task implementation --to A --title '实现' --allow 'src/adder.py' --body-file '.\implementation.txt' --json
+& $py $script assign --pair $pair --task tests --to B --title '测试' --allow 'tests/' --body-file '.\tests.txt' --json
+& $py $script send --pair $pair --from B --to A --kind question --task tests --body-file '.\question.txt' --dedupe-key 'tests-question-1' --json
+& $py $script send --pair $pair --from A --to B --kind reply --task tests --reply-to '<问题ID>' --progress-note '已明确参数边界并给出示例' --body-file '.\answer.txt' --json
+```
+
+任务 pending → active → completed（无提交的工作）或 delivered（含提交）→ integrated。依赖只有 completed/integrated 后满足；同成员同时一个活跃任务；active/blocked 都持有范围。跨目录代码依赖需要 A 先整合到所需 worktree，再选正确基准分配后续任务；不会自动 rebase 或复制他人修改。
+
+收到消息先运行信封 claim_argv。claimed=false 时立即结束，不能再次执行。保留 claim_token，complete 时提供实质结果。正文与结果可用 --body-file 输入 UTF-8（可带 BOM），保留中文、多行、引号、Windows 路径和原换行；与 --body 互斥。重复逻辑请求复用 --dedupe-key；同键不同正文会报错。
+
+```powershell
+# 必须在成员实际工作目录执行。
+& $py $script claim --pair $pair --member B --session '<B-UUID>' --worktree '<B目录>' --message '<消息ID>' --json
+& $py $script complete --pair $pair --member B --session '<B-UUID>' --worktree '<B目录>' --message '<消息ID>' --token '<claim_token>' --commit '<完整SHA>' --body-file '<结果文件>' --json
+```
+
+提问后结束当前回合，保留原任务令牌；不要阻塞轮询等待。问题和回复各自领取、完成；回复发送后完成问题消息，收到回复后完成回复消息再继续原任务。reply 必须关联同任务、方向相反的原问题；一问只计一次。没有 progress-note 的回复计为未进展一轮；三轮阻塞并只通知 A 一次。脚本根据显式证据计数，不声称能语义判断进展。
 
 ## 建立与加入
 
@@ -17,7 +61,7 @@
 3. 选定明确的 `base_ref` 后调用 `create_worktrees`。它创建：
    - 分支 `codex-pair/<协作ID>/a`，目录 `<worktree_root>/<协作ID>-a`
    - 分支 `codex-pair/<协作ID>/b`，目录 `<worktree_root>/<协作ID>-b`
-4. 两个 worktree 必须来自同一个基准 SHA 并共享同一 Git common dir。已有目录或分支会被拒绝，不强制覆盖。
+4. 两个 worktree 必须来自同一个基准 SHA 并共享同一 Git common dir。底层创建函数拒绝已有资源；入口对完整已有计划验证后复用，不强制覆盖。
 5. 若第二步创建失败，报告异常中 `completed_steps` 和 `residual_resources`。不得删除归属不确定的目录或分支。
 
 ### B 加入协作
@@ -33,7 +77,7 @@
 - 提问包含任务 ID、缺失事实和阻塞影响。回复给出结论、依据以及是否可以继续。
 - 阻塞报告包含已完成步骤、原始错误（凭据脱敏）、当前 Git 状态和需要 A 或用户决定的问题。
 - `complete` 交付包含按顺序排列的提交 SHA、实际修改文件、测试命令与结果、已知限制。Git 模块测试通过不等于完整双 CLI 自动协作通过。
-- 消息应有明确目的和停止条件；失败后采用有限重试。对方失联时记录状态并暂停，不无限互发消息。
+- 消息应有明确目的和停止条件；失败后采用有限重试。回复耗时长不判失联，结果不明时保留状态，不自动重新分配正在执行的任务。
 
 ## 允许路径规则
 
@@ -44,6 +88,7 @@
 - 目录必须以 `/` 结尾；不以 `/` 结尾的规则只作精确文件匹配。
 - 空路径、绝对路径、盘符路径，以及包含 `.` 或 `..` 路径段的规则无效。
 - 空允许列表不授权任何文件。
+- 不支持通配符、.git 或盘符/ADS 路径。交付拒绝 merge、根提交、重复提交和基准提交本身。
 
 重命名会按 Git 报告的实际路径校验；任何报告路径超出范围都拒绝交付。A 应在分配时同时授权确需修改的源路径和目标路径。
 
@@ -56,19 +101,28 @@
 5. 只按已验收 SHA 的明确顺序 cherry-pick；不得直接合并整个协作分支。
 6. 每次整合后运行任务测试和最终集成测试，再由 A 检查完整变更并验收。
 
+入口 `integrate --task <ID> [--worktree <接收目录>]` 自动暂停新投递，默认接收方 A，也可明确选择其他已绑定 worktree 或原项目。接收方不得有执行中任务或结果不明回合。指定 --commit 时必须与 complete 记录的顺序一致。SQLite 在每次 cherry-pick 前持久化 SHA、原 HEAD 和下标；冲突后 --continue 会继续当前和剩余提交。中断后核对 HEAD 父提交与稳定 patch-id，结果不明拒绝重复应用。已完成计划重复调用返回同一结果。--abort 仅中止当前冲突，之前成功提交仍保留并报告。
+
 ## 冲突与恢复
 
 - `integrate_commits` 返回 `status: conflict` 时保留 index、工作树和 `CHERRY_PICK_HEAD`，同时返回冲突文件。不得自动 reset 或覆盖文件。
-- 用户或 A 明确解决冲突并 `git add` 后，调用 `continue_integration`。该接口只有在存在 cherry-pick 状态时才运行。
+- 在已有任务授权内明确解决冲突并只暂存对应文件后，调用 `integrate --continue`。涉及未知用户修改或多种语义时请求用户决定，不强制覆盖。
 - 明确决定放弃本次 cherry-pick 时调用 `abort_integration`。该接口同样先确认 cherry-pick 状态。
 - 继续失败且状态仍存在时，仍返回冲突状态；保留现场再次处理。
 
 ## 暂停、停止与审批
 
-- `pause` 保留会话、任务和 worktree 状态；`resume` 必须重新验证会话及工作目录。
+- `pause` 与开始投递共用边界锁，返回后不开始新投递；已接受的 Codex 队列或回合可继续。resume 后每次投递重新验证会话和工作目录。
+- `stop` 保留状态和代码；退出会清理 managed 子进程，未完成领取不自动重做。status --probe 3 --json 可确认守护程序挑战响应。
 - `stop` 不等于授权删除分支、worktree 或状态。清理必须单独确认具体目标和归属。
 - 命令需要审批时，将准确命令、目的和影响交给用户；审批被拒绝后暂停相关动作，不寻找绕过方式。
 - 不扩大原任务授权，不把仓库凭据、令牌、环境机密或认证头写入消息、SQLite 或错误诊断。
+
+## 验证与双窗口人工步骤
+
+`python -m unittest discover -v` 运行本地测试。显式设置 CODEX_PAIR_REAL_TEST=1、CODEX_PAIR_REAL_CORE_TEST=1、CODEX_PAIR_REAL_INTEGRATION=1 后，可运行 tests.test_transport.RealTransportTests、tests.test_core.RealCoreTests、tests.test_integration.RealIntegrationTests。真实测试仅创建独立测试会话；证据写在 CODEX_HOME/codex-pair 验证目录，集成 worktree 保留。
+
+两个可见 TUI 窗口的人工验收：在 A/B 各自目录启动 codex，让各自用实际 UUID 执行 join；第三个终端运行 daemon。按上述命令分配任务、提问、关联回复、提交交付，再 integrate 并测试。记录 UUID、消息 ID、提交 SHA 和 status，不能只检查 Queued 回执。禁止模拟键盘或根据窗口标题推测 UUID。未执行的可见双窗口验收必须明确列为未完成。
 
 ## Git 接口返回结构
 

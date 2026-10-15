@@ -306,6 +306,8 @@ def _normalize_allowed_path(value: str) -> tuple[str, bool]:
         or re.match(r"^[A-Za-z]:", raw)
         or pure.is_absolute()
         or any(part in ("", ".", "..") for part in raw_parts)
+        or any(part.casefold() == ".git" for part in raw_parts)
+        or any(char in raw for char in ":*?[")
     ):
         raise GitError(f"允许路径必须是无越界部分的仓库相对路径：{value}")
     return pure.as_posix(), is_directory
@@ -396,6 +398,13 @@ def check_delivery(
             reasons.append(f"提交不存在：{supplied}")
             continue
         resolved.append(commit)
+        if commit == base:
+            reasons.append(f"基准提交本身不能作为新交付：{supplied}")
+        if resolved.count(commit) > 1:
+            reasons.append(f"交付提交重复：{supplied}")
+        parents = _git(root, ["rev-list", "--parents", "-n", "1", commit]).stdout.split()[1:]
+        if len(parents) != 1:
+            reasons.append(f"交付仅接受普通单父提交，不接受根提交或 merge 提交：{supplied}")
         if not _is_ancestor(root, commit, head):
             reasons.append(f"提交不属于当前任务分支：{supplied}")
         if base is not None and not _is_ancestor(root, base, commit):
@@ -441,6 +450,8 @@ def _conflict_files(worktree: str) -> list[str]:
 def integrate_commits(worktree: str, commits: list[str]) -> dict:
     """按给定 SHA 顺序 cherry-pick；冲突时保留现场。"""
 
+    if not commits:
+        raise GitError("整合提交列表不能为空")
     root, _ = _repo_paths(worktree)
     if _cherry_pick_in_progress(root):
         raise GitError("已有 cherry-pick 正在进行；请先继续或中止")

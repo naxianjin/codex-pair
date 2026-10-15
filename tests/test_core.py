@@ -136,7 +136,7 @@ class CoreTests(unittest.TestCase):
         self.assertEqual(tasks['dependent']['status'],'pending')
 
     def test_overlapping_scopes_not_active_together(self):
-        self.task(paths=('Src/Shared',))
+        self.task(paths=('Src/Shared/',))
         self.assertEqual(self.task('overlap',to='A',paths=('src/shared/file.py',))['status'],'pending')
         self.assertEqual(self.task('independent',to='A',paths=('src/separate.py',))['status'],'active')
         self.assertTrue(scopes_overlap(['src/a*.py'],['src/anything.py']))

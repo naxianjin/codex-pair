@@ -236,6 +236,15 @@ class AppServer:
             raise TransportError('Ephemeral session cannot recover / 临时会话无法崩溃恢复')
         if self.backend == 'shared' and thread.get('status', {}).get('type') == 'notLoaded':
             raise TransportError('Session is not loaded by this server / 目标会话未由当前服务器加载')
+        proof=member.get('proof')
+        proof=json.loads(proof) if isinstance(proof,str) else proof
+        if proof and proof.get('git'):
+            try:from .pair_git import validate_worktree
+            except ImportError:from pair_git import validate_worktree
+            expected=proof['git']
+            validation=validate_worktree(member['cwd'],expected['common_dir'],expected['branch'])
+            if not validation['valid']:
+                raise TransportError('Git worktree identity mismatch / Git worktree 身份不符: '+json.dumps(validation['reasons'],ensure_ascii=False))
         return thread
 
     def resume(self, member):

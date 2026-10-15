@@ -1,7 +1,7 @@
 """事务性任务、持久化发件箱与本地守护进程。不根据回复耗时重派任务。"""
 from __future__ import annotations
 
-from contextlib import contextmanager
+from contextlib import closing, contextmanager
 import hashlib
 import json
 import os
@@ -39,16 +39,15 @@ def effective_home():
 def normalize_scopes(paths):
     result = []
     for path in paths:
-        path = path.replace('\\', '/').rstrip('/')
-        if path in ('.', '**', '*'):
-            result.append('.')
-            continue
+        path = path.replace('\\', '/')
+        directory=path.endswith('/')
+        path=path.rstrip('/')
         if not path or path.startswith('/') or ':' in path:
             raise PairError('Scopes must be repository-relative / 修改范围必须是仓库相对路径')
         parts = path.split('/')
-        if any(p in ('', '.', '..') for p in parts) or '.git' in [p.casefold() for p in parts]:
+        if any(p in ('', '.', '..') for p in parts) or '.git' in [p.casefold() for p in parts] or any(c in path for c in '*?['):
             raise PairError('Unsafe modification scope / 不安全的修改范围')
-        result.append(path)
+        result.append(path+'/' if directory else path)
     if not result:
         raise PairError('At least one allowed path is required / 至少指定一个修改范围')
     return sorted(set(result))
@@ -57,7 +56,7 @@ def normalize_scopes(paths):
 def scopes_overlap(first, second):
     def prefix(path):
         parts=[]
-        for part in path.replace('\\','/').casefold().split('/'):
+        for part in path.replace('\\','/').casefold().rstrip('/').split('/'):
             if any(char in part for char in '*?['):
                 break
             parts.append(part)
@@ -142,6 +141,18 @@ CREATE INDEX messages_outbox ON messages(delivery_status, next_attempt, created)
 PRAGMA user_version=1;
 '''
 
+MIGRATION_2='''
+BEGIN IMMEDIATE;
+ALTER TABLE tasks ADD COLUMN base_commit TEXT;
+CREATE TABLE git_context(id INTEGER PRIMARY KEY CHECK(id=1), data TEXT NOT NULL);
+CREATE TABLE integrations(id TEXT PRIMARY KEY, task_id TEXT NOT NULL REFERENCES tasks(id),
+ receiver TEXT NOT NULL, commits_json TEXT NOT NULL, next_index INTEGER NOT NULL DEFAULT 0,
+ status TEXT NOT NULL, before_head TEXT, current_commit TEXT, result_json TEXT,
+ created REAL NOT NULL, updated REAL NOT NULL);
+PRAGMA user_version=2;
+COMMIT;
+'''
+
 
 class Store:
     def __init__(self, pair_id, *, home=None, create=False):
@@ -153,6 +164,16 @@ class Store:
             raise PairError('Pair not initialized / 协作尚未初始化: '+pair_id)
         self.control_lock = self.directory/'dispatch.lock'
         self.daemon_lock = self.directory/'daemon.lock'
+        if not create:
+            self._upgrade()
+
+    def _upgrade(self):
+        with closing(sqlite3.connect(self.path)) as db:
+            version=db.execute('PRAGMA user_version').fetchone()[0]
+        if version==2:return
+        if version!=1:raise PairError('Unsupported schema / 不支持的数据库版本')
+        with FileLock(self.control_lock,timeout=30),closing(sqlite3.connect(self.path)) as db:
+            if db.execute('PRAGMA user_version').fetchone()[0]==1:db.executescript(MIGRATION_2)
 
     @contextmanager
     def transaction(self):
@@ -188,8 +209,9 @@ class Store:
                 if version == 0:
                     db.execute('PRAGMA journal_mode=WAL')
                     db.executescript(SCHEMA)
-                elif version != 1:
+                elif version not in (1,2):
                     raise PairError('Unsupported schema / 不支持的数据库版本')
+                if db.execute('PRAGMA user_version').fetchone()[0]==1:db.executescript(MIGRATION_2)
             finally:
                 db.close()
             with store.transaction() as db:
@@ -212,6 +234,36 @@ class Store:
     def member(self, member_id):
         with self.transaction() as db:
             return self._member(db, member_id)
+
+    def git_context(self):
+        with self.transaction() as db:
+            row=db.execute('SELECT data FROM git_context WHERE id=1').fetchone()
+            return json.loads(row[0]) if row else None
+
+    def configure_git(self,repo,worktrees=None):
+        with self.transaction() as db:
+            row=db.execute('SELECT data FROM git_context WHERE id=1').fetchone()
+            data=json.loads(row[0]) if row else {'repo':repo,'worktrees':{}}
+            if canonical_path(data['repo']['common_dir'])!=canonical_path(repo['common_dir']):
+                raise PairError('Git repository identity changed / 公共 Git 目录发生变化')
+            if worktrees:
+                if data['worktrees'] and data['worktrees']!=worktrees:
+                    raise PairError('Existing worktree plan differs / 已有 worktree 计划不同，拒绝覆盖')
+                data['worktrees']=worktrees
+            db.execute('INSERT INTO git_context VALUES(1,?) ON CONFLICT(id) DO UPDATE SET data=excluded.data',(dumps(data),))
+            return data
+
+    def task(self,task_id):
+        with self.transaction() as db:
+            row=db.execute('SELECT * FROM tasks WHERE id=?',(task_id,)).fetchone()
+            if not row:raise PairError('Task not found / 任务不存在: '+task_id)
+            return dict(row)
+
+    def message(self,message_id):
+        with self.transaction() as db:
+            row=db.execute('SELECT * FROM messages WHERE id=?',(message_id,)).fetchone()
+            if not row:raise PairError('Message not found / 消息不存在: '+message_id)
+            return dict(row)
 
     def join(self, member_id, session, cwd, *, backend, owned, proof):
         if member_id not in ('A','B'):
@@ -288,7 +340,7 @@ class Store:
         with self.transaction() as db:
             return self._send(db,sender,recipient,body,**kwargs)
 
-    def assign(self, task_id, title, assignee, allowed_paths, *, body='', dependencies=()):
+    def assign(self, task_id, title, assignee, allowed_paths, *, body='', dependencies=(),base_commit=None):
         identifier(task_id);allowed_paths=normalize_scopes(allowed_paths)
         if not title.strip():
             raise PairError('Task needs a title / 任务需要标题')
@@ -300,8 +352,9 @@ class Store:
                 if not db.execute('SELECT 1 FROM tasks WHERE id=?',(dependency,)).fetchone():
                     raise PairError('Dependency not found / 依赖任务不存在: '+dependency)
             now=time.time()
-            db.execute('INSERT INTO tasks(id,title,body,assignee,allowed_paths,status,created,updated) VALUES(?,?,?,?,?,?,?,?)',
-                       (task_id,title,body,assignee,dumps(allowed_paths),'pending',now,now))
+            base_commit=base_commit or db.execute('SELECT base_commit FROM collaborations').fetchone()[0]
+            db.execute('INSERT INTO tasks(id,title,body,assignee,allowed_paths,status,created,updated,base_commit) VALUES(?,?,?,?,?,?,?,?,?)',
+                       (task_id,title,body,assignee,dumps(allowed_paths),'pending',now,now,base_commit))
             db.executemany('INSERT INTO dependencies VALUES(?,?)',[(task_id,d) for d in set(dependencies)])
             self.event(db,'task_assigned',task=task_id,assignee=assignee)
             self._schedule(db)
@@ -417,7 +470,8 @@ class Store:
             result={'pair':dict(db.execute('SELECT * FROM collaborations').fetchone()),
                     'members':[dict(r) for r in db.execute('SELECT id,session_uuid,cwd,backend,owned FROM members')],
                     'tasks':[dict(r) for r in db.execute('SELECT * FROM tasks ORDER BY created')],
-                    'messages':[dict(r) for r in db.execute('SELECT id,sender,recipient,task_id,kind,delivery_status,process_status,attempts,turn_id,remote_status,error,created,updated FROM messages ORDER BY created')],
+                    'messages':[dict(r) for r in db.execute('SELECT id,sender,recipient,task_id,kind,delivery_status,process_status,attempts,queue_id,turn_id,remote_status,remote_result,error,created,updated FROM messages ORDER BY created')],
+                    'integrations':[dict(r) for r in db.execute('SELECT * FROM integrations ORDER BY created')],
                     'runtime':dict(db.execute('SELECT * FROM runtime').fetchone()),
                     'recent_events':[dict(r) for r in db.execute('SELECT * FROM events ORDER BY seq DESC LIMIT 30')],
                     'last_event':db.execute('SELECT max(seq) FROM events').fetchone()[0], 'state_directory':str(self.directory)}
@@ -434,7 +488,9 @@ class Store:
         payload={'protocol':'codex-pair/1','message_id':message['id'],'pair_id':self.pair_id,
                  'sender':message['sender'],'recipient':message['recipient'],'kind':message['kind'],
                  'task':dict(task) if task else None,'body':message['body'],
-                 'instructions':'先运行 claim_argv，只有 claimed=true 才执行。领取失败则立即结束且不回复收到/谢谢。完成后调用 complete，带回 claim_token 与实质结果。不要根据本消息自行重派任务。',
+                 'skill_path':str(Path(script).parent.parent/'SKILL.md'),
+                 'state_directory':str(self.directory),
+                 'instructions':'先运行 claim_argv，只有 claimed=true 才执行；然后阅读 skill_path 和 references/protocol.md。领取失败则立即结束，不回复收到/谢谢。完成后调用 complete，带回 claim_token 与实质结果。提问后结束回合，保留原任务令牌；收到回复后完成回复消息并继续原任务。不要自行重派任务。',
                  'claim_argv':common+['claim']+binding+['--message',message['id']],
                  'complete_argv_template':common+['complete']+binding+['--message',message['id'],'--token','<claim_token>','--body-file','<UTF-8-result-file>']}
         return json.dumps(payload,ensure_ascii=True)
@@ -454,12 +510,12 @@ class Daemon:
             if db.execute('SELECT status FROM collaborations').fetchone()[0]!='running':
                 return None
             message=db.execute("""SELECT m.* FROM messages m WHERE m.delivery_status IN ('pending','retry')
-                AND m.process_status='unclaimed' AND m.next_attempt<=? AND NOT EXISTS
-                (SELECT 1 FROM messages busy WHERE busy.recipient=m.recipient AND busy.id<>m.id
+                AND m.process_status='unclaimed' AND m.next_attempt<=? AND m.attempts<? AND NOT EXISTS
+                (SELECT 1 FROM messages busy WHERE busy.recipient=m.recipient AND busy.id<>m.id AND busy.process_status<>'completed'
                  AND (busy.delivery_status IN ('delivering','unknown') OR
                       (busy.delivery_status='accepted' AND (busy.remote_status IS NULL OR busy.remote_status IN ('inProgress','queued')))))
                 AND (m.kind<>'task' OR EXISTS (SELECT 1 FROM tasks t WHERE t.id=m.task_id AND t.status='active'))
-                ORDER BY m.created,m.id LIMIT 1""",(time.time(),)).fetchone()
+                ORDER BY m.created,m.id LIMIT 1""",(time.time(),self.max_attempts)).fetchone()
             if not message:return None
             if message['task_id'] and message['kind']=='task':
                 if db.execute('SELECT status FROM tasks WHERE id=?',(message['task_id'],)).fetchone()[0]!='active':
@@ -517,8 +573,9 @@ class Daemon:
                 continue  # 无回复、断线、等待批准均不重派正在执行的任务。
             if receipt:
                 with self.store.transaction() as db:
-                    db.execute("UPDATE messages SET delivery_status='accepted',turn_id=?,remote_status=?,remote_result=?,updated=? WHERE id=?",
-                               (receipt['turn_id'],receipt['remote_status'],dumps(receipt.get('result')),time.time(),message['id']))
+                    db.execute("UPDATE messages SET delivery_status='accepted',turn_id=?,remote_status=?,remote_result=?,error=?,updated=? WHERE id=?",
+                               (receipt['turn_id'],receipt['remote_status'],dumps({'messages':receipt.get('result'),'error':receipt.get('error')}),
+                                dumps(receipt['error']) if receipt.get('error') else None,time.time(),message['id']))
                     if receipt['remote_status']!=message['remote_status']:
                         self.store.event(db,'remote_turn_status',message=message['id'],status=receipt['remote_status'])
 
