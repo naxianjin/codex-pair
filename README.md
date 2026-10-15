@@ -23,6 +23,27 @@
 - Windows；Python 3.10+；Git。
 - 已使用官方账号登录的官方 Codex CLI，需要可用的 `queue` 和 `app-server` 接口。本机曾使用 CLI 0.162.1 验证，其他版本的接口兼容性需自行验证。
 
+### 直接下载 Skill（推荐）
+
+[下载 codex-pair.zip](https://github.com/naxianjin/codex-pair/releases/latest/download/codex-pair.zip) · [SHA-256 校验文件](https://github.com/naxianjin/codex-pair/releases/latest/download/SHA256SUMS.txt) · [版本发布页](https://github.com/naxianjin/codex-pair/releases/latest)
+
+这是可安装的 skill 包，解压后直接得到 `codex-pair/` 文件夹，内含 `SKILL.md`、`agents/`、`scripts/` 和 `references/`；不包含源码测试、Git 历史、账号配置或协作记录。
+
+在参与窗口自己的账号环境中运行以下 PowerShell 命令即可下载并安装，无需克隆仓库：
+
+```powershell
+$pairAccountRoot = if ($env:CODEX_HOME) { $env:CODEX_HOME } else { Join-Path $env:USERPROFILE '.codex' }
+$pairDownload = Join-Path ([IO.Path]::GetTempPath()) ('codex-pair-' + [guid]::NewGuid().ToString('N'))
+New-Item -ItemType Directory -Path $pairDownload | Out-Null
+Invoke-WebRequest 'https://github.com/naxianjin/codex-pair/releases/latest/download/codex-pair.zip' -OutFile (Join-Path $pairDownload 'codex-pair.zip')
+Expand-Archive -LiteralPath (Join-Path $pairDownload 'codex-pair.zip') -DestinationPath $pairDownload
+python (Join-Path $pairDownload 'codex-pair/scripts/install_skill.py') --source (Join-Path $pairDownload 'codex-pair') --home $pairAccountRoot
+```
+
+安装后目录为 `<有效 CODEX_HOME>/skills/codex-pair/SKILL.md`。已有同名 skill 会先备份，再校验安装文件哈希。也可以手动解压，将整个 `codex-pair` 文件夹放到该环境的 `skills` 目录；手动替换旧版前请自行备份。
+
+### 从源码安装
+
 克隆仓库：
 
 ```powershell
@@ -59,7 +80,7 @@ python scripts/install_skill.py --source . --home (Join-Path $env:USERPROFILE '.
 python -m unittest discover -v
 ```
 
-当前离线测试共 88 项：85 项通过，3 项真实测试默认跳过。覆盖账号路由、原子领取、重复邀请、同账号两个会话、项目外 cwd、共享工作树串行、独立工作树并行、消息桥恢复、启动锁竞争、旧库升级和安装哈希。
+当前离线测试共 90 项：87 项通过，3 项真实测试默认跳过。覆盖账号路由、原子领取、重复邀请、同账号两个会话、项目外 cwd、共享工作树串行、独立工作树并行、消息桥恢复、启动锁竞争、旧库升级、安装哈希及下载包解压安装。
 
 此前使用两个独立官方账号验证过后台托管会话的问答、交付、去重、重启和冲突整合；当前两个可见 TUI 的新入口流程尚未完成完整实机问答验收。请以实际 `status.window_flow.communication=verified` 为自动通信通过的证据。
 
