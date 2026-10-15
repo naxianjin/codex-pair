@@ -17,7 +17,7 @@ class TransportError(RuntimeError):
     """确定尚未投递的错误；只有 retryable=True 时允许有限重试。"""
 
     def __init__(self, message, *, retryable=False):
-        super().__init__(message)
+        super().__init__(redact_diagnostic(str(message)))
         self.retryable = retryable
 
 
@@ -31,8 +31,21 @@ class SessionBusy(TransportError):
 
 class RpcError(TransportError):
     def __init__(self, error):
-        self.error = error
-        super().__init__(json.dumps(error, ensure_ascii=False))
+        self.error = redact_diagnostic(error)
+        super().__init__(json.dumps(self.error, ensure_ascii=False))
+
+
+def redact_diagnostic(value):
+    """诊断中的 API 令牌和认证字段不写入证据或共享状态。"""
+    if isinstance(value,str):
+        value=re.sub(r'\bsk-[A-Za-z0-9_-]+','[REDACTED]',value)
+        return re.sub(r'(?i)(\bBearer\s+)[A-Za-z0-9._~+/=\-]+',r'\1[REDACTED]',value)
+    if isinstance(value,dict):
+        sensitive={'api_key','apikey','authorization','access_token','refresh_token','bearer_token',
+                   'experimental_bearer_token','password','secret'}
+        return {key:('[REDACTED]' if str(key).lower() in sensitive else redact_diagnostic(item)) for key,item in value.items()}
+    if isinstance(value,list):return [redact_diagnostic(item) for item in value]
+    return value
 
 
 def canonical_path(path):
@@ -47,6 +60,49 @@ def session_uuid(value):
     if parsed != value.lower():
         raise TransportError("Use a full session UUID / 必须使用完整会话 UUID")
     return parsed
+
+
+def provider_identity(proof):
+    """只使用 thread/read 的提供方，不从模型名、账号目录或登录文件猜测。"""
+    provider=proof.get('modelProvider')
+    supported=provider in ('openai','deepseek')
+    model=proof.get('model')
+    if not isinstance(model,str) or not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9._:/+\-]{0,127}',model) or model.startswith('sk-'):
+        model=None
+    return {'provider':provider if supported else None,'model':model,
+            'metadata_status':'verified' if supported else ('missing' if provider is None else 'unsupported'),
+            'source':'binding_snapshot'}
+
+
+def binding_proof(thread, *, require_provider=False):
+    """持久化白名单，拒绝把线程预览、认证、任意 extra 或历史回合写入绑定。"""
+    identity=provider_identity(thread)
+    if identity['metadata_status']=='unsupported':
+        raise TransportError('Unsupported model provider / 当前仅支持 OpenAI 与 DeepSeek 提供方')
+    if require_provider and identity['metadata_status']=='missing':
+        raise TransportError('Provider metadata missing / 无法从当前会话确认提供方，不猜测兼容性')
+    proof={'id':session_uuid(thread['id']),'cwd':canonical_path(thread['cwd']),
+           'ephemeral':bool(thread.get('ephemeral'))}
+    if identity['provider'] is not None:proof['modelProvider']=identity['provider']
+    if identity['model'] is not None:proof['model']=identity['model']
+    version=thread.get('cliVersion')
+    if isinstance(version,str) and re.fullmatch(r'[0-9][A-Za-z0-9.+\-]{0,63}',version):
+        proof['cliVersion']=version
+    git=thread.get('git')
+    if isinstance(git,dict):
+        proof['git']={key:git[key] for key in ('path','common_dir','branch') if isinstance(git.get(key),str)}
+        if isinstance(git.get('valid'),bool):proof['git']['valid']=git['valid']
+    return proof
+
+
+def control_environment(codex_home=None):
+    """旁路控制只读元数据或投递队列，不继承发起者的推理凭据和会话身份。"""
+    environment=os.environ.copy()
+    for key in list(environment):
+        if key.upper() in ('OPENAI_BASE_URL','CODEX_THREAD_ID') or key.upper().endswith(('_API_KEY','_AUTH_TOKEN','_ACCESS_TOKEN','_BEARER_TOKEN')):
+            environment.pop(key)
+    if codex_home is not None:environment['CODEX_HOME']=str(codex_home)
+    return environment
 
 
 def codex_command(executable=None):
@@ -115,10 +171,11 @@ class AppServer:
     """一条长连接。managed 拥有独立进程；shared 仅代理现有守护进程。"""
 
     def __init__(self, *, backend='managed', executable=None, codex_home=None,
-                 cwd=None, timeout=15, evidence=None, process_factory=subprocess.Popen):
+                 cwd=None, timeout=15, evidence=None, process_factory=subprocess.Popen, metadata_only=False):
         if backend not in ('managed', 'shared'):
             raise TransportError('Invalid backend / 无效传输后端')
         self.backend, self.timeout = backend, timeout
+        self.metadata_only=metadata_only
         self._next_id = 0
         self._pending = {}
         self._condition = threading.Condition()
@@ -129,7 +186,7 @@ class AppServer:
         self._evidence = evidence
         argv = codex_command(executable) + ['app-server']
         argv += ['proxy'] if backend == 'shared' else ['--listen', 'stdio://']
-        env = os.environ.copy()
+        env = control_environment(codex_home) if metadata_only else os.environ.copy()
         if codex_home is not None:
             env['CODEX_HOME'] = str(codex_home)
         self._stderr = []
@@ -161,7 +218,7 @@ class AppServer:
 
     def _record(self, direction, value):
         if self._evidence:
-            self._evidence({'time': time.time(), 'direction': direction, 'value': value})
+            self._evidence({'time': time.time(), 'direction': direction, 'value': redact_diagnostic(value)})
 
     def _read(self):
         try:
@@ -206,6 +263,8 @@ class AppServer:
         self._write({'method': method, 'params': params})
 
     def rpc(self, method, params, *, timeout=None):
+        if getattr(self,'metadata_only',False) and method not in ('initialize','thread/read','thread/turns/list'):
+            raise TransportError('Metadata-only observer / 只读观察进程拒绝非元数据 RPC')
         with self._condition:
             if self._dead:
                 raise TransportError('App-server disconnected / app-server 已断开: ' + '\n'.join(self._stderr), retryable=True)
@@ -242,6 +301,9 @@ class AppServer:
             raise TransportError('Session is not loaded by this server / 目标会话未由当前服务器加载')
         proof=member.get('proof')
         proof=json.loads(proof) if isinstance(proof,str) else proof
+        actual=binding_proof(thread)
+        if proof and proof.get('modelProvider') and proof['modelProvider']!=actual.get('modelProvider'):
+            raise TransportError('Model provider changed / 会话提供方与绑定记录不符，不静默换用配置')
         if proof and proof.get('git'):
             try:from .pair_git import validate_worktree
             except ImportError:from pair_git import validate_worktree
@@ -252,17 +314,23 @@ class AppServer:
         return thread
 
     def resume(self, member):
+        if getattr(self,'metadata_only',False):
+            raise TransportError('Metadata-only observer / 只读观察进程不能恢复或启动模型回合')
         self.validate(member)
         # 不覆盖 cwd、模型、权限或登录配置。
         return self.rpc('thread/resume', {'threadId': member['session_uuid'], 'excludeTurns': True})
 
     def create_session(self, cwd):
+        if getattr(self,'metadata_only',False):
+            raise TransportError('Metadata-only observer / 只读观察进程不能创建模型会话')
         if self.backend != 'managed':
             raise TransportError('New sessions require managed backend / 新建会话需要 managed 后端')
         thread = self.rpc('thread/start', {'cwd': str(Path(cwd).resolve(strict=True))})['thread']
         return thread
 
     def start(self, member, message):
+        if getattr(self,'metadata_only',False):
+            raise TransportError('Metadata-only observer / 只读观察进程不能启动模型回合')
         thread = self.validate(member)
         status = thread.get('status', {}).get('type')
         if status != 'idle':
@@ -303,7 +371,7 @@ class AppServer:
                 return {'turn_id': turn['id'], 'remote_status': state,
                         'reported_status':turn['status'],'completed_at':turn.get('completedAt'),
                         'result': [item.get('text', '') for item in turn.get('items', [])
-                                   if item.get('type') == 'agentMessage'], 'error': turn.get('error')}
+                                   if item.get('type') == 'agentMessage'], 'error': redact_diagnostic(turn.get('error'))}
         return None  # 查不到不是“未投递”的证明。
 
     def wait_turn(self, thread_id, turn_id, *, timeout=120):
@@ -400,10 +468,8 @@ class QueueTransport:
         self.command=codex_command(executable)
         self.timeout=timeout
         self.cwd=cwd
-        self.environment=os.environ.copy()
-        if codex_home is not None:
-            self.environment['CODEX_HOME']=str(codex_home)
-        self.observer=AppServer(codex_home=codex_home, executable=executable,cwd=cwd,timeout=timeout)
+        self.environment=control_environment(codex_home)
+        self.observer=AppServer(codex_home=codex_home, executable=executable,cwd=cwd,timeout=timeout,metadata_only=True)
 
     @property
     def _dead(self):

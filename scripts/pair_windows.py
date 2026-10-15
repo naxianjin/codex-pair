@@ -14,11 +14,11 @@ import uuid
 
 try:
     from .pair_core import FileLock, PairError, Store, dumps, effective_home, member_workspace
-    from .pair_transport import AppServer, canonical_path, session_uuid
+    from .pair_transport import AppServer, canonical_path, session_uuid, binding_proof
     from . import pair_git
 except ImportError:
     from pair_core import FileLock, PairError, Store, dumps, effective_home, member_workspace
-    from pair_transport import AppServer, canonical_path, session_uuid
+    from pair_transport import AppServer, canonical_path, session_uuid, binding_proof
     import pair_git
 
 
@@ -32,12 +32,12 @@ def current_window(executable=None):
         raise PairError('Current CLI required / 请在要参与协作的 Codex 窗口内调用技能，无法从普通终端猜测窗口')
     current={'session_uuid':session_uuid(value),'cwd':canonical_path(Path.cwd()),
              'codex_home':canonical_path(effective_home())}
-    with AppServer(codex_home=current['codex_home'],cwd=current['cwd'],executable=executable) as observer:
+    with AppServer(codex_home=current['codex_home'],cwd=current['cwd'],executable=executable,metadata_only=True) as observer:
         # 工具可能临时设置了 workdir；会话根目录从当前 UUID 的元数据读取。
         # 这既不挑选其他历史会话，也不把临时工具目录误登记成 CLI 根目录。
         thread=observer.read_thread(current['session_uuid'])
         current['cwd']=canonical_path(thread['cwd'])
-        current['proof']=observer.validate(current)
+        current['proof']=binding_proof(observer.validate(current),require_provider=True)
     return current
 
 
@@ -156,7 +156,7 @@ def start(args, cli):
         existing=store.member(role)
         if existing['session_uuid']!=window['session_uuid'] or canonical_path(existing['codex_home'])!=window['codex_home']:
             raise PairError('Another window already bound / 该角色已绑定其他窗口，不自动替换')
-        with AppServer(codex_home=window['codex_home'],cwd=window['cwd'],executable=getattr(args,'codex',None)) as observer:
+        with AppServer(codex_home=window['codex_home'],cwd=window['cwd'],executable=getattr(args,'codex',None),metadata_only=True) as observer:
             observer.validate(existing)
     else:
         store=Store.initialize(pair_id,project,repo['head'],home=window['codex_home'],state_root=root)

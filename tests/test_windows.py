@@ -28,7 +28,7 @@ class WindowTests(unittest.TestCase):
             home=self.root/('arbitrary-account-'+str(index));home.mkdir()
             sid='00000000-0000-0000-0000-'+str(index).zfill(12)
             self.windows[member]={'session_uuid':sid,'cwd':canonical_path(cwd),'codex_home':canonical_path(home),
-                'proof':{'id':sid,'cwd':canonical_path(cwd)}}
+                'proof':{'id':sid,'cwd':canonical_path(cwd),'modelProvider':'openai','model':'test-model'}}
         self.bridge_patch=patch('scripts.pair_windows.bridge',return_value={'running':True,'pid':123,'reused':False})
         self.fake_bridge=self.bridge_patch.start()
         self.addCleanup(self.bridge_patch.stop)

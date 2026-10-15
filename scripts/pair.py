@@ -13,11 +13,11 @@ import uuid
 
 try:
     from .pair_core import Daemon, FileLock, PairError, Store, dumps, effective_home, member_workspace
-    from .pair_transport import AppServer, QueueTransport, TransportError, TransportPool, canonical_path
+    from .pair_transport import AppServer, QueueTransport, TransportError, TransportPool, canonical_path, binding_proof
     from . import pair_git
 except ImportError:
     from pair_core import Daemon, FileLock, PairError, Store, dumps, effective_home, member_workspace
-    from pair_transport import AppServer, QueueTransport, TransportError, TransportPool, canonical_path
+    from pair_transport import AppServer, QueueTransport, TransportError, TransportPool, canonical_path, binding_proof
     import pair_git
 
 
@@ -140,7 +140,7 @@ def validate_actor(store,args):
         raise PairError('Member account mismatch / 当前账号目录与成员绑定不符，禁止回退另一账号')
     if member['session_uuid']!=args.session.lower() or member['cwd']!=canonical_path(args.worktree):
         raise PairError('Member binding mismatch / 成员的会话或工作目录不符')
-    with AppServer(codex_home=member['codex_home'], executable=getattr(args,'codex',None),cwd=member['cwd']) as observer:
+    with AppServer(codex_home=member['codex_home'], executable=getattr(args,'codex',None),cwd=member['cwd'],metadata_only=True) as observer:
         observer.validate(member)
 
 
@@ -392,7 +392,7 @@ def execute(args):
             if existing:
                 if existing['cwd']!=cwd or existing['backend']!='managed' or canonical_path(existing['codex_home'])!=canonical_path(home) or existing['delivery_mode']!=args.delivery_mode:
                     raise PairError('Member already bound differently / 成员已有不同绑定')
-                with AppServer(codex_home=home,executable=executable,cwd=cwd) as observer:observer.validate(existing)
+                with AppServer(codex_home=home,executable=executable,cwd=cwd,metadata_only=True) as observer:observer.validate(existing)
                 return existing
             with AppServer(codex_home=home,executable=executable,cwd=cwd) as client:
                 thread=client.create_session(cwd)
@@ -401,13 +401,13 @@ def execute(args):
                 completion=client.wait_turn(thread['id'],receipt['turn_id'])
                 if completion['status']!='completed':
                     raise PairError('Session bootstrap failed / 会话初始化回合未完成')
-                proof=client.validate(member)
+                proof=binding_proof(client.validate(member),require_provider=True)
                 proof['git']=git_proof
                 return store.join(args.member,thread['id'],cwd,backend=backend,owned=True,proof=proof,member_codex_home=home,delivery_mode=args.delivery_mode)
         if backend=='managed':
             raise PairError('Use --new-session for managed sessions / 独占会话须由 --new-session 创建')
-        with AppServer(backend='shared' if backend=='shared' else 'managed',codex_home=home,executable=executable,cwd=cwd) as client:
-            proof=client.validate({'session_uuid':args.session,'cwd':cwd})
+        with AppServer(backend='shared' if backend=='shared' else 'managed',codex_home=home,executable=executable,cwd=cwd,metadata_only=True) as client:
+            proof=binding_proof(client.validate({'session_uuid':args.session,'cwd':cwd}),require_provider=True)
             proof['git']=git_proof
             return store.join(args.member,args.session,cwd,backend=backend,owned=False,proof=proof,member_codex_home=home,delivery_mode=args.delivery_mode)
     if args.command=='assign':

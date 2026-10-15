@@ -13,9 +13,9 @@ import time
 import uuid
 
 try:
-    from .pair_transport import DeliveryUnknown, SessionBusy, TransportError, canonical_path, session_uuid
+    from .pair_transport import DeliveryUnknown, SessionBusy, TransportError, canonical_path, session_uuid, binding_proof, provider_identity
 except ImportError:
-    from pair_transport import DeliveryUnknown, SessionBusy, TransportError, canonical_path, session_uuid
+    from pair_transport import DeliveryUnknown, SessionBusy, TransportError, canonical_path, session_uuid, binding_proof, provider_identity
 
 
 class PairError(RuntimeError):
@@ -357,6 +357,7 @@ class Store:
             raise PairError('Binding proof mismatch / 会话绑定证据不符')
         if proof.get('ephemeral'):
             raise PairError('Ephemeral session rejected / 不接受无法恢复的临时会话')
+        proof=binding_proof(proof)
         with self.transaction() as db:
             existing=db.execute('SELECT * FROM members WHERE id=?',(member_id,)).fetchone()
             if existing:
@@ -609,6 +610,16 @@ class Store:
             result['runtime'].update(lock_held=held,probe_confirmed=bool(nonce and db.execute('SELECT probe_ack FROM runtime').fetchone()[0]==nonce))
             for member in result['members']:
                 member['workspace']=member_workspace(member)
+                member['connection']=provider_identity(json.loads(member['proof']))
+                received=[m for m in result['messages'] if m['recipient']==member['id']]
+                auto=member['delivery_mode']=='auto'
+                member['capabilities']={
+                    'session_identity':'verified',
+                    'queue_delivery':('accepted' if auto and member['backend']=='queue' and any(m['delivery_status']=='accepted' for m in received) else 'unverified'),
+                    'turn_completion':('verified' if auto and any(m['remote_status']=='completed' for m in received) else 'unverified'),
+                    'business_processing':('verified' if any(m['process_status']=='completed' for m in received) else 'unverified'),
+                    'task_tools':'unverified',
+                    'automatic_communication':('verified' if auto and self.window_verified(db) else ('manual' if not auto else 'unverified'))}
                 member.pop('proof')
             flow=db.execute("SELECT value FROM pair_settings WHERE key='window_flow'").fetchone()
             if flow:

@@ -92,7 +92,7 @@ class MultiAccountTests(unittest.TestCase):
             server.assert_not_called()
         args=self.args('join','--member','B','--current-session','--member-codex-home',str(self.homes['B']),'--worktree',b['cwd'])
         with patch.dict('os.environ',{'CODEX_THREAD_ID':b['session_uuid']}),patch('scripts.pair.Path.cwd',return_value=Path(b['cwd'])),patch('scripts.pair.AppServer') as server:
-            server.return_value.__enter__.return_value.validate.return_value={'id':b['session_uuid'],'cwd':b['cwd']}
+            server.return_value.__enter__.return_value.validate.return_value={'id':b['session_uuid'],'cwd':b['cwd'],'modelProvider':'openai'}
             result=pair.execute(args)
             self.assertEqual(result['session_uuid'],b['session_uuid'])
             self.assertEqual(canonical_path(server.call_args.kwargs['codex_home']),canonical_path(self.homes['B']))
