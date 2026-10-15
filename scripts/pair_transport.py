@@ -486,7 +486,7 @@ class QueueTransport:
             raise TransportError('Envelope must be canonical ASCII JSON / 消息必须是规范 ASCII JSON')
         argv=self.command+['queue','--thread',member['session_uuid'],'--message',envelope]
         if os.name=='nt' and len(subprocess.list2cmdline(argv))>30000:
-            raise TransportError('Queue message exceeds Windows command-line limit / 消息超过 Windows 命令行长度限制，请使用 managed 后端')
+            raise TransportError('Queue message exceeds Windows command-line limit / 消息超过 Windows 命令行长度限制；请更新技能并用 recover-delivery 恢复原消息，不另建会话')
         try:
             result=subprocess.run(argv,
                                   cwd=self.cwd,env=self.environment,capture_output=True,timeout=self.timeout,

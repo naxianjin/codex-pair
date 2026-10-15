@@ -480,6 +480,11 @@ class Store:
             if message_id:params.append(message_id)
             message=db.execute("SELECT * FROM messages WHERE recipient=? AND process_status='unclaimed' AND delivery_status<>'failed'"+clause+' ORDER BY created,id LIMIT 1',params).fetchone()
             if not message:
+                if message_id:
+                    unavailable=db.execute('SELECT process_status,delivery_status,error FROM messages WHERE id=? AND recipient=?',(message_id,member_id)).fetchone()
+                    if unavailable:
+                        return {'claimed':False,'reason':'delivery_failed' if unavailable['delivery_status']=='failed' and unavailable['process_status']=='unclaimed' else 'already_'+unavailable['process_status'],
+                                'delivery_status':unavailable['delivery_status'],'process_status':unavailable['process_status']}
                 return {'claimed':False,'reason':'already_claimed_or_unavailable'}
             if collaboration_state=='paused' and message['delivery_status'] not in ('accepted','delivering','unknown','manual_handoff'):
                 return {'claimed':False,'reason':'collaboration_paused_before_delivery'}
@@ -495,6 +500,38 @@ class Store:
             if message['task_id']:
                 result['task']=dict(db.execute('SELECT * FROM tasks WHERE id=?',(message['task_id'],)).fetchone())
             return result
+
+    def read_message(self, member_id, session, cwd, message_id, *, field='body', offset=0, limit=2000):
+        """领取后分段读取正文，不把长内容再次塞入工具回执。"""
+        if field not in ('body','task') or offset<0 or not 1<=limit<=2000:
+            raise PairError('Invalid page / 分页参数无效，limit 须在 1..2000')
+        with self.transaction() as db:
+            self._binding(db,member_id,session,cwd)
+            message=db.execute('SELECT * FROM messages WHERE id=? AND recipient=?',(message_id,member_id)).fetchone()
+            if not message or message['process_status'] not in ('claimed','completed'):
+                raise PairError('Claim required / 必须由接收方先领取消息')
+            task=db.execute('SELECT * FROM tasks WHERE id=?',(message['task_id'],)).fetchone() if message['task_id'] else None
+            content=message['body'] if field=='body' else dumps(dict(task) if task else None)
+            end=min(offset+limit,len(content))
+            return {'id':message_id,'field':field,'text':content[offset:end],
+                    'total':len(content),'next_offset':end if end<len(content) else None}
+
+    def recover_delivery(self, message_id):
+        """只恢复由本地长度预检明确拒绝、从未提交的消息，保留尝试历史。"""
+        prefix='Queue message exceeds Windows command-line limit / '
+        with FileLock(self.control_lock,timeout=30),self.transaction() as db:
+            message=db.execute('SELECT * FROM messages WHERE id=?',(message_id,)).fetchone()
+            attempts=db.execute('SELECT outcome,detail FROM attempts WHERE message_id=?',(message_id,)).fetchall()
+            if (not message or message['delivery_status']!='failed' or message['process_status']!='unclaimed'
+                    or message['turn_id'] or message['queue_id'] or message['remote_status']
+                    or not (message['error'] or '').startswith(prefix)
+                    or not attempts or any(a['outcome']!='failed' or not (a['detail'] or '').startswith(prefix) for a in attempts)):
+                return {'recovered':False,'reason':'not_proven_unsent_length_failure'}
+            if db.execute('SELECT status FROM collaborations').fetchone()[0]=='stopped':
+                return {'recovered':False,'reason':'collaboration_not_running'}
+            db.execute("UPDATE messages SET delivery_status='pending',envelope=NULL,next_attempt=0,updated=? WHERE id=?",(time.time(),message_id))
+            self.event(db,'delivery_recovered',message=message_id,reason='proven_unsent_length_failure',previous_error=message['error'])
+            return {'recovered':True,'id':message_id,'delivery_status':'pending','history_preserved':True}
 
     def recover_claim(self, member_id, session, cwd, message_id):
         """原领取者显式取回遗失的回执；不重置消息、不生成令牌、不重新投递。"""
@@ -654,7 +691,15 @@ class Store:
                  'instructions':'先在 actor_cwd 作为工具工作目录运行 claim_argv，只有 claimed=true 才执行；然后阅读 skill_path 和 references/protocol.md。任务文件与 Git 操作使用 workspace；claim/complete 仍从 actor_cwd 执行，不修改会话根目录。领取回执使用 --compact，避免工具截断 JSON；解析失败不代表领取失败，不得自动重试 claim。普通重复领取返回 false 时立即结束。原领取回执确实遗失时，仅原会话可显式 recover-claim 取回原令牌，核实进度后继续，不能从头重复执行。完成后调用 complete，带回 claim_token 与实质结果。提问后结束回合，保留原任务令牌；收到回复后完成回复消息并继续原任务。不要自行重派任务。',
                  'claim_argv':common+['claim']+binding+['--message',message['id'],'--compact'],
                  'complete_argv_template':common+['complete']+binding+['--message',message['id'],'--token','<claim_token>','--body-file','<UTF-8-result-file>']}
-        return json.dumps(payload,ensure_ascii=True)
+        encoded=json.dumps(payload,ensure_ascii=True)
+        if len(encoded)>8000:
+            payload['body']=None
+            payload['task']=None
+            payload['content_external']=True
+            payload['read_argv']=common+['read-message']+binding+['--message',message['id']]
+            payload['instructions']+=' 长正文保存在原数据库中；领取成功后执行 read_argv，按 next_offset 追加 --offset 读取直到 null；任务消息还须加 --field task 分页读取任务范围与基准。完整阅读后再执行，不能把空 body 当作空任务。'
+            encoded=json.dumps(payload,ensure_ascii=True)
+        return encoded
 
 
 class Daemon:
@@ -672,7 +717,9 @@ class Daemon:
             if db.execute('SELECT status FROM collaborations').fetchone()[0]!='running':
                 return None
             candidates=db.execute("""SELECT m.* FROM messages m WHERE m.delivery_status IN ('pending','retry')
-                AND m.process_status='unclaimed' AND m.next_attempt<=? AND m.attempts<? AND NOT EXISTS
+                AND m.process_status='unclaimed' AND m.next_attempt<=?
+                AND m.attempts-(SELECT count(*) FROM attempts a WHERE a.message_id=m.id AND a.outcome='failed'
+                    AND a.detail LIKE 'Queue message exceeds Windows command-line limit / %')<? AND NOT EXISTS
                 (SELECT 1 FROM messages busy WHERE busy.recipient=m.recipient AND busy.id<>m.id
                  AND (busy.delivery_status IN ('delivering','unknown') OR
                       (busy.delivery_status='accepted' AND (busy.remote_status IS NULL OR busy.remote_status IN ('inProgress','queued')))))
@@ -699,7 +746,9 @@ class Daemon:
             selected=self._begin()
             if not selected:return False
             member,message=selected
-            message['envelope']=message['envelope'] or self.store.envelope(member,message)
+            # 这里只处理尚未提交的 pending/retry；绝不改写 unknown/accepted 的对账信封。
+            if not message['envelope'] or len(message['envelope'])>8000:
+                message['envelope']=self.store.envelope(member,message)
             with self.store.transaction() as db:
                 db.execute('UPDATE messages SET envelope=? WHERE id=?',(message['envelope'],message['id']))
             try:

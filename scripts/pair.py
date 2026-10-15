@@ -94,6 +94,14 @@ def build_parser():
     cmd=command('recover-claim','原领取会话显式取回遗失的回执，不重新领取或重派')
     actor(cmd)
     cmd.add_argument('--message',required=True,help='原来已领取的消息 ID')
+    cmd=command('read-message','领取后分页读取长消息或任务，避免工具输出截断')
+    actor(cmd)
+    cmd.add_argument('--message',required=True)
+    cmd.add_argument('--field',choices=['body','task'],default='body')
+    cmd.add_argument('--offset',type=int,default=0)
+    cmd.add_argument('--limit',type=int,default=2000)
+    cmd=command('recover-delivery','显式恢复确定在发送前被长度检查拒绝的消息，保留原 ID 与历史')
+    cmd.add_argument('--message',required=True)
     cmd=command('complete','使用领取令牌提交实质结果')
     actor(cmd)
     cmd.add_argument('--message',required=True)
@@ -417,7 +425,9 @@ def execute(args):
     if args.command=='send':
         return store.send(args.sender,args.to,read_body(args),kind=args.kind,task_id=args.task,
                           dedupe_key=args.dedupe_key,reply_to=args.reply_to,progress_note=args.progress_note)
-    if args.command in ('claim','recover-claim','complete'):
+    if args.command=='recover-delivery':
+        return store.recover_delivery(args.message)
+    if args.command in ('claim','recover-claim','read-message','complete'):
         if args.command=='recover-claim':
             current_session=os.environ.get('CODEX_THREAD_ID')
             if not current_session or current_session.lower()!=str(args.session).lower():
@@ -425,6 +435,8 @@ def execute(args):
             if canonical_path(effective_home())!=canonical_path(store.member(args.member)['codex_home']):
                 raise PairError('Original CLI home required / 恢复回执须使用原领取会话的配置目录')
         validate_actor(store,args)
+        if args.command=='read-message':
+            return store.read_message(args.member,args.session,args.worktree,args.message,field=args.field,offset=args.offset,limit=args.limit)
         if args.command=='recover-claim':
             return store.recover_claim(args.member,args.session,args.worktree,args.message)
         if args.command=='claim':

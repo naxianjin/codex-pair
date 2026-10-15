@@ -44,6 +44,8 @@ awaiting_peer/awaiting_handshake 只表示等待加入/验证；queue 接受回�
 
 自动领取使用 claim_argv 中的 --compact，只返回小型领取凭据。工具输出截断或 JSON 解析失败不代表领取失败，不自动重复 claim。若原回执遗失，先确认原回合已结束且无工作在执行，再由原领取会话在 actor_cwd 显式执行 recover-claim --member <原成员> --session <原UUID> --worktree <actor_cwd> --message <原消息ID>（附原 pair/state-root 与 --json）。仅 recovered=true 才取回原令牌；核实已完成进度后继续原任务，不从头重复执行、不重派。不满足条件则报告限制。
 
+长通知的 content_external=true 时，领取成功后运行 read_argv，按 next_offset 追加 --offset 分页读到 null；任务还须用 --field task 读完允许范围与基准。不可把空 body 当作无任务。claimed=false 且 reason=delivery_failed 时不执行；经 status 确认发送前长度预检失败，可显式 recover-delivery --message <原ID>（附原 pair/state-root 与 --json），仅 recovered=true 才恢复同一消息派发。不复制正文另派一份；unknown 或已有领取不能用此入口。长输入使用 --body-file。详细恢复见 protocol。
+
 停止桥用 bridge --pair <ID> --state-root <返回路径> --action stop；恢复桥用 --action start。普通用户无需手工开第三个终端跑 daemon。pause/resume、relay、手动交接、旧状态和隔离 worktree 的低层入口见 protocol。
 
 不改登录/模型/权限配置，不复制认证，不移动已有会话，不删除 worktree，不推送。新产物留在目标项目 .codex-pair/ 并使用本地 Git 排除。维修及安装诊断才读 [repair-multi-account.md](references/repair-multi-account.md)。

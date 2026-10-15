@@ -146,6 +146,14 @@ A 的当前 CLI 可在自身的串行工具调用中整合：必须同时匹配 
 
 ## 冲突与恢复
 
+### 消息过长与领取失败
+
+Windows queue 将通知放在命令参数中，ASCII JSON 会放大中文。长正文和任务保留在 SQLite，超过阈值的信封改发短通知：`content_external=true`、`body=null`、`task=null`。先执行 `claim_argv`；成功后运行 `read_argv`，用返回的 `next_offset` 追加 `--offset` 分页直到 null。任务另加 `--field task` 分页读取完整任务 JSON（含范围、基准、正文）。每页最多 2000 字符，不返回领取令牌或重复信封。完整读取后再执行。
+
+`claimed=false` 的 `delivery_failed` 表示尚未领取但投递失败，不等于别人已经领取。不能执行正文或重复创建消息。管理员确认 status 中原消息错误为 `Queue message exceeds Windows command-line limit` 后，可运行 `recover-delivery --message <原消息ID> --pair <原协作ID> --state-root <原状态根目录> --json`。此入口只接受每次尝试都在发送前长度预检失败、无 queue/turn/远端状态且未领取的消息，保留原 ID、正文、去重键、错误与尝试历史，恢复 pending；桥仍需运行，协作 paused 时需按原意显式 resume。旧桥必须停止并从新版脚本启动，才能使用短通知。不把恢复 pending 或文件落盘报告成目标已经收到。
+
+unknown、已接受、已领取、已完成或其他失败不适用此恢复；已领取且丢失回执遵循上文 recover-claim，绝不重置令牌或自动重新执行。
+
 - `integrate_commits` 返回 `status: conflict` 时保留 index、工作树和 `CHERRY_PICK_HEAD`，同时返回冲突文件。不得自动 reset 或覆盖文件。
 - 在已有任务授权内明确解决冲突并只暂存对应文件后，调用 `integrate --continue`。涉及未知用户修改或多种语义时请求用户决定，不强制覆盖。
 - 明确决定放弃本次 cherry-pick 时调用 `abort_integration`。该接口同样先确认 cherry-pick 状态。

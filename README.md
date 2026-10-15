@@ -64,13 +64,15 @@ python (Join-Path $pairDownload 'codex-pair/scripts/install_skill.py') --source 
 
 自动领取使用 `claim --compact`，避免长任务的输出被工具截断。若领取成功但回执丢失，原会话可用 `recover-claim` 取回原令牌，核实进度后继续。重复领取仍返回 `claimed=false`，不会重置或重派任务；具体恢复条件见 [协作协议](references/protocol.md)。
 
+长审查结果不再全文放入 Windows queue 命令行：短通知指向数据库原文，领取后用 `read-message` 分页读取。旧版因命令行长度预检而投递失败的未领取消息，可用 `recover-delivery --message <原ID>`（附原 `--pair`、`--state-root` 和 `--json`）恢复同一条消息；它不会重投结果不明或已领取的消息。运行中的旧桥需要停止并从新版脚本重新启动。详见协议中的“消息过长与领取失败”。
+
 ## 验证与限制
 
 ```powershell
 python -m unittest discover -v
 ```
 
-当前共 111 项测试：108 项通过，3 项需显式启用的真实环境测试默认跳过。覆盖会话和提供方识别、账号路由、领取去重与恢复、凭据隔离、回合状态、旧库兼容、Git 交付、安装和打包。
+当前共 117 项测试：114 项通过，3 项需显式启用的真实环境测试默认跳过。覆盖会话和提供方识别、账号路由、领取去重与恢复、凭据隔离、回合状态、旧库兼容、Git 交付、安装、打包及长审查结果的短通知、分页与安全恢复。本次长消息修复未重新运行真实双窗口交接，不能用离线测试代替该验收。
 
 本次开发中，两个 OpenAI 原窗口已通过邀请和双向握手，完成文档、测试的分工、提交与整合，当前配对的 `status.window_flow.communication=verified`。此前还用独立账号的后台托管会话验证过问答、去重、重启和冲突整合。
 
