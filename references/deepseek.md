@@ -13,11 +13,30 @@
 
 ## 提供方与能力证据
 
-核心实现应从目标 thread/read 元数据识别 modelProvider/model，采用仅支持 OpenAI 与 DeepSeek 的明确判定，缺失或未知值应报告限制，不自动推测兼容。DeepSeek 不要求 account/read 返回 OpenAI 邮箱；OpenAI 双账号验收仍按原匿名身份摘要确认。
+核心实现从目标 thread/read 元数据识别 modelProvider/model，采用仅支持 OpenAI 与 DeepSeek 的明确判定，缺失或未知值应报告限制，不自动推测兼容。DeepSeek 不要求 account/read 返回 OpenAI 邮箱；OpenAI 双账号验收仍按原匿名身份摘要确认。
 
-proof 只保留会话身份、提供方/模型、cwd、持久性及 Git 校验所需的白名单字段，不持久化完整 thread/read 响应或任意嵌套元数据。status 应给出不含机密的提供方、模型及已验证/未验证/失败能力；字段名以核心实际实现为准，不能把设计建议当成现有输出。
+proof 只保留会话身份、提供方/模型、cwd、持久性及 Git 校验所需的白名单字段，不持久化完整 thread/read 响应或任意嵌套元数据。status.members[].connection 包含 provider、model、metadata_status、source。source=binding_snapshot 表示加入时的绑定快照，不是持续探测；metadata_status 为 verified、missing 或 unsupported，只表明提供方元数据判定，不能证明 API、工具或自动通信可用。旧 proof 缺少提供方时返回 missing，不重写历史记录。
 
 能力分开取证：API 对话、工具执行、原窗口 queue 唤醒、回合终态观察、业务 claim/complete、关联问答与交付。一个能力通过不得替代其他能力。
+
+## 状态字段与只读环境隔离
+
+status.members[].capabilities 分别展示以下证据；这些状态只描述已有记录，不构成一次新的实机测试：
+
+| 字段 | 状态含义 |
+| --- | --- |
+| session_identity | verified：已完成会话绑定身份核验 |
+| queue_delivery | accepted：auto/queue 成员至少有一条接受回执；否则 unverified |
+| turn_completion | verified：自动模式至少有一条回合持久化完成记录；否则 unverified |
+| business_processing | verified：至少有一条业务 complete；否则 unverified |
+| automatic_communication | verified：自动模式的关联握手双方业务与回合均完成；manual：手动模式；否则 unverified |
+| task_tools | 始终 unverified，工具能力必须另行取证 |
+
+单条历史记录不代表所有消息均完成，也不证明所有能力可用。观察层遇到 completed/failed/interrupted 且 completedAt 为空时按 inProgress 保留，不能从历史合成终态判定回合完成。
+
+metadata_only 的 app-server 只允许 initialize、thread/read、thread/turns/list RPC；start、resume、create_session 同时设有拒绝门。QueueTransport 与只读观察进程通过 control_environment 构造子环境，剔除 OPENAI_BASE_URL、原 CODEX_THREAD_ID 和 *_API_KEY、*_AUTH_TOKEN、*_ACCESS_TOKEN、*_BEARER_TOKEN，保留目标成员自身 CODEX_HOME，不修改父进程环境。该隔离不删除磁盘配置，也不表示磁盘里不存在凭据；桥仍不得加载另一窗口凭据替其推理。
+
+新增绑定的 proof 只落盘身份与 Git 白名单。TransportError、RpcError、证据回调及观察错误对已支持的 Key/Bearer 文本和敏感字典字段脱敏；这不保证任意自然语言都不含秘密，任务内容仍禁止放入真实凭据。
 
 ## 验收矩阵与证据层级
 
@@ -33,7 +52,7 @@ proof 只保留会话身份、提供方/模型、cwd、持久性及 Git 校验�
 2. 独立真实测试会话：证明测试会话自身 API、工具和传输能力，不证明用户选择的可见原窗口会自动唤醒。
 3. 可见原窗口：用户已打开且选中的 A/B，真实执行邀请、握手、双向业务任务、交付与整合，才可报告该组合的原窗口协作结果。
 
-当前开发配对 windows-b6f5b12ff879 的 A/B 均为 OpenAI 官方账号；已经收到关联握手回复和正式文档任务，不构成任何 DeepSeek 真实验收证据。本文矩阵仍全部待执行。
+当前开发使用的 A/B 均为 OpenAI 官方账号，已经完成原窗口握手和文档交付；这不构成 DeepSeek 真实协作验收证据。另已在本机 metadata_only 模式只读预检一个用户选中的原 DeepSeek 会话：thread/read 返回 modelProvider=deepseek、model=deepseek-flash，观察子进程未继承 API Key，未唤醒窗口或调用模型。此结果仅证明元数据可读，本文双向自动通信、工具和交付矩阵仍全部待执行。模型自述名称（例如 GPT5）不作为身份依据。
 
 ## 每种组合的真实验收步骤
 
