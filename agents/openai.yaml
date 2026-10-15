@@ -1,0 +1,6 @@
+interface:
+  display_name: "Codex Pair"
+  short_description: "Coordinate two Codex CLIs with safe Git worktrees"
+  default_prompt: "Use $codex-pair to coordinate this Git task between lead A and collaborator B."
+policy:
+  allow_implicit_invocation: true
