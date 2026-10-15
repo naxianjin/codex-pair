@@ -75,6 +75,10 @@ relay 通过成员 OS lease 防重复，仍服从 pause/stop，并复用 unknown
 
 收到消息先运行信封 claim_argv。claimed=false 时立即结束，不能再次执行。保留 claim_token，complete 时提供实质结果。正文与结果可用 --body-file 输入 UTF-8（可带 BOM），保留中文、多行、引号、Windows 路径和原换行；与 --body 互斥。重复逻辑请求复用 --dedupe-key；同键不同正文会报错。
 
+领取回执与输出恢复：自动信封使用 `claim --compact`，只输出消息标识、角色、类型和领取令牌，正文仍以原信封为准。完整领取输出为向后兼容保留，但长正文会超出工具的输出预算；`Warning: truncated output` 属于工具截断提示，不是可供 JSON.parse 的脚本 JSON。不要把 stderr 与 stdout 合并后解析，也不要用正则从已截断内容拼出 JSON。解析失败不证明事务失败，禁止自动重复领取或重发任务。
+
+原领取者丢失回执时，先核对上一回合已结束、没有并行执行者及当前文件/提交进度，再在原 CLI 的 actor_cwd 执行 `recover-claim --member <原成员> --session <原UUID> --worktree <actor_cwd> --message <原消息ID>`，附同一 `--pair`、`--state-root`、`--json`。命令交叉检查自身 CODEX_THREAD_ID、CODEX_HOME、cwd 与官方 API，返回 `recovered=true`、原 claim_token、`resume_only=true`；它不返回新的 claimed=true，不改消息状态或生成新令牌。只有同一接收者仍为 claimed 且任务仍 active 才可恢复；已完成、协作 stopped 或身份不符时拒绝。恢复不是授权重复执行，必须从核实的进度继续。普通重复 claim 仍返回 false 并停止。
+
 ```powershell
 # 必须在成员实际工作目录执行。
 & $py $script claim --pair $pair --member B --session '<B-UUID>' --worktree '<B目录>' --message '<消息ID>' --json

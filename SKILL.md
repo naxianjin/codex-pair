@@ -40,6 +40,8 @@ awaiting_peer/awaiting_handshake 只表示等待加入/验证；queue 接受回�
 
 开发与交付遵守 [protocol.md](references/protocol.md)：允许范围、原子领取、关联问答、完整 SHA 交付与整合。任务文件和 Git 操作用 workspace，claim/complete 用 actor_cwd，二者可能不同。同一工作树的代码任务和模型回合串行，已有独立 worktree 可并行。保留用户修改，不把用户未提交文件一起提交。
 
+自动领取使用 claim_argv 中的 --compact，只返回小型领取凭据。工具输出截断或 JSON 解析失败不代表领取失败，不自动重复 claim。若原回执遗失，先确认原回合已结束且无工作在执行，再由原领取会话在 actor_cwd 显式执行 recover-claim --member <原成员> --session <原UUID> --worktree <actor_cwd> --message <原消息ID>（附原 pair/state-root 与 --json）。仅 recovered=true 才取回原令牌；核实已完成进度后继续原任务，不从头重复执行、不重派。不满足条件则报告限制。
+
 停止桥用 bridge --pair <ID> --state-root <返回路径> --action stop；恢复桥用 --action start。普通用户无需手工开第三个终端跑 daemon。pause/resume、relay、手动交接、旧状态和隔离 worktree 的低层入口见 protocol。
 
 不改登录/模型/权限配置，不复制认证，不移动已有会话，不删除 worktree，不推送。新产物留在目标项目 .codex-pair/ 并使用本地 Git 排除。维修及安装诊断才读 [repair-multi-account.md](references/repair-multi-account.md)。

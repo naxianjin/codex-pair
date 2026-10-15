@@ -90,6 +90,10 @@ def build_parser():
     cmd=command('claim','原子领取；claimed=false 时不得执行')
     actor(cmd)
     cmd.add_argument('--message',help='指定消息 ID；省略时领取最早可用消息')
+    cmd.add_argument('--compact',action='store_true',help='仅返回领取凭据，避免重复正文使工具输出截断')
+    cmd=command('recover-claim','原领取会话显式取回遗失的回执，不重新领取或重派')
+    actor(cmd)
+    cmd.add_argument('--message',required=True,help='原来已领取的消息 ID')
     cmd=command('complete','使用领取令牌提交实质结果')
     actor(cmd)
     cmd.add_argument('--message',required=True)
@@ -413,10 +417,21 @@ def execute(args):
     if args.command=='send':
         return store.send(args.sender,args.to,read_body(args),kind=args.kind,task_id=args.task,
                           dedupe_key=args.dedupe_key,reply_to=args.reply_to,progress_note=args.progress_note)
-    if args.command in ('claim','complete'):
+    if args.command in ('claim','recover-claim','complete'):
+        if args.command=='recover-claim':
+            current_session=os.environ.get('CODEX_THREAD_ID')
+            if not current_session or current_session.lower()!=str(args.session).lower():
+                raise PairError('Original CLI session required / 恢复回执须在原领取会话内执行')
+            if canonical_path(effective_home())!=canonical_path(store.member(args.member)['codex_home']):
+                raise PairError('Original CLI home required / 恢复回执须使用原领取会话的配置目录')
         validate_actor(store,args)
+        if args.command=='recover-claim':
+            return store.recover_claim(args.member,args.session,args.worktree,args.message)
         if args.command=='claim':
-            return store.claim(args.member,args.session,args.worktree,message_id=args.message)
+            result=store.claim(args.member,args.session,args.worktree,message_id=args.message)
+            if getattr(args,'compact',False) and result.get('claimed'):
+                return {key:result[key] for key in ('claimed','id','sender','recipient','kind','task_id','claim_token','process_status')}
+            return result
         if args.commit:
             message=store.message(args.message)
             if message['kind']!='task':raise PairError('Only task completion accepts commits / 只有任务完成可交付提交')

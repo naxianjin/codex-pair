@@ -495,6 +495,26 @@ class Store:
                 result['task']=dict(db.execute('SELECT * FROM tasks WHERE id=?',(message['task_id'],)).fetchone())
             return result
 
+    def recover_claim(self, member_id, session, cwd, message_id):
+        """原领取者显式取回遗失的回执；不重置消息、不生成令牌、不重新投递。"""
+        with self.transaction() as db:
+            self._binding(db,member_id,session,cwd)
+            if db.execute('SELECT status FROM collaborations').fetchone()[0]=='stopped':
+                return {'recovered':False,'reason':'collaboration_not_running'}
+            message=db.execute('SELECT * FROM messages WHERE id=? AND recipient=?',
+                               (message_id,member_id)).fetchone()
+            if not message or message['process_status']!='claimed' or not message['claim_token']:
+                return {'recovered':False,'reason':'no_owned_claim'}
+            if message['remote_status'] in ('queued','inProgress') or message['delivery_status'] in ('delivering','unknown'):
+                return {'recovered':False,'reason':'previous_turn_unresolved'}
+            if message['task_id']:
+                task=db.execute('SELECT status FROM tasks WHERE id=?',(message['task_id'],)).fetchone()
+                if not task or task['status']!='active':
+                    return {'recovered':False,'reason':'task_not_active'}
+            return {'recovered':True,'id':message['id'],'task_id':message['task_id'],
+                    'kind':message['kind'],'claim_token':message['claim_token'],
+                    'process_status':message['process_status'],'resume_only':True}
+
     def complete(self, member_id, session, cwd, message_id, token, result, *, commits=()):
         if not result.strip():
             raise PairError('Completion requires a meaningful result / 完成任务需要实质结果')
@@ -620,8 +640,8 @@ class Store:
                  'state_directory':str(self.directory),
                  'state_root':str(self.state_root),'member_codex_home':member['codex_home'],
                  'actor_cwd':member['cwd'],'workspace':member_workspace(member),
-                 'instructions':'先在 actor_cwd 作为工具工作目录运行 claim_argv，只有 claimed=true 才执行；然后阅读 skill_path 和 references/protocol.md。任务文件与 Git 操作使用 workspace；claim/complete 仍从 actor_cwd 执行，不修改会话根目录。领取失败则立即结束，不回复收到/谢谢。完成后调用 complete，带回 claim_token 与实质结果。提问后结束回合，保留原任务令牌；收到回复后完成回复消息并继续原任务。不要自行重派任务。',
-                 'claim_argv':common+['claim']+binding+['--message',message['id']],
+                 'instructions':'先在 actor_cwd 作为工具工作目录运行 claim_argv，只有 claimed=true 才执行；然后阅读 skill_path 和 references/protocol.md。任务文件与 Git 操作使用 workspace；claim/complete 仍从 actor_cwd 执行，不修改会话根目录。领取回执使用 --compact，避免工具截断 JSON；解析失败不代表领取失败，不得自动重试 claim。普通重复领取返回 false 时立即结束。原领取回执确实遗失时，仅原会话可显式 recover-claim 取回原令牌，核实进度后继续，不能从头重复执行。完成后调用 complete，带回 claim_token 与实质结果。提问后结束回合，保留原任务令牌；收到回复后完成回复消息并继续原任务。不要自行重派任务。',
+                 'claim_argv':common+['claim']+binding+['--message',message['id'],'--compact'],
                  'complete_argv_template':common+['complete']+binding+['--message',message['id'],'--token','<claim_token>','--body-file','<UTF-8-result-file>']}
         return json.dumps(payload,ensure_ascii=True)
 
