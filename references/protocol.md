@@ -1,11 +1,29 @@
 # codex-pair 协作协议
 
+首次调用先读 [onboarding.md](onboarding.md)：主动发起者默认 A，收到用户转交的加入指令者为 B。双方保留独立 CODEX_HOME，通过共享状态与成员账号路由协作。角色提示不等于双账号传输已通过真实验收，不得统一双方登录目录。
+
+默认接入当前两个窗口，不创建 worktree；用户选择新建隔离工作树时，新目录必须位于目标项目 `.codex-pair/worktrees/`。脚本通过 Git common dir 本地 exclude 设置 `/.codex-pair/` 排除。共享状态默认 `.codex-pair/state/<ID>/`，交接、日志与归档在对应子目录。旧状态保留原路径，不静默搬迁。维修清单见 [repair-multi-account.md](repair-multi-account.md)。
+
+## 当前窗口入口
+
+从 A 的当前 Codex 工具环境执行 `start --project <目标仓库> --goal <用户目标> --json`（长正文用 --goal-file）。它验证自身会话，使用随机 ID、原会话 cwd 与目标 workspace，不创建新 CLI，也不指定两个账号。
+
+A 输出返回的 join_instruction；用户把它交给另一个已打开窗口，B 执行其中 `accept --invite <JSON路径> --json`。B 自动读取自身环境，重复接受复用绑定。invite 文件哈希、项目、基准与发起会话须匹配；B 不在目标仓库也不需要重开窗口，任务目录另存为 workspace。
+
+start/accept 自动后台启动或复用本地桥，日志在项目 .codex-pair/logs，无需用户手工跑 daemon。`bridge --pair <ID> --state-root <返回路径> --action start|stop` 管理桥。启动有 OS 锁和随机挑战，存活不明时不重复启动；stop 不关闭原有 CLI。
+
+accept 发出 window-handshake 问题，A 领取、发送关联 reply 并完成问题，B 领取完成回复。两个业务回执及模型回合均 completed 后，status.window_flow.communication 才为 verified；桥再发一条 window-ready 通知给 A，推动原目标继续。manual 始终表示手动，不因人工问答完成而宣称自动通信。
+
+首次窗口选择采用用户转交一次邀请，不按账号名称、标题或最近历史会话猜 B。缺少 CODEX_THREAD_ID 时拒绝把普通终端当成当前窗口。
+
+成员 cwd 是会话和工具调用身份，workspace（proof.git.path）是任务工作树。claim/complete 的 --worktree 保留旧接口语义，填 actor_cwd 并在该目录运行；提交校验、assign/integrate 使用 workspace。同 workspace 的代码任务串行，交付提交整合前持有该工作树；新回合等待共享工作树其他回合结束。已有不同 worktree 可并行。
+
 ## 角色与状态
 
 - A 是统筹方：创建协作、拆分任务、分配允许路径、验收证据并整合提交。
 - B 是协作方：验证会话与 worktree、领取任务，只修改允许范围并提交交付。
-- 状态位于 `$CODEX_HOME/codex-pair/<协作ID>/`。状态数据由 A 的通信与状态模块定义和维护；不得复制凭据到该目录。
-- `init`、`join`、`assign`、`send`、`claim`、`complete`、`integrate`、`status`、`daemon`、`pause`、`resume`、`stop` 是统一命令入口，由 A 实现。
+- 新状态位于 `<项目>/.codex-pair/state/<协作ID>/`；全局 `--state-root` 指定共享 state 根目录，双方必须使用同一真实路径。旧 `$CODEX_HOME/codex-pair/<协作ID>/` 作为兼容记录保留，不静默迁移。状态数据由 A 的通信与状态模块定义和维护；不得复制凭据到该目录。
+- `init`、`join`、`assign`、`send`、`claim`、`complete`、`integrate`、`status`、`daemon`、`relay`、`relay-stop`、`pause`、`resume`、`stop` 是统一命令入口，由 A 实现。
 - 本机已验证 Codex CLI 0.162.1、Python 3.14.5；运行需要 Python 3.10+。使用 [官方 queue](https://learn.chatgpt.com/docs/developer-commands?surface=cli) 和 [app-server](https://learn.chatgpt.com/docs/app-server)。脚本不改模型、登录或权限配置。
 
 ## 通信、回执与恢复
@@ -16,7 +34,7 @@
 - delivery_status 是 pending/retry/delivering/accepted/unknown/failed；remote_status 是 queued/inProgress/有完成时间的 completed、failed、interrupted；process_status 是 unclaimed/claimed/completed。三者独立，模型结束不自动完成任务。
 - 消息、信封与尝试先写入 SQLite，再调用传输。确定尚未发送的临时错误最多重试三次（可设 1–10）；发送后超时或崩溃进入 unknown，绝不自动重发。用消息 ID、原始信封和回合记录对账；查不到记录不是未投递证明。仍不明时保留记录，由操作者核实，禁止重派执行中的任务。
 - 业务 complete 不释放尚在运行的模型回合；后续消息等待该回合结束。预检确认繁忙时尚未提交消息，记录 deferred 并等待，不消耗实际投递重试额度，不据此判断失联。
-- SQLite 使用 WAL、外键和写事务。Windows junction 解析为真实有效 CODEX_HOME，未设置时用用户 ~/.codex。状态目录不得在项目内。模式升级保留记录。
+- SQLite 使用 WAL、外键和写事务。Windows junction 解析为真实有效 CODEX_HOME，未设置时用用户 ~/.codex。`join --member-codex-home` 保存每个成员实际账号，会话验证、投递、观察和恢复始终使用该成员账号，失败不得回退另一账号。新状态仅允许项目内经过真实路径、未跟踪内容和 Git 排除校验的 `.codex-pair/state` 子树。模式升级保留记录，旧成员无账号字段时继承原 home。
 - 守护程序持有 OS 文件锁，不根据旧 PID、心跳或回复耗时抢占。Windows Job 清理其专属子进程；重启把 delivering 变成 unknown，对账 accepted/unknown，保留 claimed。status --probe 的随机挑战响应才确认可响应；无响应不等于失联。
 - 保留原权限配置。服务端审批请求记录为 server_request_pending 事件，不自动批准。
 
@@ -25,14 +43,26 @@
 令 `$py` 为有效 Python 可执行路径，`$script` 为本技能 scripts/pair.py，`$pair` 为协作 ID。本机 WindowsApps 的 python 可能只是占位程序，请选择实际 Python。
 
 ```powershell
-& $py $script init --pair $pair --project 'D:\work\project' --base-ref HEAD --worktree-root 'D:\work\trees' --json
-& $py $script join --pair $pair --member A --session '<A-UUID>' --worktree '<A目录>' --json
-& $py $script join --pair $pair --member B --session '<B-UUID>' --worktree '<B目录>' --json
+& $py $script init --pair $pair --project 'D:\work\project' --base-ref HEAD --worktree-root 'D:\work\project\.codex-pair\worktrees' --json
+& $py $script join --pair $pair --state-root 'D:\work\project\.codex-pair\state' --member A --member-codex-home '<A账号目录>' --session '<A-UUID>' --worktree '<A目录>' --json
+& $py $script join --pair $pair --state-root 'D:\work\project\.codex-pair\state' --member B --member-codex-home '<B账号目录>' --session '<B-UUID>' --worktree '<B目录>' --json
 # 独占托管会话可用 --new-session 替代 --session。
-& $py $script daemon --pair $pair --json
+& $py $script daemon --pair $pair --state-root 'D:\work\project\.codex-pair\state' --json
 ```
 
-init 针对已有 Git 仓库；新项目先按授权初始化并提交最小骨架。省略 worktree-root 可绑定已有工作树。两个计划目录都存在时验证复用，部分资源冲突只报告，绝不清理。所有命令有 --help、--json；公共选项可放在子命令前或后。成功 JSON 是 `{ok:true,result:...}`，失败是 `{ok:false,error,type,details}` 并非零退出。
+init 针对已有 Git 仓库；新项目先按授权初始化并提交最小骨架。省略 worktree-root 默认使用项目 `.codex-pair/worktrees`。两个计划目录都存在时验证复用，部分资源冲突只报告，绝不清理。所有命令有 --help、--json；公共选项可放在子命令前或后。成功 JSON 是 `{ok:true,result:...}`，失败是 `{ok:false,error,type,details}` 并非零退出。以下每条命令也需附加同一 `--state-root`，或从通知的 claim_argv 继承该路径。
+
+中央 daemon 按目标成员账号路由。无法可靠接入双方时，分别在各自账号环境运行 relay，并保留同一 state-root：
+
+```powershell
+& $py $script relay --pair $pair --state-root '<共享state根目录>' --member A --member-codex-home '<A账号目录>' --json
+& $py $script relay --pair $pair --state-root '<共享state根目录>' --member B --member-codex-home '<B账号目录>' --json
+& $py $script relay-stop --pair $pair --state-root '<共享state根目录>' --member A --json
+& $py $script relay-stop --pair $pair --state-root '<共享state根目录>' --member B --json
+& $py $script stop --pair $pair --state-root '<共享state根目录>' --json
+```
+
+relay 通过成员 OS lease 防重复，仍服从 pause/stop，并复用 unknown 对账和 claim 去重。不能同时将文件信箱当作模型唤醒：`join --delivery-mode manual` 明确标为手动交接，消息生成 `.codex-pair/handoffs/<ID>/<message>.json`，状态 `delivery_status=manual_handoff`、`remote_status=manual`，不会调用模型。用户将通知转交目标 CLI，目标运行 claim_argv 后处理；自动模式用 `--delivery-mode auto`，需实测目标 CLI 能自动唤醒。
 
 ```powershell
 & $py $script assign --pair $pair --task implementation --to A --title '实现' --allow 'src/adder.py' --body-file '.\implementation.txt' --json
@@ -59,7 +89,7 @@ init 针对已有 Git 仓库；新项目先按授权初始化并提交最小骨�
 
 1. 使用 `inspect_repo(project)` 记录项目根目录、公共 Git 目录、当前 HEAD、分支和工作树状态。
 2. 若原目录有未提交修改，保持原状，并向用户说明它们未进入协作基准。不得自动清理、暂存、提交或复制这些修改。
-3. 选定明确的 `base_ref` 后调用 `create_worktrees`。它创建：
+3. 选定明确的 `base_ref` 后调用 `create_worktrees`，本技能指定 `worktree_root` 为 `<项目>/.codex-pair/worktrees`。它创建：
    - 分支 `codex-pair/<协作ID>/a`，目录 `<worktree_root>/<协作ID>-a`
    - 分支 `codex-pair/<协作ID>/b`，目录 `<worktree_root>/<协作ID>-b`
 4. 两个 worktree 必须来自同一个基准 SHA 并共享同一 Git common dir。底层创建函数拒绝已有资源；入口对完整已有计划验证后复用，不强制覆盖。
@@ -123,7 +153,11 @@ A 的当前 CLI 可在自身的串行工具调用中整合：必须同时匹配 
 
 ## 验证与双窗口人工步骤
 
-`python -m unittest discover -v` 运行本地测试。显式设置 CODEX_PAIR_REAL_TEST=1、CODEX_PAIR_REAL_CORE_TEST=1、CODEX_PAIR_REAL_INTEGRATION=1 后，可运行 tests.test_transport.RealTransportTests、tests.test_core.RealCoreTests、tests.test_integration.RealIntegrationTests。真实测试仅创建独立测试会话；证据写在 CODEX_HOME/codex-pair 验证目录，集成 worktree 保留。
+`python -m unittest discover -v` 运行本地测试。显式设置 CODEX_PAIR_REAL_TEST=1、CODEX_PAIR_REAL_CORE_TEST=1、CODEX_PAIR_REAL_INTEGRATION=1 后，可运行 tests.test_transport.RealTransportTests、tests.test_core.RealCoreTests、tests.test_integration.RealIntegrationTests。双账号集成测试还须设置 `CODEX_PAIR_HOME_A` 与 `CODEX_PAIR_HOME_B`，通过 account/read 的匿名身份摘要确认不同真实账号。旧真实测试可能保留原验证状态位置；新双账号验证证据和 worktree 使用项目 `.codex-pair/`。真实测试只创建独立测试会话，集成 worktree 保留。不能把单账号真实测试或模拟路由测试报告成双账号通过。
+
+在目标 Codex 会话内可用 `join --current-session` 替代手填 `--session`；它要求环境中的 CODEX_THREAD_ID 和当前实际 cwd，仍通过本成员账号的 app-server 验证会话。普通 PowerShell 中没有该上下文时会报错，不会猜最近 UUID。
+
+旧数据库留在原 home/codex-pair/<ID>，只从原账号查找，不扫描其他账号。首次打开 schema 1/2/3 时，取得旧 daemon 与派发锁、确认无未决投递后，先创建 schema-v<版本>-<时间>.backup.sqlite3，再事务升级到 schema 4。补充旧账号字段、移除成员 cwd 唯一限制并增加窗口邀请设置，外键须完整。旧成员继承原 home，历史、领取令牌和路径不搬动。低层 init 默认项目内隔离布局，普通使用走 start/accept；旧 Python Store API 未传 state_root 时保留旧路径语义。
 
 两个可见 TUI 窗口的人工验收：在 A/B 各自目录启动 codex，让各自用实际 UUID 执行 join；第三个终端运行 daemon。按上述命令分配任务、提问、关联回复、提交交付，再 integrate 并测试。记录 UUID、消息 ID、提交 SHA 和 status，不能只检查 Queued 回执。禁止模拟键盘或根据窗口标题推测 UUID。未执行的可见双窗口验收必须明确列为未完成。
 
@@ -132,6 +166,7 @@ A 的当前 CLI 可在自身的串行工具调用中整合：必须同时匹配 
 所有路径参数是字符串，`commits` 与 `allowed_paths` 是字符串列表，结果均可 JSON 序列化。Git 失败抛出 `GitError`；`to_dict()` 包含脱敏后的 `message`、`command`、`returncode`、`stdout`、`stderr` 和 `details`。
 
 - `inspect_repo` → `{root, common_dir, head, branch, dirty, status}`
+- `prepare_pair_directory(project, path, kind)` → 真实目录字符串；kind 仅支持 state、worktrees、handoffs、archives、logs，验证对应项目内子树、真实路径、账号路径和未跟踪内容，设置并验证 common Git dir 本地排除后创建。
 - `create_worktrees` → `{base_commit, original_dirty, original_changes_included, a: {path, branch}, b: {path, branch}}`
 - `validate_worktree` → `{valid, path, common_dir, branch, reasons}`
 - `check_delivery` → `{passed, branch, commits, files, reasons}`

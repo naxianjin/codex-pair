@@ -1,5 +1,6 @@
 """真实 Git 的入口测试；可选双 CLI 验收保留完整项目和状态证据。"""
 import json
+import hashlib
 import os
 from pathlib import Path
 import subprocess
@@ -34,10 +35,11 @@ class IntegrationTests(unittest.TestCase):
         self.temp=tempfile.TemporaryDirectory(prefix='pair-integration-')
         self.root=Path(self.temp.name);self.project=self.root/'project';seed(self.project)
         self.home=self.root/'codex-home';self.home.mkdir()
-        self.common=['--pair','integration','--codex-home',str(self.home)]
-        args=self.arguments('init','--project',str(self.project),'--worktree-root',str(self.root/'trees'))
+        self.state_root=self.project/'.codex-pair'/'state'
+        self.common=['--pair','integration','--codex-home',str(self.home),'--state-root',str(self.state_root)]
+        args=self.arguments('init','--project',str(self.project))
         pair.execute(args)
-        self.store=Store('integration',home=self.home)
+        self.store=Store('integration',home=self.home,state_root=self.state_root)
         self.trees=self.store.git_context()['worktrees']
         for index,member in enumerate(('A','B'),1):
             info=self.trees[member.lower()]
@@ -66,7 +68,7 @@ class IntegrationTests(unittest.TestCase):
 
     def test_init_reuses_valid_worktrees_and_preserves_user_changes(self):
         a=Path(self.trees['a']['path']);(a/'user.txt').write_text('用户修改',encoding='utf-8')
-        result=pair.execute(self.arguments('init','--project',str(self.project),'--worktree-root',str(self.root/'trees')))
+        result=pair.execute(self.arguments('init','--project',str(self.project)))
         self.assertEqual(result['git']['worktrees'],self.trees)
         self.assertEqual((a/'user.txt').read_text(encoding='utf-8'),'用户修改')
 
@@ -162,28 +164,43 @@ class IntegrationTests(unittest.TestCase):
 @unittest.skipUnless(os.getenv('CODEX_PAIR_REAL_INTEGRATION')=='1','需要显式启用真实双 CLI 集成验收')
 class RealIntegrationTests(unittest.TestCase):
     def test_two_real_clis_parallel_questions_duplicate_restart_and_integration(self):
-        home=effective_home()
-        evidence=Path(os.environ.get('CODEX_PAIR_EVIDENCE',str(home/'codex-pair'/'live-integration')))
+        home=Path(os.environ.get('CODEX_PAIR_HOME_A',str(effective_home()))).resolve()
+        self.assertIn('CODEX_PAIR_HOME_B',os.environ,'双账号验收须显式设置 CODEX_PAIR_HOME_B')
+        home_b=Path(os.environ['CODEX_PAIR_HOME_B']).resolve()
+        self.assertNotEqual(home,home_b)
+        homes={'A':home,'B':home_b}
+        evidence=Path(os.environ.get('CODEX_PAIR_EVIDENCE',str(SCRIPT.parents[1]/'.codex-pair'/'archives'/'live-integration')))
         evidence.mkdir(parents=True,exist_ok=True)
         root=evidence/('project-'+str(time.time_ns()));root.mkdir()
         project=root/'main';seed(project)
+        state_root=project/'.codex-pair'/'state'
+        account_proof={}
+        for member,account_home in homes.items():
+            with AppServer(codex_home=account_home,cwd=str(project)) as observer:
+                account=observer.rpc('account/read',{}).get('account') or {}
+                identity=account.get('id') or account.get('email')
+                self.assertTrue(identity,'真实验收需要已登录账号')
+                account_proof[member]={'home':str(account_home),'fingerprint':hashlib.sha256(identity.encode()).hexdigest(),'type':account.get('type')}
+        self.assertNotEqual(account_proof['A']['fingerprint'],account_proof['B']['fingerprint'],'两个 home 须为不同真实账号')
         pair_id='real-integration-'+str(time.time_ns())
-        common=[sys.executable,str(SCRIPT),'--json','--pair',pair_id,'--codex-home',str(home)]
+        common=[sys.executable,str(SCRIPT),'--json','--pair',pair_id,'--state-root',str(state_root),'--codex-home',str(home)]
         def cli(*args,cwd=None):
             result=subprocess.run(common+list(args),cwd=cwd,capture_output=True,encoding='utf-8',timeout=180)
             self.assertEqual(result.returncode,0,result.stdout+result.stderr)
             parsed=json.loads(result.stdout);self.assertTrue(parsed['ok'],parsed);return parsed['result']
-        initial=cli('init','--project',str(project),'--worktree-root',str(root/'trees'))
+        initial=cli('init','--project',str(project))
         trees=initial['git']['worktrees']
-        for member in ('A','B'):cli('join','--member',member,'--new-session','--worktree',trees[member.lower()]['path'])
-        store=Store(pair_id,home=home)
+        for member in ('A','B'):cli('join','--member',member,'--member-codex-home',str(homes[member]),'--new-session','--worktree',trees[member.lower()]['path'])
+        store=Store(pair_id,home=home,state_root=state_root)
         goals={
             'A':('implementation','adder.py','实现 adder.py 的 add(a,b)，使用普通 Python 数字加法，支持负数。只修改 adder.py，测试后 git add -- adder.py 并提交；complete 原任务时附 --commit 完整SHA。若收到 B 的接口问题，按协议 claim 问题，send reply 关联原问题（task 使用问题的 task_id），带 progress-note 说明已确定接口，再 complete 问题。不要等待 B 才实现。使用 claim_argv[0] 的 Python 路径。'),
             'B':('tests','test_adder.py','先向 A 发送一条 kind=question，task=tests，询问 add(a,b) 是否支持负数；保留当前任务 claim_token，写在协作状态目录下的文件中，然后结束回合等待 reply。收到 reply 后领取并完成回复消息，继续原任务：只编写 test_adder.py，用 unittest 测试 add(2,3)==5、add(-2,1)==-1。不要写 adder.py 或桩，不整合 A 的分支。源码尚未整合时可先 py_compile 测试文件并说明等待整合后执行；git add -- test_adder.py 后提交，complete 原任务并附 --commit 完整SHA。使用 claim_argv[0] 的 Python 路径。')}
         for member,(task,path,body) in goals.items():
-            body_file=root/(task+'.txt');body_file.write_text(body,encoding='utf-8')
+            handoffs=project/'.codex-pair'/'handoffs';handoffs.mkdir(exist_ok=True)
+            body_file=handoffs/(task+'.txt');body_file.write_text(body,encoding='utf-8')
             cli('assign','--task',task,'--title',task,'--to',member,'--allow',path,'--body-file',str(body_file))
-        logs=(evidence/'integration-daemon.stdout').open('wb');errors=(evidence/'integration-daemon.stderr').open('wb')
+        log_root=project/'.codex-pair'/'logs';log_root.mkdir(exist_ok=True)
+        logs=(log_root/'integration-daemon.stdout').open('wb');errors=(log_root/'integration-daemon.stderr').open('wb')
         def start_daemon():
             return subprocess.Popen(common+['daemon'],stdout=logs,stderr=errors,creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
         daemon=start_daemon()
@@ -214,10 +231,10 @@ class RealIntegrationTests(unittest.TestCase):
             b_task=next(m for m in task_messages if m['recipient']=='B')
             before_b=git(trees['b']['path'],'rev-parse','HEAD')
             # 外部重复入队同一已完成信封，领取门必须阻止再次开发。
-            duplicate=subprocess.run(codex_command()+['queue','--thread',store.member('B')['session_uuid'],'--message',b_task['envelope']],capture_output=True,encoding='utf-8',timeout=30)
+            duplicate=subprocess.run(codex_command()+['queue','--thread',store.member('B')['session_uuid'],'--message',b_task['envelope']],capture_output=True,encoding='utf-8',timeout=30,env=dict(os.environ,CODEX_HOME=str(home_b)))
             self.assertEqual(duplicate.returncode,0,duplicate.stderr)
             duplicate_proof=None
-            with AppServer(codex_home=home,cwd=trees['b']['path']) as observer:
+            with AppServer(codex_home=home_b,cwd=trees['b']['path']) as observer:
                 deadline=time.monotonic()+90
                 while time.monotonic()<deadline:
                     matching=[t for t in observer.turns(store.member('B')['session_uuid']) if any(
@@ -256,7 +273,8 @@ class RealIntegrationTests(unittest.TestCase):
             final=store.status()
             self.assertTrue(all(t['status']=='integrated' for t in final['tasks']))
             final.update(verification={'command':[sys.executable,'-m','unittest','test_adder','-v'],'stdout':verification.stdout,'stderr':verification.stderr},
-                         project=str(project),duplicate_turns=[t['id'] for t in duplicate_proof],visible_tui_windows_tested=False)
+                         project=str(project),accounts=account_proof,duplicate_turns=[t['id'] for t in duplicate_proof],visible_tui_windows_tested=False,
+                         mode='managed',central_dispatcher=True)
             (evidence/'integration-result.json').write_text(json.dumps(final,ensure_ascii=False,indent=2),encoding='utf-8')
         finally:
             store.control('stopped')

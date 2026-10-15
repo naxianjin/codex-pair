@@ -246,7 +246,7 @@ class AppServer:
             try:from .pair_git import validate_worktree
             except ImportError:from pair_git import validate_worktree
             expected=proof['git']
-            validation=validate_worktree(member['cwd'],expected['common_dir'],expected['branch'])
+            validation=validate_worktree(expected.get('path') or member['cwd'],expected['common_dir'],expected['branch'])
             if not validation['valid']:
                 raise TransportError('Git worktree identity mismatch / Git worktree 身份不符: '+json.dumps(validation['reasons'],ensure_ascii=False))
         return thread
@@ -344,19 +344,22 @@ class AppServer:
 class TransportPool:
     """每名 managed 成员独占一个 CLI 进程；只恢复本协作创建的会话。"""
 
-    def __init__(self, *, codex_home, executable=None, timeout=15):
-        self.options = dict(codex_home=codex_home, executable=executable, timeout=timeout)
+    def __init__(self, *, codex_home=None, executable=None, timeout=15):
+        self.options = dict(executable=executable, timeout=timeout)
         self.clients = {}
 
     def client(self, member):
         if member['backend'] == 'managed' and not member['owned']:
             raise TransportError('Unowned managed session / 不允许恢复来源不明的独立会话')
-        key = member['id']
+        if not member.get('codex_home'):
+            raise TransportError('Member account missing / 成员缺少账号目录，拒绝使用默认账号')
+        account=canonical_path(member['codex_home'])
+        key = (member['id'],account,member['backend'],member['session_uuid'],canonical_path(member['cwd']))
         if key in self.clients and self.clients[key]._dead:
             self.clients.pop(key).close()
         if key not in self.clients:
-            client = (QueueTransport(cwd=member['cwd'], **self.options) if member['backend']=='queue'
-                      else AppServer(backend=member['backend'], cwd=member['cwd'], **self.options))
+            client = (QueueTransport(codex_home=account,cwd=member['cwd'], **self.options) if member['backend']=='queue'
+                      else AppServer(codex_home=account,backend=member['backend'], cwd=member['cwd'], **self.options))
             try:
                 if member['backend']=='queue':
                     client.validate(member)
@@ -381,12 +384,12 @@ class TransportPool:
 
     def pending_requests(self):
         result=[]
-        for member_id,client in self.clients.items():
+        for key,client in self.clients.items():
             target=client.observer if isinstance(client,QueueTransport) else client
             while True:
                 try:request=target.server_requests.get_nowait()
                 except queue.Empty:break
-                result.append({'member':member_id,'request':request})
+                result.append({'member':key[0],'request':request})
         return result
 
 

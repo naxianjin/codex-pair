@@ -237,6 +237,21 @@ class CoreTests(unittest.TestCase):
                 running.result(timeout=5)
         self.assertFalse(self.store.status()['runtime']['lock_held'])
 
+    def test_daemon_start_waits_for_transient_status_probe_lock(self):
+        fake=FakeTransport(self.store)
+        entered=threading.Event()
+        def start():
+            entered.set()
+            Daemon(self.store,fake).run(max_ticks=1)
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            with FileLock(self.store.daemon_lock):
+                running=executor.submit(start)
+                self.assertTrue(entered.wait(2))
+                time.sleep(.05)
+                self.assertFalse(running.done(),'瞬时状态探测不能导致启动提前失败')
+            running.result(timeout=3)
+        self.assertTrue(fake.closed)
+
     def test_pause_waits_for_dispatch_boundary_and_starts_nothing_after_return(self):
         self.message();self.store.send('B','A','另一个消息')
         entered=threading.Event();release=threading.Event();paused=threading.Event()

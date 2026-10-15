@@ -12,11 +12,11 @@ import time
 import uuid
 
 try:
-    from .pair_core import Daemon, FileLock, PairError, Store, dumps, effective_home
+    from .pair_core import Daemon, FileLock, PairError, Store, dumps, effective_home, member_workspace
     from .pair_transport import AppServer, QueueTransport, TransportError, TransportPool, canonical_path
     from . import pair_git
 except ImportError:
-    from pair_core import Daemon, FileLock, PairError, Store, dumps, effective_home
+    from pair_core import Daemon, FileLock, PairError, Store, dumps, effective_home, member_workspace
     from pair_transport import AppServer, QueueTransport, TransportError, TransportPool, canonical_path
     import pair_git
 
@@ -31,6 +31,8 @@ def build_parser():
     common.add_argument('--json',action='store_true',default=argparse.SUPPRESS,help='输出 JSON')
     common.add_argument('--pair',default=argparse.SUPPRESS,help='协作 ID')
     common.add_argument('--codex-home',default=argparse.SUPPRESS,help='显式 Codex 主目录；默认遵循 CODEX_HOME')
+    common.add_argument('--state-root',default=argparse.SUPPRESS,help='共享状态根目录，协作目录为该路径/<ID>；与账号目录独立')
+    common.add_argument('--member-codex-home',default=argparse.SUPPRESS,help='成员实际账号目录，默认当前 CODEX_HOME')
     common.add_argument('--codex',default=argparse.SUPPRESS,help='Codex 可执行文件路径')
     parser=Parser(description='两个本机 Codex CLI 的持久化协作',parents=[common])
     commands=parser.add_subparsers(dest='command',required=True)
@@ -44,17 +46,29 @@ def build_parser():
         cmd.add_argument('--member',choices=['A','B'],required=True)
         cmd.add_argument('--session',default=os.environ.get('CODEX_THREAD_ID'),help='成员绑定的完整会话 UUID')
         cmd.add_argument('--worktree',default=str(Path.cwd()),help='必须与当前实际工作目录一致')
-    cmd=command('init','初始化仓库外的协作状态')
+    cmd=command('start','由当前已打开窗口发起，生成给另一窗口的邀请并启动本地桥')
+    cmd.add_argument('--project',help='目标仓库；默认当前目录所在仓库')
+    cmd.add_argument('--delivery-mode',choices=['auto','manual'],default='auto')
+    group=cmd.add_mutually_exclusive_group(required=True)
+    group.add_argument('--goal','--body',dest='body',help='协作目标')
+    group.add_argument('--goal-file','--body-file',dest='body_file',help='UTF-8 目标文件')
+    cmd=command('accept','当前已打开的第二个窗口接受邀请，自行识别会话与账号')
+    cmd.add_argument('--invite',required=True,help='A 输出的本地邀请 JSON 路径')
+    cmd=command('bridge','后台启动或停止当前协作的消息桥')
+    cmd.add_argument('--action',choices=['start','stop'],default='start')
+    cmd=command('init','初始化项目 .codex-pair 下的共享协作状态')
     cmd.add_argument('--project',required=True)
     cmd.add_argument('--base-ref',default='HEAD')
-    cmd.add_argument('--worktree-root',help='创建或验证 <ID>-a、<ID>-b 工作目录；省略时绑定已有 worktree')
+    cmd.add_argument('--worktree-root',help='默认项目 .codex-pair/worktrees，创建或验证 <ID>-a、<ID>-b')
     cmd=command('join','绑定已有 CLI 会话，或创建独占托管会话')
     cmd.add_argument('--member',choices=['A','B'],required=True)
     cmd.add_argument('--worktree',required=True)
     group=cmd.add_mutually_exclusive_group(required=True)
     group.add_argument('--session',help='已有 CLI 的完整会话 UUID')
+    group.add_argument('--current-session',action='store_true',help='从当前 Codex 会话 CODEX_THREAD_ID 加入，并校验实际 cwd')
     group.add_argument('--new-session',action='store_true',help='为此协作创建独占 app-server 会话')
     cmd.add_argument('--backend',choices=['queue','shared','managed'],help='已有会话默认 queue，新会话为 managed')
+    cmd.add_argument('--delivery-mode',choices=['auto','manual'],default='auto',help='manual 明确为手动交接，不声称自动唤醒')
     cmd.add_argument('--branch',help='已有 worktree 的预期分支；有 init 计划时必须与计划一致')
     cmd=command('assign','分配任务；依赖和范围检查通过后才激活')
     cmd.add_argument('--task',required=True)
@@ -91,10 +105,14 @@ def build_parser():
     group.add_argument('--abort',action='store_true')
     cmd=command('status','显示任务、消息各阶段及守护进程证据')
     cmd.add_argument('--probe',type=float,default=0,help='等待指定秒数，验证 daemon 响应随机挑战')
-    cmd=command('daemon','在当前进程运行单实例守护程序')
-    cmd.add_argument('--max-attempts',type=int,default=3)
-    cmd.add_argument('--poll-interval',type=float,default=.25)
-    cmd.add_argument('--rpc-timeout',type=float,default=15,help='投递回执超时，不是任务耗时限制')
+    for name,label in [('daemon','按成员账号路由的中央 dispatcher'),('relay','仅向本账号成员投递的 relay')]:
+        cmd=command(name,label)
+        cmd.add_argument('--max-attempts',type=int,default=3)
+        cmd.add_argument('--poll-interval',type=float,default=.25)
+        cmd.add_argument('--rpc-timeout',type=float,default=15,help='投递回执超时，不是任务耗时限制')
+        if name=='relay':cmd.add_argument('--member',choices=['A','B'],required=True)
+    cmd=command('relay-stop','停止指定成员 relay，保留其他 relay 与状态')
+    cmd.add_argument('--member',choices=['A','B'],required=True)
     for name,label in [('pause','暂停新投递，保留已开始的回合'),('resume','恢复调度与投递'),('stop','停止守护程序，保留状态及代码')]:
         command(name,label)
     return parser
@@ -113,9 +131,12 @@ def validate_actor(store,args):
     if canonical_path(args.worktree)!=canonical_path(Path.cwd()):
         raise PairError('Actual cwd mismatch / 当前实际工作目录与 --worktree 不符')
     member=store.member(args.member)
+    actor_home=canonical_path(getattr(args,'member_codex_home',None) or getattr(args,'codex_home',None) or effective_home())
+    if actor_home!=canonical_path(member['codex_home']):
+        raise PairError('Member account mismatch / 当前账号目录与成员绑定不符，禁止回退另一账号')
     if member['session_uuid']!=args.session.lower() or member['cwd']!=canonical_path(args.worktree):
         raise PairError('Member binding mismatch / 成员的会话或工作目录不符')
-    with AppServer(codex_home=store.home, executable=getattr(args,'codex',None),cwd=member['cwd']) as observer:
+    with AppServer(codex_home=member['codex_home'], executable=getattr(args,'codex',None),cwd=member['cwd']) as observer:
         observer.validate(member)
 
 
@@ -155,22 +176,26 @@ def receiver_proof(store,path):
     with store.transaction() as db:
         members=[dict(r) for r in db.execute('SELECT * FROM members')]
     requested=canonical_path(path)
-    for member in members:
-        if requested==member['cwd']:
+    receivers=[m for m in members if requested==member_workspace(m)]
+    for member in receivers:
+        if requested==member_workspace(member):
             proof=json.loads(member['proof']).get('git')
             if not proof:proof=worktree_proof(store,member['id'],path)
             validation=pair_git.validate_worktree(path,context['repo']['common_dir'],proof['branch'])
             if not validation['valid']:raise PairError(dumps(validation))
             with store.transaction() as db:
-                active=db.execute("SELECT id FROM tasks WHERE assignee=? AND status IN ('active','blocked')",(member['id'],)).fetchall()
-                live=db.execute("SELECT * FROM messages WHERE recipient=? AND delivery_status IN ('accepted','delivering','unknown') AND (remote_status IS NULL OR remote_status IN ('queued','inProgress'))",(member['id'],)).fetchall()
+                ids=[m['id'] for m in receivers]
+                slots=','.join('?' for _ in ids)
+                active=db.execute("SELECT id FROM tasks WHERE assignee IN ("+slots+") AND status IN ('active','blocked')",ids).fetchall()
+                live=db.execute("SELECT * FROM messages WHERE recipient IN ("+slots+") AND (delivery_status IN ('delivering','unknown') OR (delivery_status='accepted' AND (remote_status IS NULL OR remote_status IN ('queued','inProgress'))))",ids).fetchall()
             # A 自己串行执行的工具调用可以整合。它不能豁免其他回合、
             # 正在开发的任务、队列或结果不明的请求。
-            current_coordinator=(member['id']=='A' and os.environ.get('CODEX_THREAD_ID')==member['session_uuid']
-                                 and canonical_path(Path.cwd())==member['cwd'])
+            coordinator=next((m for m in receivers if m['id']=='A'),None)
+            current_coordinator=(coordinator and os.environ.get('CODEX_THREAD_ID')==coordinator['session_uuid']
+                                 and canonical_path(Path.cwd())==coordinator['cwd'])
             if current_coordinator and len(live)==1:
                 own=live[0]
-                if (own['delivery_status']=='accepted' and own['remote_status']=='inProgress'
+                if (own['recipient']=='A' and own['delivery_status']=='accepted' and own['remote_status']=='inProgress'
                         and own['process_status'] in ('claimed','completed')
                         and (own['kind']!='task' or own['process_status']=='completed')):
                     live=[]
@@ -276,10 +301,10 @@ def integrate(store,args):
         if args.commit and args.commit!=commits:
             raise PairError('Commit list differs from delivery / 指定提交与任务交付列表不同')
         if not commits:raise PairError('No commits supplied / 任务没有提交')
-        source=store.member(task['assignee']);worktree_proof(store,source['id'],source['cwd'])
-        proof=pair_git.check_delivery(source['cwd'],task['base_commit'] or store.status()['pair']['base_commit'],commits,json.loads(task['allowed_paths']))
+        source=store.member(task['assignee']);worktree_proof(store,source['id'],member_workspace(source))
+        proof=pair_git.check_delivery(member_workspace(source),task['base_commit'] or store.status()['pair']['base_commit'],commits,json.loads(task['allowed_paths']))
         if not proof['passed']:raise PairError('Delivery rejected / 交付校验失败: '+dumps(proof))
-        target=canonical_path(args.worktree or store.member('A')['cwd'])
+        target=canonical_path(args.worktree or member_workspace(store.member('A')))
         receiver_proof(store,target)
         with store.transaction() as db:
             existing=db.execute("SELECT * FROM integrations WHERE task_id=? AND receiver=? ORDER BY created DESC LIMIT 1",(task['id'],target)).fetchone()
@@ -292,7 +317,27 @@ def integrate(store,args):
         return apply_plan(store,plan)
 
 
+def resolve_state_root(args, home, pair_id):
+    explicit=getattr(args,'state_root',None)
+    if explicit:return Path(explicit).resolve()
+    # 从嵌套 worktree 运行时，取公共仓库登记的原工作目录。
+    result=subprocess.run(['git','worktree','list','--porcelain'],capture_output=True,encoding='utf-8')
+    if result.returncode==0:
+        first=next((line[9:] for line in result.stdout.splitlines() if line.startswith('worktree ')),None)
+        if first:
+            candidate=Path(first)/'.codex-pair'/'state'
+            if (candidate/pair_id/'state.sqlite3').is_file():return candidate
+    # 老数据库不移动，仅在当前账号原位置存在时读取。
+    legacy=home/'codex-pair'
+    if (legacy/pair_id/'state.sqlite3').is_file():return legacy
+    raise PairError('State not found / 未发现协作，请显式提供 --state-root；不扫描其他账号')
+
+
 def execute(args):
+    if args.command in ('start','accept','bridge'):
+        try:from . import pair_windows
+        except ImportError:import pair_windows
+        return pair_windows.execute(args,sys.modules[__name__])
     home=Path(getattr(args,'codex_home',None) or effective_home()).resolve()
     pair_id=getattr(args,'pair',None)
     if args.command=='init':
@@ -300,10 +345,16 @@ def execute(args):
         repo=pair_git.inspect_repo(project)
         if canonical_path(repo['root'])!=project:raise PairError('Use repository root / 必须使用仓库根目录')
         base=git_run(project,'rev-parse','--verify','--end-of-options',args.base_ref+'^{commit}')
-        store=Store.initialize(pair_id or str(uuid.uuid4()),project,base,home=home)
+        state_root=getattr(args,'state_root',None) or str(Path(project)/'.codex-pair'/'state')
+        worktree_root=args.worktree_root or str(Path(project)/'.codex-pair'/'worktrees')
+        # 两种目录都先验证，避免非法 worktree 参数导致先创建数据库。
+        pair_git.prepare_pair_directory(project,worktree_root,'worktrees')
+        for kind in ('handoffs','logs','archives'):
+            pair_git.prepare_pair_directory(project,str(Path(project)/'.codex-pair'/kind),kind)
+        store=Store.initialize(pair_id or str(uuid.uuid4()),project,base,home=home,state_root=state_root)
         store.configure_git(repo)
-        if args.worktree_root:
-            root=Path(args.worktree_root).resolve()
+        if worktree_root:
+            root=Path(worktree_root).resolve()
             expected={r:{'path':str(root/(store.pair_id+'-'+r)),'branch':'codex-pair/'+store.pair_id+'/'+r} for r in ('a','b')}
             if all(Path(item['path']).exists() for item in expected.values()):
                 for item in expected.values():
@@ -318,10 +369,15 @@ def execute(args):
         return dict(store.status(),git=store.git_context())
     if not pair_id:
         raise PairError('--pair is required / 必须指定协作 ID')
-    store=Store(pair_id,home=home)
+    store=Store(pair_id,home=home,state_root=resolve_state_root(args,home,pair_id))
     executable=getattr(args,'codex',None)
     if args.command=='join':
+        home=Path(canonical_path(getattr(args,'member_codex_home',None) or home))
         cwd=canonical_path(args.worktree)
+        if args.current_session:
+            args.session=os.environ.get('CODEX_THREAD_ID')
+            if not args.session or canonical_path(Path.cwd())!=cwd:
+                raise PairError('Current session context required / --current-session 必须在目标 Codex 会话及其实际 worktree 内运行')
         git_proof=worktree_proof(store,args.member,cwd,args.branch)
         backend=args.backend or ('managed' if args.new_session else 'queue')
         if args.new_session:
@@ -330,7 +386,7 @@ def execute(args):
             try:existing=store.member(args.member)
             except PairError:existing=None
             if existing:
-                if existing['cwd']!=cwd or existing['backend']!='managed':
+                if existing['cwd']!=cwd or existing['backend']!='managed' or canonical_path(existing['codex_home'])!=canonical_path(home) or existing['delivery_mode']!=args.delivery_mode:
                     raise PairError('Member already bound differently / 成员已有不同绑定')
                 with AppServer(codex_home=home,executable=executable,cwd=cwd) as observer:observer.validate(existing)
                 return existing
@@ -343,16 +399,16 @@ def execute(args):
                     raise PairError('Session bootstrap failed / 会话初始化回合未完成')
                 proof=client.validate(member)
                 proof['git']=git_proof
-                return store.join(args.member,thread['id'],cwd,backend=backend,owned=True,proof=proof)
+                return store.join(args.member,thread['id'],cwd,backend=backend,owned=True,proof=proof,member_codex_home=home,delivery_mode=args.delivery_mode)
         if backend=='managed':
             raise PairError('Use --new-session for managed sessions / 独占会话须由 --new-session 创建')
         with AppServer(backend='shared' if backend=='shared' else 'managed',codex_home=home,executable=executable,cwd=cwd) as client:
             proof=client.validate({'session_uuid':args.session,'cwd':cwd})
             proof['git']=git_proof
-            return store.join(args.member,args.session,cwd,backend=backend,owned=False,proof=proof)
+            return store.join(args.member,args.session,cwd,backend=backend,owned=False,proof=proof,member_codex_home=home,delivery_mode=args.delivery_mode)
     if args.command=='assign':
-        member=store.member(args.to);worktree_proof(store,args.to,member['cwd'])
-        base=git_run(member['cwd'],'rev-parse','--verify','--end-of-options',args.base_ref+'^{commit}') if args.base_ref else None
+        member=store.member(args.to);worktree_proof(store,args.to,member_workspace(member))
+        base=git_run(member_workspace(member),'rev-parse','--verify','--end-of-options',args.base_ref+'^{commit}') if args.base_ref else None
         return store.assign(args.task,args.title,args.to,args.allow,body=read_body(args),dependencies=args.depends_on,base_commit=base)
     if args.command=='send':
         return store.send(args.sender,args.to,read_body(args),kind=args.kind,task_id=args.task,
@@ -365,7 +421,7 @@ def execute(args):
             message=store.message(args.message)
             if message['kind']!='task':raise PairError('Only task completion accepts commits / 只有任务完成可交付提交')
             task=store.task(message['task_id'])
-            check=pair_git.check_delivery(args.worktree,task['base_commit'] or store.status()['pair']['base_commit'],args.commit,json.loads(task['allowed_paths']))
+            check=pair_git.check_delivery(member_workspace(store.member(args.member)),task['base_commit'] or store.status()['pair']['base_commit'],args.commit,json.loads(task['allowed_paths']))
             if not check['passed']:raise PairError('Delivery rejected / 交付校验失败: '+dumps(check))
         return store.complete(args.member,args.session,args.worktree,args.message,args.token,read_body(args),commits=args.commit)
     if args.command=='integrate':
@@ -376,11 +432,22 @@ def execute(args):
         return store.status(probe_timeout=args.probe)
     if args.command in ('pause','resume','stop'):
         return store.control({'pause':'paused','resume':'running','stop':'stopped'}[args.command])
-    if args.command=='daemon':
+    if args.command=='relay-stop':
+        with store.transaction() as db:
+            db.execute('UPDATE bridge_workers SET stop_requested=1 WHERE member=?',(args.member,))
+            store.event(db,'relay_stop_requested',member=args.member)
+        return {'member':args.member,'stop_requested':True,'records_preserved':True}
+    if args.command in ('daemon','relay'):
         if args.rpc_timeout<=0 or args.rpc_timeout>60:
             raise PairError('RPC timeout must be within 0..60 / 回执超时须大于 0 且最多 60 秒')
-        pool=TransportPool(codex_home=home,executable=executable,timeout=args.rpc_timeout)
-        Daemon(store,pool,max_attempts=args.max_attempts,poll_interval=args.poll_interval).run()
+        member_id=args.member if args.command=='relay' else None
+        if member_id:
+            member=store.member(member_id)
+            relay_home=canonical_path(getattr(args,'member_codex_home',None) or home)
+            if relay_home!=canonical_path(member['codex_home']):
+                raise PairError('Relay account mismatch / relay 必须使用本成员账号目录')
+        pool=TransportPool(executable=executable,timeout=args.rpc_timeout)
+        Daemon(store,pool,max_attempts=args.max_attempts,poll_interval=args.poll_interval,member_id=member_id).run()
         return {'daemon':'exited','state_directory':str(store.directory)}
     raise PairError('Unknown command / 未知命令')
 

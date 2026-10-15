@@ -197,7 +197,54 @@ def _branch_exists(repo: str, branch: str) -> bool:
     return result.returncode == 0
 
 
-def create_worktrees(project: str, pair_id: str, base_ref: str, worktree_root: str) -> dict:
+def prepare_pair_directory(project: str, path: str, kind: str) -> str:
+    """验证专用协作目录并设置仓库本地排除，不读取或复制账号配置。"""
+
+    if kind not in {"state", "worktrees", "handoffs", "archives", "logs"}:
+        raise GitError(f"未知协作目录类型：{kind}")
+    root, common = _repo_paths(project)
+    lexical = os.path.abspath(os.fspath(path))
+    expected = os.path.join(root, ".codex-pair", kind)
+    # 同时校验词法路径和真实路径，防止 junction/symlink 将命名空间指向源文件。
+    try:
+        valid = (os.path.commonpath([os.path.normcase(lexical), _real(expected)]) == _real(expected)
+                 and os.path.commonpath([_real(lexical), _real(root)]) == _real(root)
+                 and _real(expected) == os.path.normcase(os.path.abspath(expected))
+                 and os.path.commonpath([_real(lexical), _real(expected)]) == _real(expected))
+    except ValueError:
+        valid = False
+    if not valid:
+        raise GitError("协作目录必须位于项目内对应的 .codex-pair 专用目录", details={"path": lexical, "kind": kind})
+    parts = Path(lexical).relative_to(Path(root)).parts
+    if any(part.casefold().startswith(".codex") and part.casefold() != ".codex-pair" for part in parts):
+        raise GitError("协作目录不能使用账号目录")
+    cursor = Path(lexical)
+    while cursor != Path(root):
+        if (cursor / "auth.json").exists() or (cursor / "config.toml").exists():
+            raise GitError("协作目录不能覆盖账号配置目录")
+        cursor = cursor.parent
+    if _git(root, ["ls-files", "-z", "--", ".codex-pair"]).stdout:
+        raise GitError(".codex-pair 含已跟踪文件，拒绝写入或隐藏用户源文件")
+    if os.path.lexists(lexical) and not os.path.isdir(lexical):
+        raise GitError("协作目录路径已被文件占用")
+    exclude = Path(common) / "info" / "exclude"
+    exclude.parent.mkdir(parents=True, exist_ok=True)
+    existing = exclude.read_bytes() if exclude.exists() else b""
+    rule = b"/.codex-pair/"
+    if rule not in existing.splitlines():
+        with exclude.open("ab") as handle:
+            handle.write((b"\n" if existing and not existing.endswith(b"\n") else b"") + rule + b"\n")
+    ignored = _git(root, ["check-ignore", "--quiet", "--", ".codex-pair/__exclude_probe__"], check=False)
+    if ignored.returncode != 0:
+        raise GitError("本地 Git 排除未生效，拒绝创建协作目录", stderr=ignored.stderr)
+    Path(lexical).mkdir(parents=True, exist_ok=True)
+    if _real(lexical) != os.path.normcase(lexical):
+        # 目录创建后再次验证，避免既有路径组件发生替换。
+        raise GitError("协作目录含路径重定向，拒绝继续")
+    return _display_path(lexical)
+
+
+def create_worktrees(project: str, pair_id: str, base_ref: str, worktree_root: str | None = None) -> dict:
     """从同一基准创建 A、B 分支和 worktree，不触碰原工作树修改。"""
 
     _validate_pair_id(pair_id)
@@ -206,7 +253,9 @@ def create_worktrees(project: str, pair_id: str, base_ref: str, worktree_root: s
         repo["root"],
         ["rev-parse", "--verify", "--end-of-options", f"{base_ref}^{{commit}}"],
     ).stdout.strip()
-    root = Path(_display_path(worktree_root))
+    requested_root = worktree_root or os.path.join(repo["root"], ".codex-pair", "worktrees")
+    root_existed = Path(requested_root).exists()
+    root = Path(prepare_pair_directory(repo["root"], requested_root, "worktrees"))
     branches = {
         "a": f"codex-pair/{pair_id}/a",
         "b": f"codex-pair/{pair_id}/b",
@@ -225,7 +274,6 @@ def create_worktrees(project: str, pair_id: str, base_ref: str, worktree_root: s
     if conflicts:
         raise GitError("拒绝覆盖已有目录或分支", details={"conflicts": conflicts})
 
-    root_existed = root.exists()
     root.mkdir(parents=True, exist_ok=True)
     completed: list[dict] = []
     for role in ("a", "b"):

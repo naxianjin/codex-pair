@@ -1,6 +1,6 @@
 interface:
   display_name: "Codex Pair"
-  short_description: "在 Windows 本机协调两个 Codex CLI，以独立 worktree 开发并整合提交"
-  default_prompt: "使用 $codex-pair，在同一台 Windows 机器上协调 A、B 两个 Codex CLI 完成本项目任务。"
+  short_description: "让当前打开的两个 Codex CLI 窗口通过邀请加入并自动问答、分工和交付"
+  default_prompt: "使用 $codex-pair 协调当前打开的两个窗口：本窗口发起 A 并输出给 B 的加入指令，收到邀请的原窗口直接加入，账号与消息桥自动处理。"
 policy:
   allow_implicit_invocation: true

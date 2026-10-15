@@ -3,3 +3,9 @@ __pycache__/
 .venv/
 .pytest_cache/
 *.sqlite3*
+/.codex-pair/
+.env
+.env.*
+!.env.example
+auth.json
+credentials.json

@@ -61,7 +61,7 @@ class GitModuleTests(unittest.TestCase):
 
     def test_inspect_repo_and_create_two_worktrees_from_same_base(self) -> None:
         info = inspect_repo(os.fspath(self.repo))
-        result = create_worktrees(os.fspath(self.repo), "pair-1", "HEAD", os.fspath(self.root / "工作树 根"))
+        result = create_worktrees(os.fspath(self.repo), "pair-1", "HEAD", os.fspath(self.repo / ".codex-pair" / "worktrees" / "工作树 根"))
         self.assertEqual(info["head"], result["base_commit"])
         self.assertEqual(self.base, git(Path(result["a"]["path"]), "rev-parse", "HEAD").stdout.strip())
         self.assertEqual(self.base, git(Path(result["b"]["path"]), "rev-parse", "HEAD").stdout.strip())
@@ -74,14 +74,14 @@ class GitModuleTests(unittest.TestCase):
     def test_original_uncommitted_changes_are_preserved_and_excluded(self) -> None:
         changed = self.repo / "shared.txt"
         changed.write_text("local only\n", encoding="utf-8")
-        result = create_worktrees(os.fspath(self.repo), "dirty", "HEAD", os.fspath(self.root / "trees"))
+        result = create_worktrees(os.fspath(self.repo), "dirty", "HEAD", os.fspath(self.repo / ".codex-pair" / "worktrees"))
         self.assertTrue(result["original_dirty"])
         self.assertFalse(result["original_changes_included"])
         self.assertEqual("local only\n", changed.read_text(encoding="utf-8"))
         self.assertEqual("base\n", (Path(result["a"]["path"]) / "shared.txt").read_text(encoding="utf-8"))
 
     def test_existing_directory_or_branch_is_not_overwritten(self) -> None:
-        tree_root = self.root / "trees"
+        tree_root = self.repo / ".codex-pair" / "worktrees"
         (tree_root / "occupied-a").mkdir(parents=True)
         with self.assertRaises(GitError) as caught:
             create_worktrees(os.fspath(self.repo), "occupied", "HEAD", os.fspath(tree_root))
@@ -107,7 +107,7 @@ class GitModuleTests(unittest.TestCase):
         with patch("scripts.pair_git._git", side_effect=fail_second):
             with self.assertRaises(GitError) as caught:
                 create_worktrees(
-                    os.fspath(self.repo), "partial", "HEAD", os.fspath(self.root / "partial trees")
+                    os.fspath(self.repo), "partial", "HEAD", os.fspath(self.repo / ".codex-pair" / "worktrees" / "partial trees")
                 )
         details = caught.exception.details
         self.assertEqual("a", details["completed_steps"][0]["role"])
@@ -116,7 +116,7 @@ class GitModuleTests(unittest.TestCase):
         self.assertTrue(details["worktree_root_created"])
 
     def test_validate_rejects_wrong_repo_branch_and_non_root_path(self) -> None:
-        result = create_worktrees(os.fspath(self.repo), "validate", "HEAD", os.fspath(self.root / "trees"))
+        result = create_worktrees(os.fspath(self.repo), "validate", "HEAD", os.fspath(self.repo / ".codex-pair" / "worktrees"))
         a_path = Path(result["a"]["path"])
         common = inspect_repo(os.fspath(a_path))["common_dir"]
         valid = validate_worktree(os.fspath(a_path), common, result["a"]["branch"])
@@ -157,7 +157,7 @@ class GitModuleTests(unittest.TestCase):
         self.assertTrue(any("不属于当前任务分支" in reason for reason in result["reasons"]))
 
     def test_integrates_explicit_commits_and_rejects_dirty_receiver(self) -> None:
-        result = create_worktrees(os.fspath(self.repo), "integrate", "HEAD", os.fspath(self.root / "trees"))
+        result = create_worktrees(os.fspath(self.repo), "integrate", "HEAD", os.fspath(self.repo / ".codex-pair" / "worktrees"))
         a = Path(result["a"]["path"])
         b = Path(result["b"]["path"])
         first = self._commit_file(b, "one.txt", "1\n", "one")
@@ -172,7 +172,7 @@ class GitModuleTests(unittest.TestCase):
         self.assertIn("不干净", str(caught.exception))
 
     def test_all_commit_ids_are_validated_before_integration_starts(self) -> None:
-        result = create_worktrees(os.fspath(self.repo), "preflight", "HEAD", os.fspath(self.root / "trees"))
+        result = create_worktrees(os.fspath(self.repo), "preflight", "HEAD", os.fspath(self.repo / ".codex-pair" / "worktrees"))
         a = Path(result["a"]["path"])
         b = Path(result["b"]["path"])
         source = self._commit_file(b, "source.txt", "source\n", "source")
@@ -183,7 +183,7 @@ class GitModuleTests(unittest.TestCase):
         self.assertFalse((a / "source.txt").exists())
 
     def _make_conflict(self, pair_id: str) -> tuple[Path, Path, str, str]:
-        result = create_worktrees(os.fspath(self.repo), pair_id, "HEAD", os.fspath(self.root / f"trees-{pair_id}"))
+        result = create_worktrees(os.fspath(self.repo), pair_id, "HEAD", os.fspath(self.repo / ".codex-pair" / "worktrees" / f"trees-{pair_id}"))
         a = Path(result["a"]["path"])
         b = Path(result["b"]["path"])
         self._commit_file(a, "shared.txt", "from A\n", "A change")
@@ -217,6 +217,58 @@ class GitModuleTests(unittest.TestCase):
             continue_integration(os.fspath(self.repo))
         with self.assertRaises(GitError):
             abort_integration(os.fspath(self.repo))
+
+    def test_project_local_defaults_are_ignored_without_global_changes(self) -> None:
+        exclude = self.repo / ".git" / "info" / "exclude"
+        exclude.write_text("# 保留本地规则\nlocal-only\n", encoding="utf-8")
+        result = create_worktrees(str(self.repo), "local", "HEAD")
+        state = self.repo / ".codex-pair" / "state" / "local"
+        pair_git.prepare_pair_directory(str(self.repo), str(state), "state")
+        (state / "state.sqlite3").write_bytes(b"database")
+        self.assertEqual("", git(self.repo, "status", "--porcelain").stdout)
+        self.assertTrue(Path(result["a"]["path"]).is_relative_to(self.repo / ".codex-pair"))
+        self.assertIn("# 保留本地规则", exclude.read_text(encoding="utf-8"))
+        self.assertEqual(1, exclude.read_text(encoding="utf-8").count("/.codex-pair/"))
+        # linked worktree 的 .git 是文件，必须仍定位到 common dir。
+        linked = Path(result["a"]["path"])
+        pair_git.prepare_pair_directory(str(linked), str(linked / ".codex-pair" / "logs"), "logs")
+
+    def test_pair_directory_rejects_outside_wrong_kind_files_and_auth(self) -> None:
+        for target, kind in [(self.root / "outside", "state"),
+                             (self.repo / ".codex-pair" / "worktrees", "state"),
+                             (self.repo / "shared.txt", "state")]:
+            with self.assertRaises(GitError):
+                pair_git.prepare_pair_directory(str(self.repo), str(target), kind)
+        auth = self.repo / ".codex-pair" / "state" / "account"
+        auth.mkdir(parents=True)
+        (auth / "auth.json").write_text("do not touch", encoding="utf-8")
+        with self.assertRaises(GitError):
+            pair_git.prepare_pair_directory(str(self.repo), str(auth / "child"), "state")
+        with self.assertRaises(GitError):
+            create_worktrees(str(self.repo), "external", "HEAD", str(self.root / "external"))
+
+    def test_tracked_pair_content_is_never_hidden_or_overwritten(self) -> None:
+        tracked = self.repo / ".codex-pair" / "keep.txt"
+        tracked.parent.mkdir()
+        tracked.write_text("user", encoding="utf-8")
+        git(self.repo, "add", ".codex-pair/keep.txt")
+        with self.assertRaises(GitError):
+            pair_git.prepare_pair_directory(str(self.repo), str(tracked.parent / "state"), "state")
+        self.assertEqual("user", tracked.read_text(encoding="utf-8"))
+
+    def test_junction_escape_is_rejected(self) -> None:
+        pair = self.repo / ".codex-pair"
+        pair.mkdir()
+        outside = self.root / "outside"
+        outside.mkdir()
+        if os.name == "nt":
+            subprocess.run(["cmd", "/c", "mklink", "/J", str(pair / "state"), str(outside)],
+                           capture_output=True, check=True)
+        else:
+            (pair / "state").symlink_to(outside, target_is_directory=True)
+        with self.assertRaises(GitError):
+            pair_git.prepare_pair_directory(str(self.repo), str(pair / "state" / "evil"), "state")
+        self.assertFalse((outside / "evil").exists())
 
 
 if __name__ == "__main__":
