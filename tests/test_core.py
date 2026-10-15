@@ -379,6 +379,25 @@ class RealCoreTests(unittest.TestCase):
             self.assertEqual(status['tasks'][0]['status'],'completed')
             self.assertIn('PAIR_BUSINESS_OK',status['tasks'][0]['result'])
             self.assertTrue(all(m['attempts']==1 for m in status['messages']))
+            # 先让消息被接受，再暂停；已在执行链中的领取不能被暂停丢弃。
+            inflight=store.send('A','B','暂停边界验收：本消息已被投递，按协议 claim 和 complete，实质结果 PAIR_PAUSE_ACCEPTED_OK，不改代码。')
+            deadline=time.monotonic()+30
+            while time.monotonic()<deadline and store.message(inflight['id'])['delivery_status']!='accepted':time.sleep(.02)
+            accepted_snapshot=store.message(inflight['id'])
+            self.assertEqual(accepted_snapshot['delivery_status'],'accepted')
+            store.control('paused')
+            pending=store.send('B','A','暂停期间保留，不得开始投递')
+            deadline=time.monotonic()+180
+            while time.monotonic()<deadline:
+                actual=store.message(inflight['id'])
+                if actual['process_status']=='completed' and actual['remote_status']=='completed':break
+                time.sleep(.25)
+            pause_proof={'accepted_before_pause':{key:value for key,value in accepted_snapshot.items() if key!='claim_token'},
+                         'after':store.status(),'pending_id':pending['id']}
+            (evidence/'pause-after-acceptance.json').write_text(json.dumps(pause_proof,ensure_ascii=False,indent=2),encoding='utf-8')
+            self.assertEqual(actual['process_status'],'completed')
+            self.assertEqual(actual['remote_status'],'completed')
+            self.assertEqual(store.message(pending['id'])['attempts'],0)
         finally:
             store.control('stopped')
             try:daemon.wait(timeout=30)
