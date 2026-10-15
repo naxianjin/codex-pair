@@ -380,7 +380,8 @@ class Store:
     def claim(self, member_id, session, cwd, *, message_id=None):
         with self.transaction() as db:
             self._binding(db,member_id,session,cwd)
-            if db.execute('SELECT status FROM collaborations').fetchone()[0]!='running':
+            collaboration_state=db.execute('SELECT status FROM collaborations').fetchone()[0]
+            if collaboration_state=='stopped':
                 return {'claimed':False,'reason':'collaboration_not_running'}
             params=[member_id]
             clause=' AND id=?' if message_id else ''
@@ -388,6 +389,8 @@ class Store:
             message=db.execute("SELECT * FROM messages WHERE recipient=? AND process_status='unclaimed' AND delivery_status<>'failed'"+clause+' ORDER BY created,id LIMIT 1',params).fetchone()
             if not message:
                 return {'claimed':False,'reason':'already_claimed_or_unavailable'}
+            if collaboration_state=='paused' and message['delivery_status'] not in ('accepted','delivering','unknown'):
+                return {'claimed':False,'reason':'collaboration_paused_before_delivery'}
             if message['kind']=='task':
                 task=db.execute('SELECT * FROM tasks WHERE id=?',(message['task_id'],)).fetchone()
                 if task['status']!='active':

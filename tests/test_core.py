@@ -272,6 +272,14 @@ class CoreTests(unittest.TestCase):
         self.store.control('running')
         self.assertTrue(self.claim(message['id'])['claimed'])
 
+    def test_pause_allows_already_submitted_message_to_finish_but_blocks_pending_claim(self):
+        accepted=self.message();daemon=Daemon(self.store,FakeTransport(self.store));daemon.dispatch_one()
+        pending=self.store.send('B','A','尚未投递')
+        self.store.control('paused')
+        self.assertTrue(self.claim(accepted['id'])['claimed'])
+        self.assertFalse(self.claim(pending['id'],member='A')['claimed'])
+        self.assertFalse(daemon.dispatch_one())
+
     def test_no_reply_does_not_release_or_reassign_active_task(self):
         self.task()
         self.task('next',to='B',paths=('another.py',))
