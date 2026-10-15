@@ -104,6 +104,8 @@ init 针对已有 Git 仓库；新项目先按授权初始化并提交最小骨�
 
 入口 `integrate --task <ID> [--worktree <接收目录>]` 自动暂停新投递，默认接收方 A，也可明确选择其他已绑定 worktree 或原项目。接收方不得有执行中任务或结果不明回合。指定 --commit 时必须与 complete 记录的顺序一致。SQLite 在每次 cherry-pick 前持久化 SHA、原 HEAD 和下标；冲突后 --continue 会继续当前和剩余提交。中断后核对 HEAD 父提交与稳定 patch-id，结果不明拒绝重复应用。已完成计划重复调用返回同一结果。--abort 仅中止当前冲突，之前成功提交仍保留并报告。
 
+A 的当前 CLI 可在自身的串行工具调用中整合：必须同时匹配 CODEX_THREAD_ID 与真实工作目录，唯一在执行的投递必须是它已领取的当前消息，且开发任务已经完成。此例外不豁免其他任务、queued、delivering 或 unknown 请求。其他操作者仍等待接收方回合结束。
+
 ## 冲突与恢复
 
 - `integrate_commits` 返回 `status: conflict` 时保留 index、工作树和 `CHERRY_PICK_HEAD`，同时返回冲突文件。不得自动 reset 或覆盖文件。

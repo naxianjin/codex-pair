@@ -90,6 +90,17 @@ class IntegrationTests(unittest.TestCase):
         with self.assertRaises(pair_git.GitError):pair.execute(self.arguments('integrate','--task','delivery'))
         self.assertEqual(user.read_text(encoding='utf-8'),'保留')
 
+    def test_current_coordinator_can_integrate_from_own_receipt_turn(self):
+        commit=self.commit('B','one.txt','one\n');self.deliver(['one.txt'],[commit])
+        receipt=next(m for m in self.store.status()['messages'] if m['kind']=='result')
+        a=self.store.member('A')
+        self.store.claim('A',a['session_uuid'],a['cwd'],message_id=receipt['id'])
+        with self.store.transaction() as db:
+            db.execute("UPDATE messages SET delivery_status='accepted',remote_status='inProgress' WHERE id=?",(receipt['id'],))
+        with self.assertRaises(PairError):pair.execute(self.arguments('integrate','--task','delivery'))
+        with patch.dict(os.environ,{'CODEX_THREAD_ID':a['session_uuid']}),patch('scripts.pair.Path.cwd',return_value=Path(a['cwd'])):
+            self.assertTrue(pair.execute(self.arguments('integrate','--task','delivery'))['success'])
+
     def conflict(self):
         self.commit('A','shared.txt','A line\n')
         commits=[self.commit('B','shared.txt','B line\n'),self.commit('B','tail.txt','tail\n')]
@@ -189,7 +200,7 @@ class RealIntegrationTests(unittest.TestCase):
                 time.sleep(.5)
             self.fail('真实验收等待超时（测试失败不代表目标失联），证据: '+str(evidence/'integration-live-status.json'))
         try:
-            status=wait_until(lambda s:all(t['status']=='delivered' for t in s['tasks']) and settled(s))
+            status=wait_until(lambda s:all(t['status'] in ('delivered','integrated') for t in s['tasks']) and settled(s))
             self.assertTrue(any(m['kind']=='question' for m in status['messages']))
             self.assertTrue(any(m['kind']=='reply' for m in status['messages']))
             # 两个任务确实在重叠时间内启动，而不是串行完成。

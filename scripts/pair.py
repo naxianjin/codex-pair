@@ -163,7 +163,17 @@ def receiver_proof(store,path):
             if not validation['valid']:raise PairError(dumps(validation))
             with store.transaction() as db:
                 active=db.execute("SELECT id FROM tasks WHERE assignee=? AND status IN ('active','blocked')",(member['id'],)).fetchall()
-                live=db.execute("SELECT id FROM messages WHERE recipient=? AND delivery_status IN ('accepted','delivering','unknown') AND (remote_status IS NULL OR remote_status IN ('queued','inProgress'))",(member['id'],)).fetchall()
+                live=db.execute("SELECT * FROM messages WHERE recipient=? AND delivery_status IN ('accepted','delivering','unknown') AND (remote_status IS NULL OR remote_status IN ('queued','inProgress'))",(member['id'],)).fetchall()
+            # A 自己串行执行的工具调用可以整合。它不能豁免其他回合、
+            # 正在开发的任务、队列或结果不明的请求。
+            current_coordinator=(member['id']=='A' and os.environ.get('CODEX_THREAD_ID')==member['session_uuid']
+                                 and canonical_path(Path.cwd())==member['cwd'])
+            if current_coordinator and len(live)==1:
+                own=live[0]
+                if (own['delivery_status']=='accepted' and own['remote_status']=='inProgress'
+                        and own['process_status'] in ('claimed','completed')
+                        and (own['kind']!='task' or own['process_status']=='completed')):
+                    live=[]
             if active or live:
                 raise PairError('Receiver still has active or unresolved work / 接收方仍有执行中或结果未确定的工作')
             return validation
@@ -390,7 +400,7 @@ def main(argv=None):
         return 0
     except KeyboardInterrupt:
         return 130
-    except (PairError,TransportError,pair_git.GitError,OSError,sqlite3.Error,ValueError,KeyError) as exc:
+    except (PairError,TransportError,pair_git.GitError,OSError,sqlite3.Error,subprocess.SubprocessError,ValueError,KeyError) as exc:
         if '--json' in argv:
             print(json.dumps({'ok':False,'error':str(exc),'type':type(exc).__name__,
                               'details':exc.to_dict() if isinstance(exc,pair_git.GitError) else None},ensure_ascii=False))
