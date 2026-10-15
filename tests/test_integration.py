@@ -184,6 +184,7 @@ class RealIntegrationTests(unittest.TestCase):
                 self.assertIsNone(daemon.poll(),'daemon exited unexpectedly')
                 current=store.status()
                 (evidence/'integration-live-status.json').write_text(json.dumps(current,ensure_ascii=False,indent=2),encoding='utf-8')
+                self.assertFalse(any(m['delivery_status']=='failed' for m in current['messages']),current['messages'])
                 if predicate(current):return current
                 time.sleep(.5)
             self.fail('真实验收等待超时（测试失败不代表目标失联），证据: '+str(evidence/'integration-live-status.json'))

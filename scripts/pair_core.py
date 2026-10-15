@@ -13,9 +13,9 @@ import time
 import uuid
 
 try:
-    from .pair_transport import DeliveryUnknown, TransportError, canonical_path, session_uuid
+    from .pair_transport import DeliveryUnknown, SessionBusy, TransportError, canonical_path, session_uuid
 except ImportError:
-    from pair_transport import DeliveryUnknown, TransportError, canonical_path, session_uuid
+    from pair_transport import DeliveryUnknown, SessionBusy, TransportError, canonical_path, session_uuid
 
 
 class PairError(RuntimeError):
@@ -511,7 +511,7 @@ class Daemon:
                 return None
             message=db.execute("""SELECT m.* FROM messages m WHERE m.delivery_status IN ('pending','retry')
                 AND m.process_status='unclaimed' AND m.next_attempt<=? AND m.attempts<? AND NOT EXISTS
-                (SELECT 1 FROM messages busy WHERE busy.recipient=m.recipient AND busy.id<>m.id AND busy.process_status<>'completed'
+                (SELECT 1 FROM messages busy WHERE busy.recipient=m.recipient AND busy.id<>m.id
                  AND (busy.delivery_status IN ('delivering','unknown') OR
                       (busy.delivery_status='accepted' AND (busy.remote_status IS NULL OR busy.remote_status IN ('inProgress','queued')))))
                 AND (m.kind<>'task' OR EXISTS (SELECT 1 FROM tasks t WHERE t.id=m.task_id AND t.status='active'))
@@ -536,6 +536,11 @@ class Daemon:
                 db.execute('UPDATE messages SET envelope=? WHERE id=?',(message['envelope'],message['id']))
             try:
                 receipt=self.transport.start(member,message)
+            except SessionBusy as exc:
+                with self.store.transaction() as db:
+                    db.execute("UPDATE messages SET delivery_status='pending',attempts=attempts-1,next_attempt=?,updated=? WHERE id=?",(time.time()+1,time.time(),message['id']))
+                    db.execute("UPDATE attempts SET outcome='deferred',detail=?,ended=? WHERE message_id=? AND outcome='started'",(str(exc),time.time(),message['id']))
+                    self.store.event(db,'delivery_deferred',message=message['id'],reason='session_busy_before_submission')
             except DeliveryUnknown as exc:
                 self._failed(message,'unknown',str(exc))
             except TransportError as exc:

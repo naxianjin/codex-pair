@@ -15,6 +15,7 @@
 - `join --new-session` 使用 managed 后端，成员独占 app-server CLI，通过 turn/start 启动。仅恢复本协作创建的持久会话。shared proxy 是可选后端，本机 socket 曾报 os error 10050，未将它列为通过验收。
 - delivery_status 是 pending/retry/delivering/accepted/unknown/failed；remote_status 是 queued/inProgress/有完成时间的 completed、failed、interrupted；process_status 是 unclaimed/claimed/completed。三者独立，模型结束不自动完成任务。
 - 消息、信封与尝试先写入 SQLite，再调用传输。确定尚未发送的临时错误最多重试三次（可设 1–10）；发送后超时或崩溃进入 unknown，绝不自动重发。用消息 ID、原始信封和回合记录对账；查不到记录不是未投递证明。仍不明时保留记录，由操作者核实，禁止重派执行中的任务。
+- 业务 complete 不释放尚在运行的模型回合；后续消息等待该回合结束。预检确认繁忙时尚未提交消息，记录 deferred 并等待，不消耗实际投递重试额度，不据此判断失联。
 - SQLite 使用 WAL、外键和写事务。Windows junction 解析为真实有效 CODEX_HOME，未设置时用用户 ~/.codex。状态目录不得在项目内。模式升级保留记录。
 - 守护程序持有 OS 文件锁，不根据旧 PID、心跳或回复耗时抢占。Windows Job 清理其专属子进程；重启把 delivering 变成 unknown，对账 accepted/unknown，保留 claimed。status --probe 的随机挑战响应才确认可响应；无响应不等于失联。
 - 保留原权限配置。服务端审批请求记录为 server_request_pending 事件，不自动批准。

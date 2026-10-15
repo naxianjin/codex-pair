@@ -11,7 +11,7 @@ import time
 import unittest
 
 from scripts.pair_core import Daemon, FileLock, PairError, Store, scopes_overlap
-from scripts.pair_transport import DeliveryUnknown, TransportError
+from scripts.pair_transport import DeliveryUnknown, SessionBusy, TransportError
 
 
 class FakeTransport:
@@ -168,6 +168,24 @@ class CoreTests(unittest.TestCase):
             with self.store.transaction() as db:db.execute('UPDATE messages SET next_attempt=0')
         self.assertEqual(len(fake.calls),3)
         self.assertEqual(self.state(message['id'])['delivery_status'],'failed')
+
+    def test_business_completion_waits_for_remote_turn_before_next_delivery(self):
+        first=self.message();fake=FakeTransport(self.store);daemon=Daemon(self.store,fake)
+        daemon.dispatch_one();self.complete(first)
+        self.message()
+        self.assertFalse(daemon.dispatch_one())
+        fake.observation={'turn_id':'first','remote_status':'completed'};daemon.reconcile()
+        self.assertTrue(daemon.dispatch_one())
+
+    def test_preflight_busy_does_not_consume_submission_retry_budget(self):
+        message=self.message();fake=FakeTransport(self.store,SessionBusy('busy'))
+        daemon=Daemon(self.store,fake,max_attempts=1)
+        for _ in range(4):
+            daemon.dispatch_one()
+            with self.store.transaction() as db:db.execute('UPDATE messages SET next_attempt=0')
+        self.assertEqual(self.state(message['id'])['attempts'],0)
+        fake.error=None;daemon.dispatch_one()
+        self.assertEqual(self.state(message['id'])['delivery_status'],'accepted')
 
     def test_persist_before_delivery_and_distinguish_remote_from_business(self):
         message=self.message()

@@ -25,6 +25,10 @@ class DeliveryUnknown(TransportError):
     """请求可能已经到达，必须对账，禁止自动重发。"""
 
 
+class SessionBusy(TransportError):
+    """预检确认仍有回合在执行，尚未提交本消息；等待空闲不消耗投递重试。"""
+
+
 class RpcError(TransportError):
     def __init__(self, error):
         self.error = error
@@ -262,7 +266,9 @@ class AppServer:
         thread = self.validate(member)
         status = thread.get('status', {}).get('type')
         if status != 'idle':
-            raise TransportError('Session is busy or unavailable / 会话繁忙或不可用: ' + str(status), retryable=True)
+            if status=='active':
+                raise SessionBusy('Session is busy / 会话仍有回合执行中')
+            raise TransportError('Session is unavailable / 会话不可用: ' + str(status), retryable=True)
         result = self.rpc('turn/start', {'threadId': member['session_uuid'],
             'clientUserMessageId': message['id'],
             'input': [{'type': 'text', 'text': message['envelope']}]})
