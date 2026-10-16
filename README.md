@@ -21,7 +21,7 @@
 
 ### 下载发布包
 
-当前最新发布为 [v1.0.1](https://github.com/naxianjin/codex-pair/releases/tag/v1.0.1)，包含 DeepSeek 适配、领取回执恢复和长消息投递修复。
+当前最新发布为 [v1.0.2](https://github.com/naxianjin/codex-pair/releases/tag/v1.0.2)，同步技能卡片的 DeepSeek 支持说明；包含此前的 DeepSeek 适配、领取回执恢复和长消息投递修复。本版不改变协作逻辑或真实验收状态。
 
 [下载 codex-pair.zip](https://github.com/naxianjin/codex-pair/releases/latest/download/codex-pair.zip) · [SHA-256 校验文件](https://github.com/naxianjin/codex-pair/releases/latest/download/SHA256SUMS.txt) · [全部版本](https://github.com/naxianjin/codex-pair/releases)
 
