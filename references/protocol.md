@@ -1,6 +1,6 @@
 # codex-pair 协作协议
 
-本文对应 v1.1.2。2026-10-16 已验证两个 OpenAI 原窗口经 B 测试、A 阅读、B 再次接续及安装版验证，完成结果读取确认和目标完成停止；双方用持久化回合证据补充核对不完整的 API 历史终态。此结论不涵盖本轮 Git 提交整合或 DeepSeek；完整边界见 [验收记录](verification.md)。
+本文对应 v1.1.3。保留此前两个 OpenAI 原窗口的自动接续与安装版验证；2026-10-16 另完成 OpenAI A × DeepSeek B 原窗口的基础握手、工具执行、技能 CLI、15 项单元测试和交付读取确认。DeepSeek 测试后半程使用用户授权的 Full access / never；不涵盖受限沙箱、反向组合、DeepSeek 双窗口或完整 Git 提交整合，完整边界见 [验收记录](verification.md)。
 
 首次调用先读 [onboarding.md](onboarding.md)：主动发起者默认 A，收到用户转交的加入指令者为 B。双方保留独立 CODEX_HOME，通过共享状态与成员账号路由协作。角色提示不等于双账号传输已通过真实验收，不得统一双方登录目录。
 

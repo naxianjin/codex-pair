@@ -5,13 +5,13 @@ description: 让用户当前打开的两个官方 Codex CLI 窗口协作，通�
 
 # Codex Pair
 
-当前版本 v1.1.2：增加 A/B 双方的持久化回合结束检测，修复历史回合终态不完整造成的共享工作区阻塞。当前两个 OpenAI 原窗口及安装版已验证，范围与未验证项见 [验收记录](references/verification.md)；不要把安装完成或离线测试当作其他窗口组合的自动协作通过。
+当前源码版本 v1.1.3：已在用户选择的 OpenAI A 与 DeepSeek B 原窗口验证邀请、双向握手、工具写入回读、技能 CLI 和 15 项专项单元测试；Windows 模拟测试目录改为继承现有 ACL。此次测试后半程使用用户明确授权的 Full access / never，不代表受限沙箱下也通过。此前两个 OpenAI 原窗口及安装版的验收记录保留；各项范围与未验证项见 [验收记录](references/verification.md)。
 
 ## 适用范围
 
 本技能适用于官方 Codex CLI 的 OpenAI 官方账号与已配置的 DeepSeek API，可同类或混合配对；不支持其他提供方。各窗口保留自身 CODEX_HOME、模型与权限设置。本项目由个人维护，并非 OpenAI 官方项目。
 
-涉及 DeepSeek 时，先读 [接入边界与验收清单](references/deepseek.md)。仅使用原 CLI 已配置的 Responses API，不安装或改写 API 配置，不收集或复制 Key。模型对话成功、工具执行成功、原窗口自动协作通过必须分别验证。
+涉及 DeepSeek 时，先读 [接入边界与验收清单](references/deepseek.md)。仅使用原 CLI 已配置的 Responses API，不安装或改写 API 配置，不收集或复制 Key。模型对话成功、工具执行成功、原窗口自动协作通过必须分别验证。OpenAI A × DeepSeek B 的基础流程已有实测；DeepSeek×DeepSeek、反向组合及完整 Git 交付矩阵仍待验证。
 
 协作对象是用户选中的两个现有窗口。同账号或不同账号均可；各窗口的账号目录、会话 UUID 和实际 cwd 由自身环境与 CLI API 验证，用户无需配置是哪两个 .codex-*。A 统筹整合，B 参与开发，双方均可提问与反馈。
 
@@ -24,7 +24,7 @@ description: 让用户当前打开的两个官方 Codex CLI 窗口协作，通�
 
 ## 当前窗口入口
 
-脚本为本技能目录 scripts/pair.py。确认可运行的 Python 3.10+，不用 WindowsApps 占位程序。以实际路径执行：
+脚本为本技能目录 scripts/pair.py。确认可运行的 Python 3.10+，不用 WindowsApps 占位程序。本次 DeepSeek 专项实测使用现有 Python 3.12.13；不要将切换解释器视为权限问题必然解决。以实际路径执行：
 
 ```text
 <Python> <pair.py> start --project <目标仓库> --goal <用户目标> --json
@@ -63,4 +63,4 @@ quota [--refresh]、status.quota、status.balance 显示数据时间、可靠性
 
 停止桥用 bridge --pair <ID> --state-root <返回路径> --action stop；恢复桥用 --action start。普通用户无需手工开第三个终端跑 daemon。pause/resume、relay、手动交接、旧状态和隔离 worktree 的低层入口见 protocol。
 
-不改登录/模型/权限配置，不复制认证，不移动已有会话，不删除 worktree，不推送。新产物留在目标项目 .codex-pair/ 并使用本地 Git 排除。维修及安装诊断才读 [repair-multi-account.md](references/repair-multi-account.md)。
+默认不改登录、模型或权限配置，不复制认证，不移动已有会话，不删除 worktree，不推送；用户明确授权的安装、权限调整或仓库上传按其具体范围执行。用户已授权的常规步骤直接推进，缺失信息先向统筹方报告，不逐条要求用户再次确认；工具强制审批仍须遵守。权限磁盘默认值与运行会话实际值分开核对，不能以改完 config.toml 宣称当前回合生效。新产物留在目标项目 .codex-pair/ 并使用本地 Git 排除。维修及安装诊断才读 [repair-multi-account.md](references/repair-multi-account.md)。

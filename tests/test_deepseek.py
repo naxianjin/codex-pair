@@ -3,6 +3,8 @@ import json
 import os
 from pathlib import Path
 import subprocess
+import secrets
+import shutil
 import tempfile
 import unittest
 from unittest.mock import Mock, patch
@@ -15,9 +17,15 @@ from scripts.pair_transport import (AppServer, QueueTransport, TransportPool,
 
 class DeepSeekTests(unittest.TestCase):
     def setUp(self):
-        self.temp = tempfile.TemporaryDirectory(prefix='pair-deepseek-unit-')
-        self.addCleanup(self.temp.cleanup)
-        self.root = Path(self.temp.name)
+        if os.name == 'nt':
+            # 模拟数据目录继承现有沙箱 ACL；0o700 会移除沙箱 capability 的写入权限。
+            self.root = Path(tempfile.gettempdir()) / ('pair-deepseek-unit-' + secrets.token_hex(16))
+            self.root.mkdir()
+            self.addCleanup(shutil.rmtree, self.root)
+        else:
+            self.temp = tempfile.TemporaryDirectory(prefix='pair-deepseek-unit-')
+            self.addCleanup(self.temp.cleanup)
+            self.root = Path(self.temp.name)
         self.project = self.root / 'project'
         self.project.mkdir()
         self.homes = {}

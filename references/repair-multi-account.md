@@ -1,6 +1,6 @@
 # 双账号维修交接要求
 
-当前维护版为 v1.1.2，最新真实接续验收见 [verification.md](verification.md)。下文是维修要求，不表示每项在本轮都重新执行过。
+当前源码维护版为 v1.1.3，新增 OpenAI A × DeepSeek B 基础真实验收；权限环境和未验证范围见 [verification.md](verification.md)。下文是维修要求，不表示每项在本轮都重新执行过。
 
 普通使用现已改为当前窗口 start/accept 配对，见 onboarding.md。本文件保留维修与历史验收要求；下列本机目录、开发分工和维修 worktree 不是普通协作的固定账号或必需启动流程。
 
@@ -12,7 +12,7 @@
 
 此前维修使用过多个独立 CODEX_HOME；它们只是历史安装实例，不决定参与窗口。运行时各窗口的 home 从自身环境读取。需要自动发现技能时在该环境安装同版 skill；也可在现有会话显式读取邀请指向的同一份 SKILL.md，无需为刷新技能重开窗口，但这不等于已安装。分别备份旧 skill，只安装技能文件，不复制认证、配置、会话或缓存。检查引用和哈希一致，不声称安装即已加载。
 
-`scripts/install_skill.py --source <源码根目录> --home <实际A目录> --home <实际B目录> --home <实际C目录>` 只安装 `skills/codex-pair`。已有技能先改名保存在各 home 的 `codex-pair-skill-backups/`，输出可恢复备份路径；白名单仅包含 SKILL.md、agents、scripts、references、tests，跳过认证/config 和 Python 缓存。暂存和落盘副本逐文件 SHA-256 与源包比较。先解析每个 home 的实际位置，安装器拒绝技能目录重定向，不改登录、账号配置或会话。
+`scripts/install_skill.py --source <源码根目录> --home <实际A目录> --home <实际B目录> --home <实际C目录>` 只安装 `skills/codex-pair`。已有技能先改名保存在各 home 的 `codex-pair-skill-backups/`，输出可恢复备份路径；白名单仅包含 SKILL.md、agents、scripts、references、tests，跳过认证/config 和 Python 缓存。暂存和落盘副本逐文件 SHA-256 与源包比较。先解析每个 home 的实际位置并按真实路径去重：同一目录的 junction 不重复安装；目录名称相似但不是实际 CODEX_HOME 的清理工具或主题目录不算安装目标。安装器拒绝技能目录重定向，不改登录、账号配置或会话。
 
 清理旧版必须另有用户授权。在新版安装和发布包核验后，按精确路径将旧技能备份、旧 ZIP、独立解压副本送入系统回收站，并保留清单；不永久删除，不清理 Git 历史、已登记 worktree、协作状态或登录配置。磁盘安装不表示现有会话已加载新版，旧桥也不会自动重载。
 

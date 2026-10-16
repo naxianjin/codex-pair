@@ -2,7 +2,7 @@
 
 普通使用不把维修时的 .codex-b/.codex-c、协作 ID 或测试 worktree 当成用户默认配置。
 
-当前发布版 v1.1.2。两个 OpenAI 原窗口的阶段结果收尾后自动规划接续已实测，详见 [验收记录](verification.md)；DeepSeek 和混合配对仍待实测。升级后显式读取新版 SKILL.md，运行中的旧桥须安全停止并用新版脚本启动。
+当前源码版本 v1.1.3。两个 OpenAI 原窗口的自动规划接续已有历史实测；OpenAI A × DeepSeek B 的基础握手、工具写入回读、技能 CLI 和专项单元测试也已通过。DeepSeek 侧测试后半程使用用户授权的 Full access / never，完整组合和 Git 交付矩阵仍未验证，详见 [验收记录](verification.md)。升级后显式读取新版 SKILL.md，运行中的旧桥须安全停止并用新版脚本启动。
 
 ## 窗口 A
 
@@ -42,5 +42,11 @@ start 保留两个窗口的原会话 cwd：当前 cwd 属于目标仓库时沿�
 同工作树的代码任务和自动投递回合串行，避免共享暂存区冲突；问答跨回合交接。已有不同 worktree 时允许不重叠的并行任务。用户明确选择隔离工作树模式时才使用低层 init，不为并行偷偷重建窗口。
 
 新状态在 <项目>/.codex-pair/state/<随机ID>/，邀请在 handoffs，日志在 logs。写入前校验真实路径、源文件与 Git common dir 的 info/exclude；本地 /.codex-pair/ 排除不得隐藏已跟踪内容。保留原有修改、历史与旧协作，不静默搬迁。
+
+## 避免反复审批与重复确认
+
+任务中已经授权的常规步骤由执行方继续完成，遇到缺失信息先向 A 报告，不重复向用户询问是否运行每条命令。工具审批由 CLI 的实际权限决定，技能正文不能代替权限切换。
+
+修改磁盘默认配置不证明正在运行的回合已切换。用户选择 Full access 时，在目标原窗口使用 `/permissions` 确认当前模式；若当前回合仍显示旧权限，先结束旧回合，再在同一会话从核实的进度继续，保留领取令牌，不重复 claim 或重建已生成文件。Full access 取消本地沙箱边界，只在用户明确选择时使用；它不是 DeepSeek 的默认使用要求。
 
 任务协议见 [protocol.md](protocol.md)；维修、旧状态和安装诊断见 [repair-multi-account.md](repair-multi-account.md)。维修中的目录实例和分工不决定普通协作窗口。

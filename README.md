@@ -11,9 +11,9 @@
 ## 适用范围
 
 - 运行环境：Windows、Python 3.10+、Git，以及可用的官方 Codex CLI。
-- CLI 接口：自动通信需要 `queue` 和 `app-server`。已有本机验证记录使用 Codex CLI 0.162.1；其他版本需要检查接口兼容性。
+- CLI 接口：自动通信需要 `queue` 和 `app-server`。OpenAI 历史验证使用 Codex CLI 0.162.1，新增 DeepSeek 基础验证使用 0.163.0；其他版本需要检查接口兼容性。
 - 接入范围：OpenAI 官方账号，以及在官方 Codex CLI 中已经配置好的 DeepSeek API。不支持其他 AI 客户端或模型提供方。
-- DeepSeek：代码适配与离线测试已完成，但 DeepSeek 双窗口及 OpenAI／DeepSeek 混合配对的完整自动协作流程仍待实测。使用前请读 [DeepSeek 接入与验收说明](references/deepseek.md)。
+- DeepSeek：OpenAI A × DeepSeek B 原窗口的邀请、握手、工具写入回读、技能 CLI 和 15 项专项单元测试已实测通过。此次后半程使用用户授权的 Full access / never；DeepSeek 双窗口、反向组合及完整 Git 交付矩阵仍未验证。使用前请读 [DeepSeek 接入与验收说明](references/deepseek.md)。
 
 各窗口保留自己的 `CODEX_HOME`、登录信息、模型和权限设置。技能不配置 API，不收集或复制 Key，也不会借用另一个窗口的账号替它推理。
 
@@ -21,7 +21,9 @@
 
 ### 下载发布包
 
-当前版本为 [v1.1.2](https://github.com/naxianjin/codex-pair/releases/tag/v1.1.2)。修复原窗口历史回合终态缺失导致的交接停滞，双方使用同一套持久化回合证据继续调度，并在状态中区分等待队列执行和等待模型回合结束。验证范围见 [验收记录](references/verification.md)。
+当前源码版本为 **v1.1.3**：同步 DeepSeek 基础真实验收、Windows 专项测试目录修复及权限生效说明，验证范围见 [验收记录](references/verification.md)。本次源码更新不等于已上传新的 GitHub Release 附件；需要这些改动请使用下节的源码安装。
+
+已有发布包按对应 Release 的版本说明使用，不能将历史 ZIP 当作当前源码。
 
 [下载 codex-pair.zip](https://github.com/naxianjin/codex-pair/releases/latest/download/codex-pair.zip) · [SHA-256 校验文件](https://github.com/naxianjin/codex-pair/releases/latest/download/SHA256SUMS.txt) · [全部版本](https://github.com/naxianjin/codex-pair/releases)
 
@@ -56,6 +58,8 @@ Set-Location codex-pair
 $pairAccountRoot = if ($env:CODEX_HOME) { $env:CODEX_HOME } else { Join-Path $env:USERPROFILE '.codex' }
 python scripts/install_skill.py --source . --home $pairAccountRoot
 ```
+
+需要一次安装到多个本机配置目录时，可重复提供 `--home <实际目录>`；安装器按真实路径去重，不重复安装指向同一目录的联接，也不因名字带 `.codex` 就扫描主题或清理工具目录。
 
 已有窗口要使用更新后的说明，可以让它显式读取安装目录里的最新 `SKILL.md`。磁盘安装完成不等于当前会话已经加载新版说明；运行中的旧消息桥也需要停止后从新版脚本重新启动。确认新版安装、哈希和发布包一致后，可将不再需要的旧技能备份、旧 ZIP 及独立解压副本移入系统回收站；不要连带清理账号配置、协作数据库、日志或已登记的 Git worktree。
 
@@ -129,9 +133,15 @@ B 如果尚未安装技能，也可以读取邀请所指向的同一份技能文
 
 恢复命令的身份校验、参数及停止条件见 [协作协议](references/protocol.md)。文件信箱只代表手动交接，不能当作自动通信通过。技能不模拟键盘、不自动批准权限请求，也不擅自新开托管会话替代原窗口。
 
+## 权限与重复询问
+
+已授权的常规步骤由执行方直接完成，缺失信息先向 A 报告。工具反复弹审批时检查目标窗口的实际权限，而不只看磁盘 `config.toml`：`on-request` 仍可能要求确认，`never` 不弹审批但不会自动解除沙箱。用户明确选择 Full access 时，在该原窗口用 `/permissions` 切换，并核对后续回合实际权限；旧回合仍用旧权限时，先结束旧回合，再在同一会话从断点继续，不能重复领取任务。
+
+此次 DeepSeek 基础实测使用 Full access / never 完成，它取消本地沙箱限制；技能不默认替用户切换，也不要求所有 DeepSeek 用户都选择此模式。详细失败记录与环境边界见 [DeepSeek 说明](references/deepseek.md)。
+
 ## 验证与限制
 
-最近一次完整回归记录为：148 项测试，145 项通过，3 项真实环境测试默认跳过，退出码 0。覆盖账号路由、会话识别、凭据隔离、领取去重与恢复、旧库兼容、Git 交付、安装、打包、长消息分页、角色重置、额度刷新失败边界和阶段结果收尾后的自动接续。
+v1.1.3 已由原 DeepSeek CLI 窗口使用 Python 3.12.13 执行源码完整回归：160 项测试，157 项通过、3 项真实环境测试显式跳过，0 失败、0 错误、退出码 0。此前专项实测为 15 项全部通过、无跳过，退出码 0。两批结果均基于 Full access / never，不代表受限沙箱通过。覆盖账号路由、会话识别、凭据隔离、领取去重与恢复、旧库兼容、Git 交付、安装、打包、长消息分页、角色重置、额度刷新失败边界和阶段结果收尾后的自动接续。
 
 在源码目录运行：
 
@@ -156,7 +166,7 @@ python -m unittest discover -v
 
 - OpenAI：此前两个可见原窗口已通过邀请和双向握手，完成文档、测试的分工、提交与整合；另有独立账号后台托管会话的问答、去重、重启与冲突整合记录。这不保证每个 CLI 版本或新配对都能自动通信。
 - 当前窗口接续：2026-10-16，v1.1.2 在两个既有 OpenAI 原窗口完成 B 测试→A 阅读→B 再次接续→安装目录测试→A 结果确认；相关任务与结果均完成，每条投递一次。目标完成后不再生成任务，所有模型回合结束后测试桥已停止。源码回归 160 项（157 通过、3 跳过），安装目录专项 35 项（34 通过、1 跳过），31 个包文件哈希一致。本轮未新增 Git 提交整合验证；详见 [验收记录](references/verification.md)。
-- DeepSeek：只读观察进程已成功读取原会话的提供方与模型元数据；DeepSeek×DeepSeek、OpenAI×DeepSeek 及反向组合的原窗口双向通信、工具执行和完整交付仍待实测。
+- DeepSeek：2026-10-16 在官方 Codex CLI 0.163.0 的用户所选窗口完成 OpenAI A × DeepSeek B 邀请与双向握手（communication=verified）、任务领取交付、分页确认和目标收尾；B 使用现有 Python 3.12.13 完成工具写入回读、技能 CLI status 和 15 项专项单元测试（15 通过、0 跳过、退出码 0）。用户中途选择 Full access / never 后写入成功，不能据此宣称受限沙箱已通过。DeepSeek×DeepSeek、反向组合、安装副本执行及完整 Git 交付矩阵仍未验证。
 
 离线测试通过、模型能对话、队列接受、业务完成与原窗口自动协作是不同证据，不能互相替代。
 

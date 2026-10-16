@@ -1,6 +1,6 @@
 # DeepSeek 接入边界与验收
 
-本文随 v1.1.2 发布。最新两个 OpenAI 原窗口的自动接续测试见 [验收记录](verification.md)；它不改变下文 DeepSeek 验收矩阵的“待执行”状态。
+本文对应源码 v1.1.3。2026-10-16 已完成 OpenAI A × DeepSeek B 的真实原窗口基础测试：邀请、双向握手、工具写入回读、技能 CLI、专项单元和结果确认。测试后半程使用用户明确授权的 Full access / never；组合矩阵与未验证项如下，完整记录见 [验收记录](verification.md)。
 
 本文适用于官方 Codex CLI 中已配置 DeepSeek API 的原窗口。支持范围仅为 OpenAI 官方账号与 DeepSeek API，不因兼容接口而扩展其他提供方。普通入口、消息恢复和 Git 交付继续遵守 [protocol.md](protocol.md)。
 
@@ -45,7 +45,7 @@ metadata_only 的 app-server 只允许 initialize、thread/read、thread/turns/l
 | 配对 | 必测消息方向 | 真实原窗口状态 |
 | --- | --- | --- |
 | DeepSeek A × DeepSeek B | A→B、B→A | 待执行 |
-| OpenAI A × DeepSeek B | A→B、B→A | 待执行 |
+| OpenAI A × DeepSeek B | A→B、B→A | 基础握手、任务交付与工具验证通过；完整 Git 交付矩阵未执行 |
 | DeepSeek A × OpenAI B | A→B、B→A | 待执行 |
 
 分别记录三层结果，不能合并为一个“通过”：
@@ -54,12 +54,24 @@ metadata_only 的 app-server 只允许 initialize、thread/read、thread/turns/l
 2. 独立真实测试会话：证明测试会话自身 API、工具和传输能力，不证明用户选择的可见原窗口会自动唤醒。
 3. 可见原窗口：用户已打开且选中的 A/B，真实执行邀请、握手、双向业务任务、交付与整合，才可报告该组合的原窗口协作结果。
 
-当前开发使用的 A/B 均为 OpenAI 官方账号，已经完成原窗口握手和文档交付；这不构成 DeepSeek 真实协作验收证据。另已在本机 metadata_only 模式只读预检一个用户选中的原 DeepSeek 会话：thread/read 返回 modelProvider=deepseek、model=deepseek-flash，观察子进程未继承 API Key，未唤醒窗口或调用模型。此结果仅证明元数据可读，本文双向自动通信、工具和交付矩阵仍全部待执行。模型自述名称（例如 GPT5）不作为身份依据。
+本次使用用户接受邀请的现有 DeepSeek CLI 会话，官方只读元数据确认 modelProvider=deepseek、model=deepseek-flash；不是根据模型自述或配置目录名推断。通信达到 verified，B 实际领取任务、执行测试并 complete；A 分页读取全部交付、ack 并收尾，独立规划任务最终记录 goal_completed=true。权限切换时旧执行回合被用户中断，同一会话核对进度后继续，续行回合的 task_complete 已核对；没有把旧 interrupted 当作正常完成，也没有重复创建标记文件。
+
+## 本次权限环境与 Windows 临时目录
+
+此前原 DeepSeek 窗口在 Python 3.13.9 下执行 15 项专项用例，因测试初始化创建的临时目录内写入被拒而出现 30 个错误（每个用例的初始化及清理各一次），退出码 1、无跳过。原始 `PermissionError: [WinError 5]` 证据保留；不是 15 项断言全部失败，也不是提供方不支持技能的证明。仅移动 TEMP/TMP/TMPDIR 的变体同样失败。
+
+本机探针表明，Windows 上 `0o700` 创建方式没有保留沙箱 capability 的写入 ACL，默认 `mkdir()` 创建的目录继承 ACL 后可写。v1.1.3 只调整 `tests/test_deepseek.py` 的 Windows 模拟目录：使用随机名称、默认 `mkdir()` 和创建成功后的清理；其他系统继续使用 `TemporaryDirectory`，15 个测试方法和断言未改。这批目录只存模拟数据，不用于真实凭据或生产文件；未修改系统 ACL。
+
+后续原窗口实测使用已有 Python 3.12.13。用户授权并在原窗口选择 Full access / never 后，独立文件排他创建与第二进程回读、技能 CLI status、15 项专项单元均通过，退出码 0、跳过 0。解释器、测试目录修复与实际权限均与最初失败环境不同，所以不能将通过单独归因于任一变化，也不能声称受限沙箱故障已经验证修复。
+
+默认不放宽权限。若用户明确要求调整，区分磁盘默认值和运行中回合：修改 `config.toml` 不能证明当前回合已生效；使用目标原窗口的 `/permissions` 核对模式。旧回合仍持有旧权限时，结束旧回合，在同一会话保留原令牌并从核实的进度继续，禁止重复 claim 或覆盖既有产物。Full access 取消本地沙箱边界，不是 DeepSeek 接入的默认前提。
+
+本机尝试远程共享控制通道曾返回 `os error 10050`，没有用远程 resume、新建模型会话或模拟键盘绕过；权限切换由用户在原窗口完成。执行方对已授权的常规步骤直接推进，缺失信息先向统筹方报告，工具的强制审批仍须遵守。
 
 ## 每种组合的真实验收步骤
 
 1. 记录 CLI 版本、组合、两个原窗口 UUID、cwd、workspace、提供方与模型；不记录 Key、认证头、环境变量值或原始配置。核实各窗口能在原权限下完成最小对话及一个获授权的可逆工具操作，分别记录结果。
-2. 原窗口 A start、用户选择的 B accept；保留 pair ID、消息 ID 和目标会话映射。验证没有新建 CLI/model 会话、修改配置或替换 home。
+2. 原窗口 A start、用户选择的 B accept；保留 pair ID、消息 ID 和目标会话映射。验证技能没有新建 CLI/model 会话、替换 home 或擅自修改配置；用户明确授权的权限调整必须另记调整前后实际状态。
 3. 让桥投递握手问题，A 原子 claim、关联 reply、complete，B claim/complete 回复，双方模型回合具有持久化完成时间后检查 status.window_flow.communication=verified。Queued/accepted、单方 complete 或无 completedAt 的 interrupted 均不足。
 4. 在每个方向发送一个明确任务并取证：目标窗口从空闲自动启动、繁忙时排队且不重复执行、业务领取成功、工具操作产生预期结果、complete 与模型回合完成。共享工作树内按串行顺序执行，不以并发写同一暂存区测试传输。
 5. 双向各做一次关联 question/reply，核对 reply_to、消息 ID、claim 令牌与业务终态。重复 claim 必须 false 且停止；长任务用 compact。仅原回执丢失时按协议 recover-claim 核实进度后续做，不能重跑已完成步骤。
