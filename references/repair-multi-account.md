@@ -1,6 +1,6 @@
 # 双账号维修交接要求
 
-当前维护版为 v1.1.1，最新真实接续验收见 [verification.md](verification.md)。下文是维修要求，不表示每项在本轮都重新执行过。
+当前维护版为 v1.1.2，最新真实接续验收见 [verification.md](verification.md)。下文是维修要求，不表示每项在本轮都重新执行过。
 
 普通使用现已改为当前窗口 start/accept 配对，见 onboarding.md。本文件保留维修与历史验收要求；下列本机目录、开发分工和维修 worktree 不是普通协作的固定账号或必需启动流程。
 

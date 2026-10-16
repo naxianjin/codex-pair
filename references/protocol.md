@@ -1,6 +1,6 @@
 # codex-pair 协作协议
 
-本文对应 v1.1.1，运行逻辑沿用 v1.1.0。2026-10-16 已验证两个 OpenAI 原窗口经“结果收尾 → 独立规划任务 → 下一阶段任务”自动接续及目标完成停止。此结论不涵盖本轮 Git 提交整合或 DeepSeek；完整边界见 [验收记录](verification.md)。
+本文对应 v1.1.2。2026-10-16 已验证两个 OpenAI 原窗口经 B 测试、A 阅读、B 再次接续及安装版验证，完成结果读取确认和目标完成停止；双方用持久化回合证据补充核对不完整的 API 历史终态。此结论不涵盖本轮 Git 提交整合或 DeepSeek；完整边界见 [验收记录](verification.md)。
 
 首次调用先读 [onboarding.md](onboarding.md)：主动发起者默认 A，收到用户转交的加入指令者为 B。双方保留独立 CODEX_HOME，通过共享状态与成员账号路由协作。角色提示不等于双账号传输已通过真实验收，不得统一双方登录目录。
 
@@ -99,7 +99,7 @@ assign --to auto --effort 1/2/3/5/8（默认3）选择安全成员；固定指�
 
 刷新失败记录 refresh_status=unavailable 与 attempted_at；最近一次仍未超过120秒且周期未重置的 fresh 快照保留有效性。复杂任务等待刷新超时也不能解除有效 remaining=0 快照的耗尽保护。
 
-quota [--refresh] 与 status.quota 展示 observed_at、age_seconds、reliability、额度桶、周期与剩余比例；status.balance 展示负担、比例、策略及分配理由。status.waiting 同时列出等待前置、整合、结果领取/确认、后续安排、消息桥不可用或投递结果不明，不由心跳单独断言进程存活。
+quota [--refresh] 与 status.quota 展示 observed_at、age_seconds、reliability、额度桶、周期与剩余比例；status.balance 展示负担、比例、策略及分配理由。status.waiting 同时列出等待前置、整合、结果领取/确认、队列执行、模型回合结束、后续安排、消息桥不可用或投递结果不明，不由心跳单独断言进程存活。非拥有者观察器可能把历史终态合成为 interrupted 且缺少 completedAt，即使原窗口已经完成；thread 的 notLoaded 或 idle 都不单独证明完成。桥对 A、B 使用相同的补充核对：只读官方 thread/read 返回的本账号 sessions 日志，验证目录归属、session_meta 的会话 ID 与 cwd，并按准确 turn_id 匹配 task_complete 和完成时间。日志增量读取，半行等待补齐；跨账号、损坏或缺少证据时保持等待。旧消息已处理完成、旧回合确实开始且有后续回合开始并完成时，可把被取代的旧回合确认为 interrupted，保存证据来源与后续 turn_id。若日志最新回合仍未结束，不释放共享工作区锁。业务任务完成仍以 claim/complete 为准，不依据模型结束自动完成或重跑任务。
 
 收到消息先运行信封 claim_argv。claimed=false 时立即结束，不能再次执行。保留 claim_token，complete 时提供实质结果。正文与结果可用 --body-file 输入 UTF-8（可带 BOM），保留中文、多行、引号、Windows 路径和原换行；与 --body 互斥。重复逻辑请求复用 --dedupe-key；同键不同正文会报错。
 

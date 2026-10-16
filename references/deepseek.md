@@ -1,6 +1,6 @@
 # DeepSeek 接入边界与验收
 
-本文随 v1.1.1 发布。最新两个 OpenAI 原窗口的自动接续测试见 [验收记录](verification.md)；它不改变下文 DeepSeek 验收矩阵的“待执行”状态。
+本文随 v1.1.2 发布。最新两个 OpenAI 原窗口的自动接续测试见 [验收记录](verification.md)；它不改变下文 DeepSeek 验收矩阵的“待执行”状态。
 
 本文适用于官方 Codex CLI 中已配置 DeepSeek API 的原窗口。支持范围仅为 OpenAI 官方账号与 DeepSeek API，不因兼容接口而扩展其他提供方。普通入口、消息恢复和 Git 交付继续遵守 [protocol.md](protocol.md)。
 
@@ -34,7 +34,7 @@ status.members[].capabilities 分别展示以下证据；这些状态只描述�
 | automatic_communication | verified：自动模式的关联握手双方业务与回合均完成；manual：手动模式；否则 unverified |
 | task_tools | 始终 unverified，工具能力必须另行取证 |
 
-单条历史记录不代表所有消息均完成，也不证明所有能力可用。观察层遇到 completed/failed/interrupted 且 completedAt 为空时按 inProgress 保留，不能从历史合成终态判定回合完成。
+单条历史记录不代表所有消息均完成，也不证明所有能力可用。观察层遇到 completed/failed/interrupted 且 completedAt 为空时按 inProgress 保留，不能从历史合成终态判定回合完成。若官方会话日志存在同会话、同回合的持久化 task_complete 事件，可按协作协议的目录与身份核对后补充确认；缺失事件时仍等待，不用超时推断完成。
 
 metadata_only 的 app-server 只允许 initialize、thread/read、thread/turns/list RPC；start、resume、create_session 同时设有拒绝门。QueueTransport 与只读观察进程通过 control_environment 构造子环境，剔除 OPENAI_BASE_URL、原 CODEX_THREAD_ID 和 *_API_KEY、*_AUTH_TOKEN、*_ACCESS_TOKEN、*_BEARER_TOKEN，保留目标成员自身 CODEX_HOME，不修改父进程环境。该隔离不删除磁盘配置，也不表示磁盘里不存在凭据；桥仍不得加载另一窗口凭据替其推理。
 

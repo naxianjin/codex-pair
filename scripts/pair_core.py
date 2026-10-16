@@ -900,6 +900,8 @@ class Store:
             for message in result['messages']:
                 if message['delivery_status']=='unknown':waiting.append({'message':message['id'],'reason':'投递结果不明'})
                 elif message['kind']=='result' and message['process_status']!='completed':waiting.append({'message':message['id'],'reason':'等待结果领取' if message['process_status']=='unclaimed' else '等待结果读取确认或收尾'})
+                elif message['delivery_status']=='accepted' and message['remote_status']=='queued':waiting.append({'message':message['id'],'reason':'等待接收窗口执行队列消息'})
+                elif message['delivery_status']=='accepted' and message['remote_status']=='inProgress':waiting.append({'message':message['id'],'reason':'等待模型回合结束（共享工作区串行保护）'})
             goal_done=db.execute("SELECT 1 FROM pair_settings WHERE key='goal_completed' AND value='true'").fetchone() is not None
             if result['pair']['status']=='running' and result['tasks'] and all(t['status'] in ('completed','integrated') for t in result['tasks']) and not goal_done:waiting.append({'reason':'等待自动登记后续规划任务'})
             result['waiting']=waiting
@@ -1092,10 +1094,12 @@ class Daemon:
             if receipt:
                 with self.store.transaction() as db:
                     db.execute("UPDATE messages SET delivery_status='accepted',turn_id=?,remote_status=?,remote_result=?,error=?,updated=? WHERE id=?",
-                               (receipt['turn_id'],receipt['remote_status'],dumps({'messages':receipt.get('result'),'error':receipt.get('error')}),
+                               (receipt['turn_id'],receipt['remote_status'],dumps({'messages':receipt.get('result'),'error':receipt.get('error'),
+                                'completion_source':receipt.get('completion_source'),'evidence_turn_id':receipt.get('evidence_turn_id')}),
                                 dumps(receipt['error']) if receipt.get('error') else None,time.time(),message['id']))
                     if receipt['remote_status']!=message['remote_status']:
-                        self.store.event(db,'remote_turn_status',message=message['id'],status=receipt['remote_status'])
+                        self.store.event(db,'remote_turn_status',message=message['id'],status=receipt['remote_status'],
+                            completion_source=receipt.get('completion_source'))
 
     def run(self, *, max_ticks=None):
         with ExitStack() as locks:

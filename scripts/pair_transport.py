@@ -361,8 +361,61 @@ class AppServer:
             if not cursor:
                 return
 
+    def rollout_completion(self, member, thread, message, turn_id):
+        """只认本账号、同一会话的持久化回合事件，增量读取以免阻塞消息桥。"""
+        if not getattr(self,'metadata_only',False) or not isinstance(thread,dict):return None
+        try:
+            path=Path(thread['path']).resolve(strict=True)
+            sessions=(Path(member['codex_home'])/'sessions').resolve(strict=True)
+            # Windows 官方返回的路径可能带 \\?\ 前缀，按目录实体核对归属。
+            if path.suffix!='.jsonl' or not (path.is_relative_to(sessions)
+                    or any(parent.samefile(sessions) for parent in path.parents)):return None
+            stat=path.stat();identity=(stat.st_dev,stat.st_ino)
+            cache=getattr(self,'_rollouts',{})
+            self._rollouts=cache
+            key=str(path)
+            state=cache.get(key)
+            if state is None or state['identity']!=identity or stat.st_size<state['offset']:
+                state={'identity':identity,'offset':0,'meta':None,'started':set(),'completed':{},'latest':None,'valid':True}
+                cache[key]=state
+            with path.open('rb') as file:
+                file.seek(state['offset'])
+                while file.tell()<stat.st_size:
+                    line=file.readline()
+                    if not line or not line.endswith(b'\n'):break
+                    state['offset']=file.tell()
+                    try:record=json.loads(line)
+                    except (ValueError,UnicodeError):
+                        state['valid']=False;continue
+                    if not isinstance(record,dict) or not isinstance(record.get('payload'),dict):
+                        state['valid']=False;continue
+                    payload=record['payload']
+                    if record.get('type')=='session_meta':state['meta']=payload
+                    if record.get('type')!='event_msg':continue
+                    event=payload.get('type');current=payload.get('turn_id')
+                    if not isinstance(current,str):continue
+                    if event=='task_started':
+                        state['started'].add(current);state['latest']=current
+                        state['completed'].pop(current,None)
+                    elif event=='task_complete' and current in state['started'] and payload.get('completed_at') is not None:
+                        state['completed'][current]=payload['completed_at']
+            meta=state['meta']
+            if not state['valid'] or not isinstance(meta,dict) or meta.get('id')!=member['session_uuid']:return None
+            if canonical_path(meta['cwd'])!=canonical_path(member['cwd']):return None
+            latest=state['latest']
+            # 新回合尚在执行时继续保留共享工作区的阻塞，不被旧完成事件放行。
+            if latest not in state['completed']:return None
+            if turn_id in state['completed']:
+                return {'remote_status':'completed','completed_at':state['completed'][turn_id],
+                    'completion_source':'rollout_task_complete','evidence_turn_id':turn_id}
+            if turn_id in state['started'] and turn_id!=latest and message.get('process_status')=='completed':
+                return {'remote_status':'interrupted','completed_at':None,
+                    'completion_source':'rollout_superseded','evidence_turn_id':latest}
+        except (OSError,KeyError,TypeError,ValueError):return None
+        return None
+
     def observe(self, member, message):
-        self.validate(member)
+        thread = self.validate(member)
         for turn in self.turns(member['session_uuid']):
             matched = turn['id'] == message.get('turn_id') if message.get('turn_id') else any(
                 item.get('type') == 'userMessage' and (item.get('clientId') == message['id'] or any(
@@ -375,10 +428,14 @@ class AppServer:
                 state=turn['status']
                 if state in ('completed','failed','interrupted') and turn.get('completedAt') is None:
                     state='inProgress'
-                return {'turn_id': turn['id'], 'remote_status': state,
+                receipt={'turn_id': turn['id'], 'remote_status': state,
                         'reported_status':turn['status'],'completed_at':turn.get('completedAt'),
                         'result': [item.get('text', '') for item in turn.get('items', [])
                                    if item.get('type') == 'agentMessage'], 'error': redact_diagnostic(turn.get('error'))}
+                if state=='inProgress':
+                    proof=self.rollout_completion(member,thread,message,turn['id'])
+                    if proof:receipt.update(proof)
+                return receipt
         return None  # 查不到不是“未投递”的证明。
 
     def wait_turn(self, thread_id, turn_id, *, timeout=120):

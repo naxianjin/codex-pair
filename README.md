@@ -21,7 +21,7 @@
 
 ### 下载发布包
 
-当前版本为 [v1.1.1](https://github.com/naxianjin/codex-pair/releases/tag/v1.1.1)。沿用 v1.1.0 的独立规划任务接续与额度耗尽保护，更新双窗口实测结论和安装说明，不改变运行逻辑。验证范围见 [验收记录](references/verification.md)。
+当前版本为 [v1.1.2](https://github.com/naxianjin/codex-pair/releases/tag/v1.1.2)。修复原窗口历史回合终态缺失导致的交接停滞，双方使用同一套持久化回合证据继续调度，并在状态中区分等待队列执行和等待模型回合结束。验证范围见 [验收记录](references/verification.md)。
 
 [下载 codex-pair.zip](https://github.com/naxianjin/codex-pair/releases/latest/download/codex-pair.zip) · [SHA-256 校验文件](https://github.com/naxianjin/codex-pair/releases/latest/download/SHA256SUMS.txt) · [全部版本](https://github.com/naxianjin/codex-pair/releases)
 
@@ -66,6 +66,9 @@ python scripts/install_skill.py --source . --home $pairAccountRoot
 完成通知按 report_to 路由，支持交给自身并等待当前回合结束。handoff --task <ID> --to A/B 幂等补发已有交付；不重做任务、不修改负责人。结果与前置交付先 read-delivery 分页读取，再 ack-delivery 确认。中途交回使用 complete --partial，不能满足完成依赖。后台10秒检查任务、60秒刷新额度；模型无需保持回合轮询。接口、数据可靠性及恢复边界见 [协作协议](references/protocol.md)。
 
 结果回合只负责读取、确认和收尾。新轮次在阶段交付和整合完成、所有结果收尾后，会自动给 A 登记独立的规划任务；桥等原回合结束后投递。A 在规划任务中核对原目标、登记剩余任务及依赖，再由桥自动调度两个窗口，无需用户手动输入“继续”。原目标已全部实现时，A 用 `complete --goal-complete` 记录验收结论，停止接续。该机制只推进已授权的原目标；关键输入或新增授权缺失时仍需用户提供。
+
+
+回合检测对 A、B 使用相同规则。非拥有者 API 可能返回 `notLoaded`，或把已结束回合合成为缺少完成时间的 `interrupted`；这些状态及等待时长都不单独证明完成。桥会只读官方返回的本账号会话日志，核对目录、会话和 cwd，按准确 `turn_id` 匹配持久化 `task_complete`。旧通知已经处理完成且有后续回合开始并完成时，可确认旧回合被取代并保存证据引用；最新回合仍在执行、日志不完整或证据缺失时继续等待，不重派业务。无需每次交接重新加入协作。
 
 ### 1. 在窗口 A 给出任务
 
@@ -152,7 +155,7 @@ python -m unittest discover -v
 已有验证记录与尚未完成的验证分开列出：
 
 - OpenAI：此前两个可见原窗口已通过邀请和双向握手，完成文档、测试的分工、提交与整合；另有独立账号后台托管会话的问答、去重、重启与冲突整合记录。这不保证每个 CLI 版本或新配对都能自动通信。
-- 当前窗口接续：2026-10-16，两个不同 CODEX_HOME 的 OpenAI 原窗口通过两阶段真实测试。结果回合仅确认收尾，桥自动唤醒独立规划任务并调度下一阶段，无人工“继续”；4 个任务、9 条消息均完成，目标完成后不再生成任务，测试桥已停止。本轮未创建或整合 Git 提交，不代替此前的提交整合记录；详见 [验收记录](references/verification.md)。
+- 当前窗口接续：2026-10-16，v1.1.2 在两个既有 OpenAI 原窗口完成 B 测试→A 阅读→B 再次接续→安装目录测试→A 结果确认；相关任务与结果均完成，每条投递一次。目标完成后不再生成任务，所有模型回合结束后测试桥已停止。源码回归 160 项（157 通过、3 跳过），安装目录专项 35 项（34 通过、1 跳过），31 个包文件哈希一致。本轮未新增 Git 提交整合验证；详见 [验收记录](references/verification.md)。
 - DeepSeek：只读观察进程已成功读取原会话的提供方与模型元数据；DeepSeek×DeepSeek、OpenAI×DeepSeek 及反向组合的原窗口双向通信、工具执行和完整交付仍待实测。
 
 离线测试通过、模型能对话、队列接受、业务完成与原窗口自动协作是不同证据，不能互相替代。
