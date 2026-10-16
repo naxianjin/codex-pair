@@ -1,5 +1,7 @@
 # DeepSeek 接入边界与验收
 
+本文随 v1.1.1 发布。最新两个 OpenAI 原窗口的自动接续测试见 [验收记录](verification.md)；它不改变下文 DeepSeek 验收矩阵的“待执行”状态。
+
 本文适用于官方 Codex CLI 中已配置 DeepSeek API 的原窗口。支持范围仅为 OpenAI 官方账号与 DeepSeek API，不因兼容接口而扩展其他提供方。普通入口、消息恢复和 Git 交付继续遵守 [protocol.md](protocol.md)。
 
 ## 原窗口与配置边界

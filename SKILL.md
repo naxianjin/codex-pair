@@ -5,6 +5,8 @@ description: 让用户当前打开的两个官方 Codex CLI 窗口协作，通�
 
 # Codex Pair
 
+当前发布版 v1.1.1；运行逻辑沿用 v1.1.0。需要核对自动接续是否经过真实验证时，读 [验收记录](references/verification.md)，不要把安装完成或离线测试当作原窗口自动协作通过。
+
 ## 适用范围
 
 本技能适用于官方 Codex CLI 的 OpenAI 官方账号与已配置的 DeepSeek API，可同类或混合配对；不支持其他提供方。各窗口保留自身 CODEX_HOME、模型与权限设置。本项目由个人维护，并非 OpenAI 官方项目。

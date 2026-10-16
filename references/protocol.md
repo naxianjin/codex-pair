@@ -1,5 +1,7 @@
 # codex-pair 协作协议
 
+本文对应 v1.1.1，运行逻辑沿用 v1.1.0。2026-10-16 已验证两个 OpenAI 原窗口经“结果收尾 → 独立规划任务 → 下一阶段任务”自动接续及目标完成停止。此结论不涵盖本轮 Git 提交整合或 DeepSeek；完整边界见 [验收记录](verification.md)。
+
 首次调用先读 [onboarding.md](onboarding.md)：主动发起者默认 A，收到用户转交的加入指令者为 B。双方保留独立 CODEX_HOME，通过共享状态与成员账号路由协作。角色提示不等于双账号传输已通过真实验收，不得统一双方登录目录。
 
 默认接入当前两个窗口，不创建 worktree；用户选择新建隔离工作树时，新目录必须位于目标项目 `.codex-pair/worktrees/`。脚本通过 Git common dir 本地 exclude 设置 `/.codex-pair/` 排除。共享状态默认 `.codex-pair/state/<ID>/`，交接、日志与归档在对应子目录。旧状态保留原路径，不静默搬迁。维修清单见 [repair-multi-account.md](repair-multi-account.md)。

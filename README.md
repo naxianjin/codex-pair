@@ -21,9 +21,7 @@
 
 ### 下载发布包
 
-当前本地修复增加轮次角色重置、交付记录确认、连续交接和额度感知均衡；发布状态以 GitHub Release 为准。
-
-此前发布为 [v1.0.2](https://github.com/naxianjin/codex-pair/releases/tag/v1.0.2)，同步技能卡片的 DeepSeek 支持说明；包含此前的 DeepSeek 适配、领取回执恢复和长消息投递修复。本版不改变协作逻辑或真实验收状态。
+当前版本为 [v1.1.1](https://github.com/naxianjin/codex-pair/releases/tag/v1.1.1)。沿用 v1.1.0 的独立规划任务接续与额度耗尽保护，更新双窗口实测结论和安装说明，不改变运行逻辑。验证范围见 [验收记录](references/verification.md)。
 
 [下载 codex-pair.zip](https://github.com/naxianjin/codex-pair/releases/latest/download/codex-pair.zip) · [SHA-256 校验文件](https://github.com/naxianjin/codex-pair/releases/latest/download/SHA256SUMS.txt) · [全部版本](https://github.com/naxianjin/codex-pair/releases)
 
@@ -59,7 +57,7 @@ $pairAccountRoot = if ($env:CODEX_HOME) { $env:CODEX_HOME } else { Join-Path $en
 python scripts/install_skill.py --source . --home $pairAccountRoot
 ```
 
-已有窗口要使用更新后的说明，可以让它显式读取安装目录里的最新 `SKILL.md`。磁盘安装完成不等于当前会话已经加载新版说明；运行中的旧消息桥也需要停止后从新版脚本重新启动。
+已有窗口要使用更新后的说明，可以让它显式读取安装目录里的最新 `SKILL.md`。磁盘安装完成不等于当前会话已经加载新版说明；运行中的旧消息桥也需要停止后从新版脚本重新启动。确认新版安装、哈希和发布包一致后，可将不再需要的旧技能备份、旧 ZIP 及独立解压副本移入系统回收站；不要连带清理账号配置、协作数据库、日志或已登记的 Git worktree。
 
 ## 使用方式
 
@@ -154,7 +152,7 @@ python -m unittest discover -v
 已有验证记录与尚未完成的验证分开列出：
 
 - OpenAI：此前两个可见原窗口已通过邀请和双向握手，完成文档、测试的分工、提交与整合；另有独立账号后台托管会话的问答、去重、重启与冲突整合记录。这不保证每个 CLI 版本或新配对都能自动通信。
-- 当前窗口交接：本次修复前，两个可见原窗口已完成握手、两阶段依赖、提交交付、分页读取确认和整合；本次额度修复通过本地动态回归，未重新执行真实双窗口测试。
+- 当前窗口接续：2026-10-16，两个不同 CODEX_HOME 的 OpenAI 原窗口通过两阶段真实测试。结果回合仅确认收尾，桥自动唤醒独立规划任务并调度下一阶段，无人工“继续”；4 个任务、9 条消息均完成，目标完成后不再生成任务，测试桥已停止。本轮未创建或整合 Git 提交，不代替此前的提交整合记录；详见 [验收记录](references/verification.md)。
 - DeepSeek：只读观察进程已成功读取原会话的提供方与模型元数据；DeepSeek×DeepSeek、OpenAI×DeepSeek 及反向组合的原窗口双向通信、工具执行和完整交付仍待实测。
 
 离线测试通过、模型能对话、队列接受、业务完成与原窗口自动协作是不同证据，不能互相替代。
@@ -166,5 +164,6 @@ python -m unittest discover -v
 - [协作协议](references/protocol.md)：消息、任务、Git 交付、停止与恢复。
 - [DeepSeek 接入与验收](references/deepseek.md)：配置边界和真实测试清单。
 - [维修与安装诊断](references/repair-multi-account.md)：旧状态兼容、账号路由与安装校验。
+- [验收记录](references/verification.md)：本轮自动接续的实测结果、证据层级与未验证范围。
 
 遇到问题可在 [Issues](https://github.com/naxianjin/codex-pair/issues) 提供 CLI 版本、复现步骤和脱敏错误。不要上传认证文件、API Key、完整账号配置或未经检查的协作数据库。
