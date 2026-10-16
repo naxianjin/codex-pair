@@ -21,9 +21,7 @@
 
 ### 下载发布包
 
-当前源码版本为 **v1.1.3**：同步 DeepSeek 基础真实验收、Windows 专项测试目录修复及权限生效说明，验证范围见 [验收记录](references/verification.md)。本次源码更新不等于已上传新的 GitHub Release 附件；需要这些改动请使用下节的源码安装。
-
-已有发布包按对应 Release 的版本说明使用，不能将历史 ZIP 当作当前源码。
+当前版本为 [v1.1.3](https://github.com/naxianjin/codex-pair/releases/tag/v1.1.3)：同步 DeepSeek 基础真实验收、Windows 专项测试目录修复及权限生效说明，验证范围见 [验收记录](references/verification.md)。下方发行包包含同版运行文件及 SHA-256 校验文件；需要测试代码时使用源码安装。
 
 [下载 codex-pair.zip](https://github.com/naxianjin/codex-pair/releases/latest/download/codex-pair.zip) · [SHA-256 校验文件](https://github.com/naxianjin/codex-pair/releases/latest/download/SHA256SUMS.txt) · [全部版本](https://github.com/naxianjin/codex-pair/releases)
 
