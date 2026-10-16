@@ -231,7 +231,7 @@ class MultiAccountTests(unittest.TestCase):
         with closing(sqlite3.connect(backups[0])) as db:
             self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],1)
         with store.transaction() as db:
-            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],4)
+            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],5)
             self.assertEqual(db.execute("SELECT count(*) FROM events WHERE kind='user_history'").fetchone()[0],1)
         Store('legacy',home=self.homes['A'])
         self.assertEqual(len(list(directory.glob('*.backup.sqlite3'))),1)

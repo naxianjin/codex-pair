@@ -49,6 +49,7 @@ def build_parser():
     cmd=command('start','由当前已打开窗口发起，生成给另一窗口的邀请并启动本地桥')
     cmd.add_argument('--project',help='目标仓库；默认当前目录所在仓库')
     cmd.add_argument('--delivery-mode',choices=['auto','manual'],default='auto')
+    cmd.add_argument('--resume-pair',help='明确恢复旧协作并保留原数据库角色')
     group=cmd.add_mutually_exclusive_group(required=True)
     group.add_argument('--goal','--body',dest='body',help='协作目标')
     group.add_argument('--goal-file','--body-file',dest='body_file',help='UTF-8 目标文件')
@@ -73,7 +74,9 @@ def build_parser():
     cmd=command('assign','分配任务；依赖和范围检查通过后才激活')
     cmd.add_argument('--task',required=True)
     cmd.add_argument('--title',required=True)
-    cmd.add_argument('--to',choices=['A','B'],required=True)
+    cmd.add_argument('--to',choices=['A','B','auto'],required=True)
+    cmd.add_argument('--report-to',choices=['A','B'],default='A')
+    cmd.add_argument('--effort',type=int,choices=[1,2,3,5,8],default=3)
     cmd.add_argument('--allow',action='append',required=True,help='仓库相对修改范围，可重复')
     cmd.add_argument('--depends-on',action='append',default=[])
     cmd.add_argument('--base-ref',help='任务提交基准；默认使用协作基准')
@@ -107,7 +110,22 @@ def build_parser():
     cmd.add_argument('--message',required=True)
     cmd.add_argument('--token',required=True)
     cmd.add_argument('--commit',action='append',default=[],help='交付的完整提交 SHA，可重复')
+    cmd.add_argument('--partial',action='store_true',help='中途交回，任务未完成且不满足依赖')
+    cmd.add_argument('--goal-complete',action='store_true',help='仅自动规划任务：确认原目标已全部完成，停止自动接续')
     body(cmd,True)
+    cmd=command('handoff','幂等补发已有交付，不重做任务')
+    cmd.add_argument('--task',required=True)
+    cmd.add_argument('--to',choices=['A','B'],required=True)
+    for name in ('read-delivery','ack-delivery'):
+        cmd=command(name,'分页读取交付记录' if name=='read-delivery' else '确认已完整读取指定版本交付')
+        actor(cmd)
+        cmd.add_argument('--delivery',required=True)
+        if name=='read-delivery':
+            cmd.add_argument('--offset',type=int,default=0)
+            cmd.add_argument('--limit',type=int,default=2000)
+        else:cmd.add_argument('--digest',required=True)
+    cmd=command('quota','显示额度快照与可靠性；--refresh 使用各成员自身环境读取')
+    cmd.add_argument('--refresh',action='store_true')
     cmd=command('integrate','检查交付范围并按 SHA 整合；自动暂停新投递并保留冲突')
     cmd.add_argument('--task')
     cmd.add_argument('--worktree')
@@ -419,15 +437,28 @@ def execute(args):
             proof['git']=git_proof
             return store.join(args.member,args.session,cwd,backend=backend,owned=False,proof=proof,member_codex_home=home,delivery_mode=args.delivery_mode)
     if args.command=='assign':
-        member=store.member(args.to);worktree_proof(store,args.to,member_workspace(member))
+        members=[store.member(m) for m in ('A','B')] if args.to=='auto' else [store.member(args.to)]
+        for member in members:worktree_proof(store,member['id'],member_workspace(member))
+        member=members[0]
         base=git_run(member_workspace(member),'rev-parse','--verify','--end-of-options',args.base_ref+'^{commit}') if args.base_ref else None
-        return store.assign(args.task,args.title,args.to,args.allow,body=read_body(args),dependencies=args.depends_on,base_commit=base)
+        if args.to=='auto' and args.effort>=5:
+            try:from .pair_quota import refresh
+            except ImportError:from pair_quota import refresh
+            refresh(store,executable=executable,max_age=30)
+        return store.assign(args.task,args.title,args.to,args.allow,body=read_body(args),dependencies=args.depends_on,base_commit=base,report_to=args.report_to,effort=args.effort)
+    if args.command=='handoff':return store.handoff(args.task,args.to)
+    if args.command=='quota':
+        if args.refresh:
+            try:from .pair_quota import refresh
+            except ImportError:from pair_quota import refresh
+            refresh(store,executable=executable,max_age=0)
+        return store.quota()
     if args.command=='send':
         return store.send(args.sender,args.to,read_body(args),kind=args.kind,task_id=args.task,
                           dedupe_key=args.dedupe_key,reply_to=args.reply_to,progress_note=args.progress_note)
     if args.command=='recover-delivery':
         return store.recover_delivery(args.message)
-    if args.command in ('claim','recover-claim','read-message','complete'):
+    if args.command in ('claim','recover-claim','read-message','complete','read-delivery','ack-delivery'):
         if args.command=='recover-claim':
             current_session=os.environ.get('CODEX_THREAD_ID')
             if not current_session or current_session.lower()!=str(args.session).lower():
@@ -435,6 +466,8 @@ def execute(args):
             if canonical_path(effective_home())!=canonical_path(store.member(args.member)['codex_home']):
                 raise PairError('Original CLI home required / 恢复回执须使用原领取会话的配置目录')
         validate_actor(store,args)
+        if args.command=='read-delivery':return store.read_delivery(args.member,args.session,args.worktree,args.delivery,offset=args.offset,limit=args.limit)
+        if args.command=='ack-delivery':return store.ack_delivery(args.member,args.session,args.worktree,args.delivery,args.digest)
         if args.command=='read-message':
             return store.read_message(args.member,args.session,args.worktree,args.message,field=args.field,offset=args.offset,limit=args.limit)
         if args.command=='recover-claim':
@@ -450,7 +483,7 @@ def execute(args):
             task=store.task(message['task_id'])
             check=pair_git.check_delivery(member_workspace(store.member(args.member)),task['base_commit'] or store.status()['pair']['base_commit'],args.commit,json.loads(task['allowed_paths']))
             if not check['passed']:raise PairError('Delivery rejected / 交付校验失败: '+dumps(check))
-        return store.complete(args.member,args.session,args.worktree,args.message,args.token,read_body(args),commits=args.commit)
+        return store.complete(args.member,args.session,args.worktree,args.message,args.token,read_body(args),commits=args.commit,partial=args.partial,goal_complete=args.goal_complete)
     if args.command=='integrate':
         return integrate(store,args)
     if args.command=='status':

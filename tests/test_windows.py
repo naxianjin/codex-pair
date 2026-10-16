@@ -89,14 +89,49 @@ class WindowTests(unittest.TestCase):
 
     def test_repeated_invite_and_accept_reuse_binding_and_single_handshake(self):
         started,_,store=self.joined()
-        second=self.start()
+        second=self.run_cli('A','start','--project',str(self.project),'--goal','修复目标项目','--resume-pair',started['pair'])
         self.assertEqual(second['pair'],started['pair'])
         self.assertEqual(second['invite_path'],started['invite_path'])
         self.run_cli('B','accept','--invite',started['invite_path'])
         self.assertEqual(len(store.status()['messages']),1)
-        reused_b=self.run_cli('B','start','--project',str(self.project),'--goal','修复目标项目')
+        reused_b=self.run_cli('B','start','--project',str(self.project),'--goal','修复目标项目','--resume-pair',started['pair'])
         self.assertEqual(reused_b['role'],'B')
         self.assertNotIn('join_instruction',reused_b)
+
+    def test_previous_b_starts_new_round_as_a_and_old_invite_stops(self):
+        started,_,store=self.joined()
+        with store.transaction() as db:
+            db.execute("UPDATE messages SET process_status='completed',remote_status='completed'")
+        new=self.run_cli('B','start','--project',str(self.project),'--goal','下一轮目标')
+        self.assertNotEqual(new['pair'],started['pair'])
+        self.assertEqual(new['role'],'A')
+        self.assertEqual(new['current_window']['session_uuid'],self.windows['B']['session_uuid'])
+        self.assertEqual(store.status()['pair']['status'],'stopped')
+        with self.assertRaisesRegex(PairError,'Invitation stopped'):
+            self.run_cli('B','accept','--invite',started['invite_path'])
+
+    def test_start_cannot_replace_unresolved_work(self):
+        started,_,store=self.joined()
+        with self.assertRaisesRegex(PairError,'Previous work unresolved'):
+            self.run_cli('B','start','--project',str(self.project),'--goal','新目标')
+        self.assertEqual(store.member('B')['session_uuid'],self.windows['B']['session_uuid'])
+
+    def test_concurrent_start_returns_one_invitation_and_one_a(self):
+        import threading
+        import concurrent.futures
+        identity=threading.local()
+        barrier=threading.Barrier(2)
+        def call(member):
+            identity.member=member
+            args=pair.build_parser().parse_args(['start','--project',str(self.project),'--goal','并发目标'])
+            barrier.wait(timeout=10)
+            return pair.execute(args)
+        with patch('scripts.pair_windows.current_window',side_effect=lambda *args:self.windows[identity.member]),concurrent.futures.ThreadPoolExecutor(2) as pool:
+            results=list(pool.map(call,['A','B']))
+        self.assertEqual(results[0]['pair'],results[1]['pair'])
+        self.assertEqual(sum(r['role']=='A' for r in results),1)
+        self.assertEqual(sum(r.get('requires_accept',False) for r in results),1)
+        self.assertEqual(len(list((self.project/'.codex-pair/state').glob('*/state.sqlite3'))),1)
 
     def test_changed_invitation_is_rejected_before_contacting_window(self):
         started=self.start();path=Path(started['invite_path'])
@@ -210,7 +245,7 @@ class WindowTests(unittest.TestCase):
         b=self.windows['B'];proof={'id':b['session_uuid'],'cwd':a['cwd']}
         store.join('B',b['session_uuid'],a['cwd'],backend='queue',owned=False,proof=proof,member_codex_home=home)
         with store.transaction() as db:
-            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],4)
+            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],5)
             self.assertFalse(db.execute('PRAGMA foreign_key_check').fetchall())
             self.assertEqual(db.execute("SELECT count(*) FROM events WHERE kind='old_history'").fetchone()[0],1)
         self.assertEqual(len(list(directory.glob('schema-v3-*.backup.sqlite3'))),1)

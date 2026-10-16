@@ -20,10 +20,12 @@ accept 发出 window-handshake 问题，A 领取、发送关联 reply 并完成�
 
 ## 角色与状态
 
+角色由每轮数据库确定。普通 start 在项目锁内新建一轮，第一个登记窗口为 A，接受邀请者为 B；并发 start 的另一窗口取得同一邀请。start --resume-pair <ID> 才保留原角色，原 pause/resume 仍可用。原轮次的执行中、已领取、未整合、未完成交回或结果不明工作阻止自动换绑；安全结束后停止旧轮次并保留历史。处理旧信封不触发 start，旧邀请不能加入新轮次。新轮次默认 quota-balanced，旧轮次迁移后保持 legacy。
+
 - A 是统筹方：创建协作、拆分任务、分配允许路径、验收证据并整合提交。
 - B 是协作方：验证会话与 worktree、领取任务，只修改允许范围并提交交付。
 - 新状态位于 `<项目>/.codex-pair/state/<协作ID>/`；全局 `--state-root` 指定共享 state 根目录，双方必须使用同一真实路径。旧 `$CODEX_HOME/codex-pair/<协作ID>/` 作为兼容记录保留，不静默迁移。状态数据由 A 的通信与状态模块定义和维护；不得复制凭据到该目录。
-- `init`、`join`、`assign`、`send`、`claim`、`complete`、`integrate`、`status`、`daemon`、`relay`、`relay-stop`、`pause`、`resume`、`stop` 是统一命令入口，由 A 实现。
+- `init`、`join`、`assign`、`send`、`claim`、`complete`、`integrate`、`status`、`daemon`、`relay`、`relay-stop`、`pause`、`resume`、`stop` 是统一命令入口，由统一入口实现。
 - 本机已验证 Codex CLI 0.162.1、Python 3.14.5；运行需要 Python 3.10+。使用 [官方 queue](https://learn.chatgpt.com/docs/developer-commands?surface=cli) 和 [app-server](https://learn.chatgpt.com/docs/app-server)。脚本不改模型、登录或权限配置。
 
 ## 提供方与能力边界
@@ -77,11 +79,31 @@ relay 通过成员 OS lease 防重复，仍服从 pause/stop，并复用 unknown
 
 任务 pending → active → completed（无提交的工作）或 delivered（含提交）→ integrated。依赖只有 completed/integrated 后满足；同成员同时一个活跃任务；active/blocked 都持有范围。跨目录代码依赖需要 A 先整合到所需 worktree，再选正确基准分配后续任务；不会自动 rebase 或复制他人修改。
 
+assign 增加 --report-to A/B（默认数据库 A），负责人和交接方分别持久化。complete 一律按 report_to 生成结果，包括交给自身；结果在原回合结束后进入下一回合。重复 complete 或 handoff --task <ID> --to A/B 复用结果，后者仅接受 completed/delivered/integrated，不改负责人、不重做业务；已有 claimed/unknown/failed 结果原样返回，不能借补发绕过去重或不明投递。complete --partial 表示中途交回，任务为 handed_back，不满足依赖，由统筹核实进度并登记剩余工作。结果消息 complete 仅收尾自身，不产生新的结果。
+
+交付正文、证据路径及完整 SHA 保存在 deliveries；通知仅含有界摘要及记录引用。收到 required_deliveries 后，使用信封的 read_delivery_argv_template 按 next_offset 分页直到 null，再用返回 digest 执行 ack_delivery_argv_template。read-delivery 与 ack-delivery 均校验原成员身份及记录权限。确认按成员、记录版本与哈希保存，页区间必须完整覆盖；只读最后一页不能确认。结果消息及依赖任务交付前检查必要确认。确认只证明脚本读取记录，不替代实际核验证据。
+
+分工时登记所有已明确的后续任务与 --depends-on，不将等待仅写在对话中。前置业务 complete 立即重新调度，桥每10秒兜底；有提交的任务仍等 integrated。后续消息带前置摘要、完整提交与交付引用。
+
+新轮次采用 quota-balanced 策略：阶段任务完成或整合、所有结果消息收尾后，系统向 A 登记一条独立的 `pair-plan-` 规划任务，按阶段任务集合去重。结果回合只读完、确认并 complete；规划任务在原回合结束后由桥自动投递。规划任务的允许文件列表为空，只读取已完成交付并登记原目标内尚未完成、已获授权的后续任务及依赖；这些任务再由桥调度 A/B。规划 complete 前必须登记后续任务，或使用 `--goal-complete` 并附原目标完成的验收依据。规划任务不产生结果通知，避免自己触发自己；暂停、未整合、结果未读完、投递失败或结果不明时保持等待。目标完成后 status.window_flow.goal_completed 为 true，不再自动规划。旧 legacy 轮次保留原调度策略。
+
+## 额度与负担
+
+assign --to auto --effort 1/2/3/5/8（默认3）选择安全成员；固定指派、已激活、执行中、blocked、已交付任务不迁移。方案细化、审查、测试和整合准备均登记 effort。新轮次复杂任务（5、8）在可比较额度相差至少20个百分点时优先额度高者；70/50适用，70/51按负担均衡；轻任务按负担。40%～60%是软目标，依赖、范围、能力和工作树安全优先。已明确耗尽的成员不接新自动任务，两方均耗尽时保留 pending 并说明原因。
+
+额度通过成员自身环境的 account/rateLimits/read 读取，启动读取、变化通知触发重读、后台60秒刷新；复杂派发前超过30秒请求刷新，最多等待本地查询预算后退回工作量，超过120秒过期。周期重置到时只触发重读，不能自行增加剩余额度。优先按可靠模型/limitId 对应选择 rateLimitsByLimitId，多桶映射不明时为 bucket_unknown；兼容单桶旧格式，不混用其他桶。有效周期剩余额度取 100-usedPercent 的最低值。周期长度不一致、未知、过期、提供方不支持时按工作量；百分比不代表不同套餐的相同绝对容量。同账号身份摘要及同 CODEX_HOME 作为共享资源池处理，不保存原始邮箱或认证响应。
+
+额度线程与消息投递隔离，查询失败不阻塞桥；只允许必要只读账号 RPC，不批准请求、不兑换权益、不购买、不改登录或配置。thread/tokenUsage/updated 仅在 threadId/turnId 匹配本协作任务消息、含可靠 last.totalTokens 时计入；按回合主键更新，不累加重复通知，不使用账号总量或无关项目消耗。有实测任务用本协作实测校准 effort 单位并替换对应估算，缺少可靠用量时保留估算。
+
+刷新失败记录 refresh_status=unavailable 与 attempted_at；最近一次仍未超过120秒且周期未重置的 fresh 快照保留有效性。复杂任务等待刷新超时也不能解除有效 remaining=0 快照的耗尽保护。
+
+quota [--refresh] 与 status.quota 展示 observed_at、age_seconds、reliability、额度桶、周期与剩余比例；status.balance 展示负担、比例、策略及分配理由。status.waiting 同时列出等待前置、整合、结果领取/确认、后续安排、消息桥不可用或投递结果不明，不由心跳单独断言进程存活。
+
 收到消息先运行信封 claim_argv。claimed=false 时立即结束，不能再次执行。保留 claim_token，complete 时提供实质结果。正文与结果可用 --body-file 输入 UTF-8（可带 BOM），保留中文、多行、引号、Windows 路径和原换行；与 --body 互斥。重复逻辑请求复用 --dedupe-key；同键不同正文会报错。
 
 领取回执与输出恢复：自动信封使用 `claim --compact`，只输出消息标识、角色、类型和领取令牌，正文仍以原信封为准。完整领取输出为向后兼容保留，但长正文会超出工具的输出预算；`Warning: truncated output` 属于工具截断提示，不是可供 JSON.parse 的脚本 JSON。不要把 stderr 与 stdout 合并后解析，也不要用正则从已截断内容拼出 JSON。解析失败不证明事务失败，禁止自动重复领取或重发任务。
 
-原领取者丢失回执时，先核对上一回合已结束、没有并行执行者及当前文件/提交进度，再在原 CLI 的 actor_cwd 执行 `recover-claim --member <原成员> --session <原UUID> --worktree <actor_cwd> --message <原消息ID>`，附同一 `--pair`、`--state-root`、`--json`。命令交叉检查自身 CODEX_THREAD_ID、CODEX_HOME、cwd 与官方 API，返回 `recovered=true`、原 claim_token、`resume_only=true`；它不返回新的 claimed=true，不改消息状态或生成新令牌。只有同一接收者仍为 claimed 且任务仍 active 才可恢复；已完成、协作 stopped 或身份不符时拒绝。恢复不是授权重复执行，必须从核实的进度继续。普通重复 claim 仍返回 false 并停止。
+原领取者丢失回执时，先核对上一回合已结束、没有并行执行者及当前文件/提交进度，再在原 CLI 的 actor_cwd 执行 `recover-claim --member <原成员> --session <原UUID> --worktree <actor_cwd> --message <原消息ID>`，附同一 `--pair`、`--state-root`、`--json`。命令交叉检查自身 CODEX_THREAD_ID、CODEX_HOME、cwd 与官方 API，返回 `recovered=true`、原 claim_token、`resume_only=true`；它不返回新的 claimed=true，不改消息状态或生成新令牌。只有同一接收者仍为 claimed 才可恢复；业务 task 消息还须任务仍 active，result 等消息不能因原任务完成而拒绝恢复；已完成、协作 stopped 或身份不符时拒绝。恢复不是授权重复执行，必须从核实的进度继续。普通重复 claim 仍返回 false 并停止。
 
 ```powershell
 # 必须在成员实际工作目录执行。
@@ -173,7 +195,7 @@ unknown、已接受、已领取、已完成或其他失败不适用此恢复；�
 
 在目标 Codex 会话内可用 `join --current-session` 替代手填 `--session`；它要求环境中的 CODEX_THREAD_ID 和当前实际 cwd，仍通过本成员账号的 app-server 验证会话。普通 PowerShell 中没有该上下文时会报错，不会猜最近 UUID。
 
-旧数据库留在原 home/codex-pair/<ID>，只从原账号查找，不扫描其他账号。首次打开 schema 1/2/3 时，取得旧 daemon 与派发锁、确认无未决投递后，先创建 schema-v<版本>-<时间>.backup.sqlite3，再事务升级到 schema 4。补充旧账号字段、移除成员 cwd 唯一限制并增加窗口邀请设置，外键须完整。旧成员继承原 home，历史、领取令牌和路径不搬动。低层 init 默认项目内隔离布局，普通使用走 start/accept；旧 Python Store API 未传 state_root 时保留旧路径语义。
+旧数据库留在原 home/codex-pair/<ID>，只从原账号查找，不扫描其他账号。首次打开 schema 1/2/3/4 时，取得旧 daemon 与派发锁、确认无未决投递后，先创建 schema-v<版本>-<时间>.backup.sqlite3，再事务升级到 schema 5。补充旧账号字段、移除成员 cwd 唯一限制并增加窗口邀请设置，外键须完整。旧成员继承原 home，历史、领取令牌和路径不搬动。低层 init 默认项目内隔离布局，普通使用走 start/accept；旧 Python Store API 未传 state_root 时保留旧路径语义。
 
 两个可见原窗口的验收优先使用上述 start/accept 邀请和后台桥，不要求第三个终端。以下仅为低层手动测试：在 A/B 各自目录启动 codex，让各自用实际 UUID 执行 join；第三个终端运行 daemon。按上述命令分配任务、提问、关联回复、提交交付，再 integrate 并测试。记录 UUID、消息 ID、提交 SHA 和 status，不能只检查 Queued 回执。禁止模拟键盘或根据窗口标题推测 UUID。未执行的可见双窗口验收必须明确列为未完成。
 

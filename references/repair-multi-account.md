@@ -12,7 +12,7 @@
 
 `scripts/install_skill.py --source <源码根目录> --home <实际A目录> --home <实际B目录> --home <实际C目录>` 只安装 `skills/codex-pair`。已有技能先改名保存在各 home 的 `codex-pair-skill-backups/`，输出可恢复备份路径；白名单仅包含 SKILL.md、agents、scripts、references、tests，跳过认证/config 和 Python 缓存。暂存和落盘副本逐文件 SHA-256 与源包比较。先解析每个 home 的实际位置，安装器拒绝技能目录重定向，不改登录、账号配置或会话。
 
-主动调用并给出目标的是 A；收到用户转交 CODEX_PAIR_JOIN_V1 指令的是 B。角色与付费账号、文件夹名字无关，B 调用 skill 也不能新建第二套协作。
+普通 start 建立新一轮，第一个成功登记的窗口是数据库 A；接受本轮 CODEX_PAIR_JOIN_V1 邀请的是 B。上一轮角色不决定新一轮角色。只有明确 start --resume-pair <ID> 才保留旧绑定；口头换角色无效。原协作有未决工作时禁止自动换绑，并发发起由项目锁返回同一邀请。
 
 ## 共享状态与账号分开
 
@@ -36,7 +36,7 @@
 
 ## 开发与验收
 
-维修分两块：A 修改状态、传输、CLI 和通信测试；B 修改 Git 项目内目录支持、Skill 和安装校验。各自在本项目 `.codex-pair/worktrees/` 的独立 worktree 开发，最后 A 整合。通信未成立前使用用户转交的提交 SHA 交接，不能依赖正在维修的消息桥。
+维修任务按依赖、允许路径、工作树安全和成员负担登记；方案细化、审查、测试和整合准备也计入 effort，不按历史角色包办。只有已有独立工作树才并行，同树串行。通信未成立前使用用户转交的提交 SHA 交接，不能依赖正在维修的消息桥。
 
 测试至少覆盖两个不同 home 的路由与身份错误、共享数据库并发领取、错误账号不回退、重试与 unknown、relay 重启、暂停/停止、项目内 worktree 不污染 git status、旧状态迁移，以及三套安装副本一致性。
 

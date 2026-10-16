@@ -21,7 +21,9 @@
 
 ### 下载发布包
 
-当前最新发布为 [v1.0.2](https://github.com/naxianjin/codex-pair/releases/tag/v1.0.2)，同步技能卡片的 DeepSeek 支持说明；包含此前的 DeepSeek 适配、领取回执恢复和长消息投递修复。本版不改变协作逻辑或真实验收状态。
+当前本地修复增加轮次角色重置、交付记录确认、连续交接和额度感知均衡；发布状态以 GitHub Release 为准。
+
+此前发布为 [v1.0.2](https://github.com/naxianjin/codex-pair/releases/tag/v1.0.2)，同步技能卡片的 DeepSeek 支持说明；包含此前的 DeepSeek 适配、领取回执恢复和长消息投递修复。本版不改变协作逻辑或真实验收状态。
 
 [下载 codex-pair.zip](https://github.com/naxianjin/codex-pair/releases/latest/download/codex-pair.zip) · [SHA-256 校验文件](https://github.com/naxianjin/codex-pair/releases/latest/download/SHA256SUMS.txt) · [全部版本](https://github.com/naxianjin/codex-pair/releases)
 
@@ -61,6 +63,12 @@ python scripts/install_skill.py --source . --home $pairAccountRoot
 
 ## 使用方式
 
+当前源码支持每轮重新确定 A/B、显式恢复旧协作、交付分页读取确认与额度感知均衡。普通 start 创建新一轮，start --resume-pair <ID> 才保留旧角色；未决旧工作阻止自动换绑。assign 可用 --to auto --effort 5 --report-to A，已明确的后续工作用 --depends-on 登记。quota --refresh 查询双方自身账号额度；未知或不可比较时按工作量分配，不把百分比当作绝对容量。
+
+完成通知按 report_to 路由，支持交给自身并等待当前回合结束。handoff --task <ID> --to A/B 幂等补发已有交付；不重做任务、不修改负责人。结果与前置交付先 read-delivery 分页读取，再 ack-delivery 确认。中途交回使用 complete --partial，不能满足完成依赖。后台10秒检查任务、60秒刷新额度；模型无需保持回合轮询。接口、数据可靠性及恢复边界见 [协作协议](references/protocol.md)。
+
+结果回合只负责读取、确认和收尾。新轮次在阶段交付和整合完成、所有结果收尾后，会自动给 A 登记独立的规划任务；桥等原回合结束后投递。A 在规划任务中核对原目标、登记剩余任务及依赖，再由桥自动调度两个窗口，无需用户手动输入“继续”。原目标已全部实现时，A 用 `complete --goal-complete` 记录验收结论，停止接续。该机制只推进已授权的原目标；关键输入或新增授权缺失时仍需用户提供。
+
 ### 1. 在窗口 A 给出任务
 
 打开两个已能正常使用的官方 Codex CLI 窗口。在 A 中输入，例如：
@@ -77,7 +85,7 @@ python scripts/install_skill.py --source . --home $pairAccountRoot
 
 B 在自己的原窗口执行邀请中的命令，不另建协作，不切换账号目录。首次邀请用于确认你选中的目标窗口，不能仅靠窗口标题或最近会话猜测 B 是谁。
 
-B 如果尚未安装技能，也可以读取邀请所指向的同一份技能文件。已有有效配对会复用原绑定，不需要每条消息都重新邀请。
+B 如果尚未安装技能，也可以读取邀请所指向的同一份技能文件。消息沿用本轮数据库绑定，不需要每条消息都重新邀请；普通 start 建立新轮次，只有 start --resume-pair <ID> 明确恢复才沿用旧角色。
 
 ### 3. 等待连接验证，再开始分工
 
@@ -122,7 +130,7 @@ B 如果尚未安装技能，也可以读取邀请所指向的同一份技能文
 
 ## 验证与限制
 
-最近一次长消息修复的完整回归记录为：117 项测试，114 项通过，3 项真实环境测试默认跳过。覆盖账号路由、会话识别、凭据隔离、领取去重与恢复、旧库兼容、Git 交付、安装、打包以及长消息分页。
+最近一次完整回归记录为：148 项测试，145 项通过，3 项真实环境测试默认跳过，退出码 0。覆盖账号路由、会话识别、凭据隔离、领取去重与恢复、旧库兼容、Git 交付、安装、打包、长消息分页、角色重置、额度刷新失败边界和阶段结果收尾后的自动接续。
 
 在源码目录运行：
 
@@ -130,10 +138,23 @@ B 如果尚未安装技能，也可以读取邀请所指向的同一份技能文
 python -m unittest discover -v
 ```
 
+Windows 下临时目录路径过深时，Git worktree 或 SQLite 备份可能报路径错误。可在源码仓库内指定较短的测试临时目录，再运行完整测试：
+
+```powershell
+$pairTestTemp = Join-Path (Get-Location) '.codex-pair\tmp'
+New-Item -ItemType Directory -Force -Path $pairTestTemp | Out-Null
+$env:TEMP = $pairTestTemp
+$env:TMP = $pairTestTemp
+$env:GIT_CEILING_DIRECTORIES = $pairTestTemp
+python -m unittest discover -v
+```
+
+额度刷新失败单独记录 `refresh_status=unavailable`；最近一次尚未超过 120 秒且周期未重置的快照继续有效。复杂任务刷新等待超时也不会解除有效 `remaining=0` 快照的耗尽保护。过期或周期重置后仍需重新查询，不自行增加可用额度。
+
 已有验证记录与尚未完成的验证分开列出：
 
 - OpenAI：此前两个可见原窗口已通过邀请和双向握手，完成文档、测试的分工、提交与整合；另有独立账号后台托管会话的问答、去重、重启与冲突整合记录。这不保证每个 CLI 版本或新配对都能自动通信。
-- 长消息修复：回归测试已覆盖发送前长度拒绝、短通知、完整分页读取与原消息安全恢复；修复后尚未重新验证真实双窗口交接。
+- 当前窗口交接：本次修复前，两个可见原窗口已完成握手、两阶段依赖、提交交付、分页读取确认和整合；本次额度修复通过本地动态回归，未重新执行真实双窗口测试。
 - DeepSeek：只读观察进程已成功读取原会话的提供方与模型元数据；DeepSeek×DeepSeek、OpenAI×DeepSeek 及反向组合的原窗口双向通信、工具执行和完整交付仍待实测。
 
 离线测试通过、模型能对话、队列接受、业务完成与原窗口自动协作是不同证据，不能互相替代。

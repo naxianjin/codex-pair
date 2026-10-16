@@ -171,11 +171,13 @@ class AppServer:
     """一条长连接。managed 拥有独立进程；shared 仅代理现有守护进程。"""
 
     def __init__(self, *, backend='managed', executable=None, codex_home=None,
-                 cwd=None, timeout=15, evidence=None, process_factory=subprocess.Popen, metadata_only=False):
+                 cwd=None, timeout=15, evidence=None, process_factory=subprocess.Popen, metadata_only=False, account_metadata=False):
         if backend not in ('managed', 'shared'):
             raise TransportError('Invalid backend / 无效传输后端')
         self.backend, self.timeout = backend, timeout
         self.metadata_only=metadata_only
+        self.account_metadata=account_metadata
+        self.signal_events=queue.Queue(maxsize=2048)
         self._next_id = 0
         self._pending = {}
         self._condition = threading.Condition()
@@ -233,6 +235,9 @@ class AppServer:
                         # 维持原权限配置，不擅自批准服务端请求。
                         self.server_requests.put(obj)
                     else:
+                        if obj.get('method') in ('account/rateLimits/updated','account/updated','thread/tokenUsage/updated'):
+                            try:self.signal_events.put_nowait(obj)
+                            except queue.Full:pass
                         try:
                             self.notifications.put_nowait(obj)
                         except queue.Full:
@@ -263,7 +268,9 @@ class AppServer:
         self._write({'method': method, 'params': params})
 
     def rpc(self, method, params, *, timeout=None):
-        if getattr(self,'metadata_only',False) and method not in ('initialize','thread/read','thread/turns/list'):
+        allowed=('initialize','thread/read','thread/turns/list')
+        if getattr(self,'account_metadata',False):allowed+=('account/read','account/rateLimits/read')
+        if getattr(self,'metadata_only',False) and method not in allowed:
             raise TransportError('Metadata-only observer / 只读观察进程拒绝非元数据 RPC')
         with self._condition:
             if self._dead:
@@ -459,6 +466,15 @@ class TransportPool:
                 except queue.Empty:break
                 result.append({'member':key[0],'request':request})
         return result
+
+    def signals(self):
+        events=[]
+        for key,client in self.clients.items():
+            target=client.observer if isinstance(client,QueueTransport) else client
+            while True:
+                try:events.append((key[0],target.signal_events.get_nowait()))
+                except queue.Empty:break
+        return events
 
 
 class QueueTransport:

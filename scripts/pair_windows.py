@@ -143,26 +143,50 @@ def start(args, cli):
     goal=cli.read_body(args)
     if not goal.strip():raise PairError('Goal required / 请给出协作目标')
     root=Path(getattr(args,'state_root',None) or Path(project)/'.codex-pair'/'state').resolve()
-    binding=find_binding(root,window)
-    pair_id=getattr(args,'pair',None) or (binding[0] if binding else 'windows-'+uuid.uuid4().hex[:12])
-    if binding and pair_id!=binding[0]:
-        raise PairError('Current window already paired / 当前窗口已有有效协作，先停止原协作再另建，不替换绑定')
-    path=root/pair_id/'state.sqlite3'
-    if path.is_file():
-        store=Store(pair_id,state_root=root,home=window['codex_home'])
-        if canonical_path(store.status()['pair']['project'])!=canonical_path(project):
-            raise PairError('Project mismatch / 已有协作不是当前目标项目')
-        role=binding[1] if binding else 'A'
-        existing=store.member(role)
-        if existing['session_uuid']!=window['session_uuid'] or canonical_path(existing['codex_home'])!=window['codex_home']:
-            raise PairError('Another window already bound / 该角色已绑定其他窗口，不自动替换')
-        with AppServer(codex_home=window['codex_home'],cwd=window['cwd'],executable=getattr(args,'codex',None),metadata_only=True) as observer:
-            observer.validate(existing)
-    else:
-        store=Store.initialize(pair_id,project,repo['head'],home=window['codex_home'],state_root=root)
-        store.configure_git(repo)
-        role='A'
-        bind_window(store,'A',window,workspace_for(window,project),cli,args.delivery_mode)
+    # 使用项目唯一锁，不能让不同 state-root 绕过并发建轮仲裁。
+    canonical_root=Path(pair_git.prepare_pair_directory(project,str(Path(project)/'.codex-pair'/'state'),'state'))
+    if root!=canonical_root:raise PairError('Use project state root / 新轮次必须使用项目标准 state-root')
+    with FileLock(canonical_root.parent/'start.lock',timeout=30):
+        resume_id=getattr(args,'resume_pair',None)
+        if getattr(args,'pair',None) and not resume_id:
+            raise PairError('Explicit resume required / 恢复旧协作请使用 start --resume-pair <ID>')
+        if resume_id:
+            store=Store(resume_id,state_root=root,home=window['codex_home'])
+            status=store.status()
+            if canonical_path(status['pair']['project'])!=canonical_path(project):raise PairError('Project mismatch / 恢复协作项目不符')
+            members=[m for m in status['members'] if m['session_uuid']==window['session_uuid'] and canonical_path(m['codex_home'])==window['codex_home'] and canonical_path(m['cwd'])==window['cwd']]
+            if len(members)!=1:raise PairError('Original binding required / 仅原绑定窗口可以恢复本轮角色')
+            role=members[0]['id']
+            with AppServer(codex_home=window['codex_home'],cwd=window['cwd'],executable=getattr(args,'codex',None),metadata_only=True) as observer:observer.validate(members[0])
+            if status['pair']['status']=='stopped':store.control('running')
+            pair_id=resume_id
+        else:
+            previous=[]
+            for path in sorted(root.glob('*/state.sqlite3')):
+                old=Store(path.parent.name,state_root=root,home=window['codex_home'])
+                status=old.status()
+                if status['pair']['status']=='stopped':continue
+                # 尚未接受的本轮邀请是并发 start 的共同结果，不为第二窗口创建新 A。
+                if len(status['members'])==1 and old.setting('window_flow'):
+                    inviter=status['members'][0]
+                    same=inviter['session_uuid']==window['session_uuid'] and canonical_path(inviter['codex_home'])==window['codex_home']
+                    return dict(invitation(old,cli,old.setting('window_flow')['goal']),pair=old.pair_id,state_root=str(root),
+                        role='A' if same else None,requires_accept=not same,status=status,
+                        detail='已有本轮邀请；另一窗口接受邀请后登记为 B')
+                previous.append((old,status))
+            pending=[]
+            for old,status in previous:
+                pending.extend({'pair':old.pair_id,'task':t['id'],'status':t['status']} for t in status['tasks'] if t['status'] not in ('completed','integrated'))
+                pending.extend({'pair':old.pair_id,'message':m['id'],'process_status':m['process_status'],'remote_status':m['remote_status']} for m in status['messages']
+                    if m['process_status']!='completed' or m['delivery_status'] in ('delivering','unknown') or (m['delivery_status']=='accepted' and m['remote_status'] in (None,'queued','inProgress')))
+            if pending:raise PairError('Previous work unresolved / 原协作仍有待处理工作，不自动换绑: '+dumps(pending))
+            for old,_ in previous:old.control('stopped')
+            pair_id='windows-'+uuid.uuid4().hex[:12]
+            store=Store.initialize(pair_id,project,repo['head'],home=window['codex_home'],state_root=root)
+            store.configure_git(repo)
+            role='A'
+            bind_window(store,'A',window,workspace_for(window,project),cli,args.delivery_mode)
+            invitation(store,cli,goal)
     flow=store.setting('window_flow')
     if flow and flow['goal']!=goal:
         raise PairError('Existing goal differs / 当前窗口已有不同目标的协作，请明确复用原目标或先停止，不静默改写')
@@ -175,6 +199,13 @@ def start(args, cli):
 
 
 def accept(args, cli):
+    payload=json.loads(Path(args.invite).read_text(encoding='utf-8'))
+    project=pair_git.inspect_repo(payload['project'])['root']
+    root=Path(pair_git.prepare_pair_directory(project,str(Path(project)/'.codex-pair'/'state'),'state'))
+    with FileLock(root.parent/'start.lock',timeout=30):return _accept(args,cli)
+
+
+def _accept(args, cli):
     path=Path(args.invite).resolve(strict=True)
     payload=json.loads(path.read_text(encoding='utf-8'))
     if payload.get('protocol')!='codex-pair/windows/1':raise PairError('Invalid invitation / 不支持的窗口邀请格式')
