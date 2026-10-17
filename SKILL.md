@@ -5,7 +5,7 @@ description: 让用户当前打开的两个官方 Codex CLI 窗口协作，通�
 
 # Codex Pair
 
-源码新增了尚未发布的 A 协助执行、低额度交接与恢复，说明见 [assistance.md](references/assistance.md)。以下 v1.1.3 验收记录不包含新增流程，不能作为新增流程已通过原窗口测试的依据。
+当前发行版本 v1.2.0 新增 A 协助执行、低额度交接与恢复，说明见 [assistance.md](references/assistance.md)。本地回归 224 项，221 项通过、3 项跳过；新增流程尚未完成完整真实双窗口验收。以下 v1.1.3 验收记录不包含新增流程，不能作为新增流程已通过原窗口测试的依据。
 
 当前源码版本 v1.1.3：已在用户选择的 OpenAI A 与 DeepSeek B 原窗口验证邀请、双向握手、工具写入回读、技能 CLI 和 15 项专项单元测试；Windows 模拟测试目录改为继承现有 ACL。此次测试后半程使用用户明确授权的 Full access / never，不代表受限沙箱下也通过。此前两个 OpenAI 原窗口及安装版的验收记录保留；各项范围与未验证项见 [验收记录](references/verification.md)。
 

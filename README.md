@@ -10,7 +10,7 @@
 
 源码另新增 [A 代答与审核 B 权限请求](references/approval-review.md)：新协作默认将普通问题交给 A，并通过官方 PermissionRequest Hook 按用户授权和 A 当前权限审核请求，B 保留原沙箱限制。较低权限的 B 首次在 Hook 安装后输入 `/hooks`，审阅并信任对应项。审批超时三分钟后保留记录，由 A 核实后安排重发；连续两次超时通知用户。安装不代表生效，真实双窗口验收单独记录。
 
-源码新增了两项尚未发布的能力：A 在当前任务授权内承接 B 无法执行的操作，以及低额度时在项目内保存现场、转交和恢复。新窗口协作默认以剩余 9% 为初始交接线；双方额度都低时各自保存，可靠额度恢复后继续原窗口。权限协助需要显式开启，不改变 B 的权限，也不绕过用户拒绝。完整用法、清理规则及未验证边界见 [协助执行与交接](references/assistance.md)。下方 v1.1.3 发布包不含这些新增功能。
+v1.2.0 新增 A 在当前任务授权内承接 B 无法执行的操作，以及低额度时在项目内保存现场、转交和恢复。新窗口协作默认以剩余 9% 为初始交接线；双方额度都低时各自保存，可靠额度恢复后继续原窗口。权限协助需要显式开启，不改变 B 的权限，也不绕过用户拒绝。完整用法、清理规则及未验证边界见 [协助执行与交接](references/assistance.md)。v1.2.0 发布包包含这些新增功能；此前 v1.1.3 发布包不包含。
 
 ## 适用范围
 
@@ -25,7 +25,7 @@
 
 ### 下载发布包
 
-当前版本为 [v1.1.3](https://github.com/naxianjin/codex-pair/releases/tag/v1.1.3)：同步 DeepSeek 基础真实验收、Windows 专项测试目录修复及权限生效说明，验证范围见 [验收记录](references/verification.md)。下方发行包包含同版运行文件及 SHA-256 校验文件；需要测试代码时使用源码安装。
+当前版本为 [v1.2.0](https://github.com/naxianjin/codex-pair/releases/tag/v1.2.0)：新增委托问答、原生审批审核、任务内协助执行和低额度交接。发布前本地回归 224 项，221 项通过、3 项跳过；新增流程尚未完成完整真实双窗口验收，验证范围见 [验收记录](references/verification.md)。下方发行包包含同版运行文件及 SHA-256 校验文件；需要测试代码时使用源码安装。
 
 [下载 codex-pair.zip](https://github.com/naxianjin/codex-pair/releases/latest/download/codex-pair.zip) · [SHA-256 校验文件](https://github.com/naxianjin/codex-pair/releases/latest/download/SHA256SUMS.txt) · [全部版本](https://github.com/naxianjin/codex-pair/releases)
 
