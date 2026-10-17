@@ -200,7 +200,7 @@ def _branch_exists(repo: str, branch: str) -> bool:
 def prepare_pair_directory(project: str, path: str, kind: str) -> str:
     """验证专用协作目录并设置仓库本地排除，不读取或复制账号配置。"""
 
-    if kind not in {"state", "worktrees", "handoffs", "archives", "logs"}:
+    if kind not in {"state", "worktrees", "handoffs", "archives", "logs", "checkpoints"}:
         raise GitError(f"未知协作目录类型：{kind}")
     root, common = _repo_paths(project)
     lexical = os.path.abspath(os.fspath(path))

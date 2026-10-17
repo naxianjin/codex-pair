@@ -186,6 +186,10 @@ def start(args, cli):
             store.configure_git(repo)
             role='A'
             bind_window(store,'A',window,workspace_for(window,project),cli,args.delivery_mode)
+            store.configure_assistance('A',window['session_uuid'],window['cwd'],checkpoints=True)
+            store.setting('delegation_enabled',True)
+            store.setting('approval_assistance',True)
+            store.setting('delegation_basis',goal)
             invitation(store,cli,goal)
     flow=store.setting('window_flow')
     if flow and flow['goal']!=goal:
@@ -194,6 +198,13 @@ def start(args, cli):
         'bridge':bridge(store,cli,getattr(args,'codex',None)),
         'automatic_peer_discovery':False,'detail':'只绑定用户明确选中的当前窗口；其他窗口需接受一次邀请，不按账号目录或窗口标题猜测'}
     if role=='A':result.update(invitation(store,cli,goal))
+    if getattr(args,'execution_assistance',None) or getattr(args,'quota_checkpoints',False):
+        store.configure_assistance(role,window['session_uuid'],window['cwd'],
+            execution=True if getattr(args,'execution_assistance',None) else None,
+            checkpoints=True if getattr(args,'quota_checkpoints',False) else None)
+    result['checkpoint_check']=store.check_checkpoint(role,window['session_uuid'],window['cwd'])
+    if resume_id and len(store.status()['members'])==2:
+        result['approval_setup']=setup_approval(store,cli,getattr(args,'codex',None))
     result['status']=store.status()
     return result
 
@@ -227,14 +238,34 @@ def _accept(args, cli):
         raise PairError('Peer already paired / 当前窗口已参加另一协作，不自动改绑')
     workspace=workspace_for(window,payload['project'])
     member=bind_window(store,'B',window,workspace,cli,a['delivery_mode'])
+    approval_setup=setup_approval(store,cli,getattr(args,'codex',None))
+    checkpoint_check=store.check_checkpoint('B',window['session_uuid'],window['cwd'])
     service=bridge(store,cli,getattr(args,'codex',None))
     hello=store.send('B','A','窗口连接验证：先按信封领取本问题，再用 send --from A --to B --kind reply --reply-to 本问题ID，正文说明已收到并确认本协作；随后 complete 本问题。B 收到回复后领取并完成回复即可。只验证这两个当前窗口，不分配开发任务、不改项目文件、不发送额外致谢。',
         kind='question',dedupe_key='window-handshake')
     return {'role':'B','pair':store.pair_id,'current_window':member,'workspace':member_workspace(member),
-        'goal':flow['goal'],'bridge':service,'handshake_message':hello['id'],
-        'status':store.status(),
+        'goal':flow['goal'],'bridge':service,'handshake_message':hello['id'],'checkpoint_check':checkpoint_check,
+        'status':store.status(),'approval_setup':approval_setup,
         'after_join':('本窗口已绑定手动交接模式，需要用户转交 handoffs 中的领取指令；不会自动唤醒，不报告自动通信通过。' if a['delivery_mode']=='manual' else
-            '本窗口已经绑定。结束当前回合，让桥投递连接验证；收到 A 的 reply 后领取和完成。只有 status.window_flow.communication=verified 才报告自动通信验证通过；否则仍待确认。')}
+            '本窗口已经绑定。结束当前回合，让桥投递连接验证；收到 A 的 reply 后领取和完成。只有 status.window_flow.communication=verified 才报告自动通信验证通过；否则仍待确认。')+
+            ' 如果窗口 B 使用较低权限，请在审批 Hook 安装完成后，在 B 输入 /hooks，审阅并信任本次 codex-pair 的 Hook。输入命令本身不等于完成信任；通信成功不代表审批就绪。'}
+
+
+def setup_approval(store,cli,executable=None):
+    if not store.setting('delegation_enabled'):return {'status':'disabled'}
+    try:
+        b=store.member('B');a=store.member('A')
+        with AppServer(codex_home=b['codex_home'],cwd=b['cwd'],executable=executable,metadata_only=True,hook_metadata=True) as observer:
+            observer.rpc('hooks/list',{})
+            setup=store.install_approval_hook('A',a['session_uuid'],a['cwd'],python=sys.executable,
+                script=str(Path(cli.__file__).with_name('pair_permission_hook.py')))
+        # 使用新观察进程重新读取配置，避免把安装前的列表作为信任证据。
+        with AppServer(codex_home=b['codex_home'],cwd=b['cwd'],executable=executable,metadata_only=True,hook_metadata=True) as observer:
+            setup.update(store.record_hook_status(observer.rpc('hooks/list',{})))
+        return setup
+    except Exception:
+        return {'status':'setup_unverified','active_verified':False,
+                'detail':'无法确认审批 Hook 支持、安装或信任状态；普通通信可以继续，不能宣称自动审批就绪。'}
 
 
 def execute(args, cli):

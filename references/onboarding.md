@@ -1,5 +1,7 @@
 # 当前两个窗口的发起与加入
 
+未发布源码新增了任务内 A 协助执行及低额度交接，详见 [assistance.md](assistance.md)。新 start 默认开启额度交接、A 代答及原生权限审批委托；较低权限的 B 首次在 Hook 安装后输入 /hooks 并审阅、信任对应项，详见 [approval-review.md](approval-review.md)。任务内代执行仍需显式 --execution-assistance task-scoped。每次继续项目工作先检查返回的 checkpoint_check 或信封 checkpoint_check_argv，有交接才分页读取并核实接管；没有则不读取历史。旧轮次迁移保留关闭策略。以下 v1.1.3 原窗口验收不覆盖新增流程。
+
 普通使用不把维修时的 .codex-b/.codex-c、协作 ID 或测试 worktree 当成用户默认配置。
 
 当前源码版本 v1.1.3。两个 OpenAI 原窗口的自动规划接续已有历史实测；OpenAI A × DeepSeek B 的基础握手、工具写入回读、技能 CLI 和专项单元测试也已通过。DeepSeek 侧测试后半程使用用户授权的 Full access / never，完整组合和 Git 交付矩阵仍未验证，详见 [验收记录](verification.md)。升级后显式读取新版 SKILL.md，运行中的旧桥须安全停止并用新版脚本启动。

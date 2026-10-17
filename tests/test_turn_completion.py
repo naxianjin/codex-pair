@@ -31,11 +31,11 @@ class RolloutTests(unittest.TestCase):
         with self.path.open('a',encoding='utf-8') as file:
             for record in records:file.write(json.dumps(record)+'\n')
 
-    def observe(self, *, processed=True, thread_status='notLoaded'):
+    def observe(self, *, processed=True, thread_status='notLoaded',**context):
         with patch.object(self.client,'validate',return_value={'path':str(self.path),'status':{'type':thread_status}}), \
                 patch.object(self.client,'turns',return_value=iter([
                     {'id':'old','status':'interrupted','completedAt':None,'items':[]}])):
-            return self.client.observe(self.member,{'turn_id':'old','process_status':'completed' if processed else 'claimed'})
+            return self.client.observe(self.member,{'turn_id':'old','process_status':'completed' if processed else 'claimed',**context})
 
     def test_exact_persisted_completion_works_with_notloaded_observer(self):
         self.write(event('task_started','old'),event('task_complete','old',completed_at=123))
@@ -60,6 +60,18 @@ class RolloutTests(unittest.TestCase):
         result=self.observe()
         self.assertEqual(result['remote_status'],'interrupted')
         self.assertEqual(result['evidence_turn_id'],'new')
+
+    def test_protocol_yield_requires_latest_persisted_completion(self):
+        self.write(event('task_started','old'),event('task_started','new'))
+        self.assertEqual(self.observe(processed=False,protocol_yield=True)['remote_status'],'inProgress')
+        self.write(event('task_complete','new',completed_at=124))
+        self.assertEqual(self.observe(processed=False,protocol_yield=True)['remote_status'],'interrupted')
+        self.assertEqual(self.observe(processed=False)['remote_status'],'inProgress')
+
+    def test_resumed_coordination_turn_must_match_completed_evidence(self):
+        self.write(event('task_started','old'),event('task_started','new'),event('task_complete','new',completed_at=124))
+        self.assertEqual(self.observe(processed=False,protocol_yield_turns=['unrelated'])['remote_status'],'inProgress')
+        self.assertEqual(self.observe(processed=False,protocol_yield_turns=['new'])['remote_status'],'interrupted')
 
     def test_partial_line_waits_then_recovers_and_survives_observer_restart(self):
         self.write(event('task_started','old'))

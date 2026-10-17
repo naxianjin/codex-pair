@@ -1,5 +1,7 @@
 # codex-pair 协作协议
 
+源码新增的 A 协助执行、低额度检查点、接管和恢复遵守 [assistance.md](assistance.md)。新增状态包括 waiting_execution、quota_wait；执行请求和交接通知使用专用完成接口。额度接管后由 status.assistance.coordinator 指定统筹方，原数据库 A/B 与账号权限不变。以下 v1.1.3 验收是历史记录，不覆盖新增流程。schema 1～5 按旧机制备份、取得桥与派发锁后迁移至 schema 6，保留领取令牌、业务交付和读取确认；旧轮次不自动开启新策略。
+
 本文对应 v1.1.3。保留此前两个 OpenAI 原窗口的自动接续与安装版验证；2026-10-16 另完成 OpenAI A × DeepSeek B 原窗口的基础握手、工具执行、技能 CLI、15 项单元测试和交付读取确认。DeepSeek 测试后半程使用用户授权的 Full access / never；不涵盖受限沙箱、反向组合、DeepSeek 双窗口或完整 Git 提交整合，完整边界见 [验收记录](verification.md)。
 
 首次调用先读 [onboarding.md](onboarding.md)：主动发起者默认 A，收到用户转交的加入指令者为 B。双方保留独立 CODEX_HOME，通过共享状态与成员账号路由协作。角色提示不等于双账号传输已通过真实验收，不得统一双方登录目录。
@@ -81,7 +83,7 @@ relay 通过成员 OS lease 防重复，仍服从 pause/stop，并复用 unknown
 
 任务 pending → active → completed（无提交的工作）或 delivered（含提交）→ integrated。依赖只有 completed/integrated 后满足；同成员同时一个活跃任务；active/blocked 都持有范围。跨目录代码依赖需要 A 先整合到所需 worktree，再选正确基准分配后续任务；不会自动 rebase 或复制他人修改。
 
-assign 增加 --report-to A/B（默认数据库 A），负责人和交接方分别持久化。complete 一律按 report_to 生成结果，包括交给自身；结果在原回合结束后进入下一回合。重复 complete 或 handoff --task <ID> --to A/B 复用结果，后者仅接受 completed/delivered/integrated，不改负责人、不重做业务；已有 claimed/unknown/failed 结果原样返回，不能借补发绕过去重或不明投递。complete --partial 表示中途交回，任务为 handed_back，不满足依赖，由统筹核实进度并登记剩余工作。结果消息 complete 仅收尾自身，不产生新的结果。
+assign 支持 --report-to A/B（默认当前统筹方，初始为 A），负责人和交接方分别持久化。complete 一律按 report_to 生成结果，包括交给自身；结果在原回合结束后进入下一回合。重复 complete 或 handoff --task <ID> --to A/B 复用结果，后者仅接受 completed/delivered/integrated，不改负责人、不重做业务；已有 claimed/unknown/failed 结果原样返回，不能借补发绕过去重或不明投递。complete --partial 表示中途交回，任务为 handed_back，不满足依赖，由统筹核实进度并登记剩余工作。结果消息 complete 仅收尾自身，不产生新的结果。
 
 交付正文、证据路径及完整 SHA 保存在 deliveries；通知仅含有界摘要及记录引用。收到 required_deliveries 后，使用信封的 read_delivery_argv_template 按 next_offset 分页直到 null，再用返回 digest 执行 ack_delivery_argv_template。read-delivery 与 ack-delivery 均校验原成员身份及记录权限。确认按成员、记录版本与哈希保存，页区间必须完整覆盖；只读最后一页不能确认。结果消息及依赖任务交付前检查必要确认。确认只证明脚本读取记录，不替代实际核验证据。
 
@@ -113,7 +115,7 @@ quota [--refresh] 与 status.quota 展示 observed_at、age_seconds、reliabilit
 & $py $script complete --pair $pair --member B --session '<B-UUID>' --worktree '<B目录>' --message '<消息ID>' --token '<claim_token>' --commit '<完整SHA>' --body-file '<结果文件>' --json
 ```
 
-提问后结束当前回合，保留原任务令牌；不要阻塞轮询等待。问题和回复各自领取、完成；回复发送后完成问题消息，收到回复后完成回复消息再继续原任务。reply 必须关联同任务、方向相反的原问题；一问只计一次。没有 progress-note 的回复计为未进展一轮；三轮阻塞并只通知 A 一次。脚本根据显式证据计数，不声称能语义判断进展。
+提问后结束当前回合，保留原任务令牌；不要阻塞轮询等待。问题和回复各自领取、完成；回复发送后完成问题消息，收到回复后完成回复消息再继续原任务。reply 必须关联同任务、方向相反的原问题；一问只计一次。没有 progress-note 的回复计为未进展一轮；新委托模式连续两轮无进展时阻塞并通知用户，未启用委托的旧轮次保留三轮规则。脚本根据显式证据计数，不声称能语义判断进展。普通提问、采用回答和权限审批的专用接口见 [approval-review.md](approval-review.md)。
 
 ## 建立与加入
 
@@ -197,7 +199,7 @@ unknown、已接受、已领取、已完成或其他失败不适用此恢复；�
 
 在目标 Codex 会话内可用 `join --current-session` 替代手填 `--session`；它要求环境中的 CODEX_THREAD_ID 和当前实际 cwd，仍通过本成员账号的 app-server 验证会话。普通 PowerShell 中没有该上下文时会报错，不会猜最近 UUID。
 
-旧数据库留在原 home/codex-pair/<ID>，只从原账号查找，不扫描其他账号。首次打开 schema 1/2/3/4 时，取得旧 daemon 与派发锁、确认无未决投递后，先创建 schema-v<版本>-<时间>.backup.sqlite3，再事务升级到 schema 5。补充旧账号字段、移除成员 cwd 唯一限制并增加窗口邀请设置，外键须完整。旧成员继承原 home，历史、领取令牌和路径不搬动。低层 init 默认项目内隔离布局，普通使用走 start/accept；旧 Python Store API 未传 state_root 时保留旧路径语义。
+旧数据库留在原 home/codex-pair/<ID>，只从原账号查找，不扫描其他账号。首次打开 schema 1～5 时，取得旧 daemon 与派发锁，先创建 schema-v<版本>-<时间>.backup.sqlite3，再事务升级到 schema 6；schema 1～3 仍须先核实未决投递。迁移保留旧账号字段、窗口设置、领取令牌、交付和分页确认，补充协助执行与检查点记录，外键须完整。旧成员继承原 home，历史与路径不搬动。低层 init 默认项目内隔离布局，普通使用走 start/accept；旧 Python Store API 未传 state_root 时保留旧路径语义。
 
 两个可见原窗口的验收优先使用上述 start/accept 邀请和后台桥，不要求第三个终端。以下仅为低层手动测试：在 A/B 各自目录启动 codex，让各自用实际 UUID 执行 join；第三个终端运行 daemon。按上述命令分配任务、提问、关联回复、提交交付，再 integrate 并测试。记录 UUID、消息 ID、提交 SHA 和 status，不能只检查 Queued 回执。禁止模拟键盘或根据窗口标题推测 UUID。未执行的可见双窗口验收必须明确列为未完成。
 

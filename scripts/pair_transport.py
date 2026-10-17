@@ -171,12 +171,13 @@ class AppServer:
     """一条长连接。managed 拥有独立进程；shared 仅代理现有守护进程。"""
 
     def __init__(self, *, backend='managed', executable=None, codex_home=None,
-                 cwd=None, timeout=15, evidence=None, process_factory=subprocess.Popen, metadata_only=False, account_metadata=False):
+                 cwd=None, timeout=15, evidence=None, process_factory=subprocess.Popen, metadata_only=False, account_metadata=False, hook_metadata=False):
         if backend not in ('managed', 'shared'):
             raise TransportError('Invalid backend / 无效传输后端')
         self.backend, self.timeout = backend, timeout
         self.metadata_only=metadata_only
         self.account_metadata=account_metadata
+        self.hook_metadata=hook_metadata
         self.signal_events=queue.Queue(maxsize=2048)
         self._next_id = 0
         self._pending = {}
@@ -270,6 +271,7 @@ class AppServer:
     def rpc(self, method, params, *, timeout=None):
         allowed=('initialize','thread/read','thread/turns/list')
         if getattr(self,'account_metadata',False):allowed+=('account/read','account/rateLimits/read')
+        if getattr(self,'hook_metadata',False):allowed+=('hooks/list',)
         if getattr(self,'metadata_only',False) and method not in allowed:
             raise TransportError('Metadata-only observer / 只读观察进程拒绝非元数据 RPC')
         with self._condition:
@@ -408,7 +410,7 @@ class AppServer:
             if turn_id in state['completed']:
                 return {'remote_status':'completed','completed_at':state['completed'][turn_id],
                     'completion_source':'rollout_task_complete','evidence_turn_id':turn_id}
-            if turn_id in state['started'] and turn_id!=latest and message.get('process_status')=='completed':
+            if turn_id in state['started'] and turn_id!=latest and (message.get('process_status')=='completed' or message.get('protocol_yield') or latest in message.get('protocol_yield_turns',())):
                 return {'remote_status':'interrupted','completed_at':None,
                     'completion_source':'rollout_superseded','evidence_turn_id':latest}
         except (OSError,KeyError,TypeError,ValueError):return None

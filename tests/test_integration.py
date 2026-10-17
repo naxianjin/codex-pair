@@ -103,6 +103,24 @@ class IntegrationTests(unittest.TestCase):
         with patch.dict(os.environ,{'CODEX_THREAD_ID':a['session_uuid']}),patch('scripts.pair.Path.cwd',return_value=Path(a['cwd'])):
             self.assertTrue(pair.execute(self.arguments('integrate','--task','delivery'))['success'])
 
+    def test_transferred_coordinator_b_is_default_integration_receiver(self):
+        self.store.setting('coordinator','B')
+        commit=self.commit('A','taken-over.txt','remaining work\n')
+        self.store.assign('takeover','接管后交付','A',['taken-over.txt'])
+        message=next(m for m in self.store.status()['messages'] if m['kind']=='task')
+        a=self.store.member('A');b=self.store.member('B')
+        claim=self.store.claim('A',a['session_uuid'],a['cwd'],message_id=message['id'])
+        self.store.complete('A',a['session_uuid'],a['cwd'],message['id'],claim['claim_token'],'已实现并验证',commits=[commit])
+        receipt=next(m for m in self.store.status()['messages'] if m['kind']=='result')
+        self.store.claim('B',b['session_uuid'],b['cwd'],message_id=receipt['id'])
+        with self.store.transaction() as db:
+            db.execute("UPDATE messages SET delivery_status='accepted',remote_status='inProgress' WHERE id=?",(receipt['id'],))
+        with patch.dict(os.environ,{'CODEX_THREAD_ID':b['session_uuid']}),patch('scripts.pair.Path.cwd',return_value=Path(b['cwd'])):
+            result=pair.execute(self.arguments('integrate','--task','takeover'))
+        self.assertTrue(result['success'])
+        self.assertEqual(Path(result['receiver']).resolve(),Path(b['cwd']).resolve())
+        self.assertEqual((Path(b['cwd'])/'taken-over.txt').read_text(encoding='utf-8'),'remaining work\n')
+
     def conflict(self):
         self.commit('A','shared.txt','A line\n')
         commits=[self.commit('B','shared.txt','B line\n'),self.commit('B','tail.txt','tail\n')]
