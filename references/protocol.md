@@ -1,5 +1,7 @@
 # codex-pair 协作协议
 
+当前源码成员注册扩展至A～D，schema 9迁移、专用中途邀请、独立成果审核及6%新协作保留线见 [members.md](members.md)。双人历史记录和低层示例不限制新增成员；当前统筹与原A审批资格分别保存。
+
 源码新增的 A 协助执行、低额度检查点、接管和恢复遵守 [assistance.md](assistance.md)。新增状态包括 waiting_execution、quota_wait；执行请求和交接通知使用专用完成接口。额度接管后由 status.assistance.coordinator 指定统筹方，原数据库 A/B 与账号权限不变。以下 v1.1.3 验收是历史记录，不覆盖新增流程。schema 1～5 按旧机制备份、取得桥与派发锁后迁移至 schema 6，保留领取令牌、业务交付和读取确认；旧轮次不自动开启新策略。
 
 本文对应 v1.1.3。保留此前两个 OpenAI 原窗口的自动接续与安装版验证；2026-10-16 另完成 OpenAI A × DeepSeek B 原窗口的基础握手、工具执行、技能 CLI、15 项单元测试和交付读取确认。DeepSeek 测试后半程使用用户授权的 Full access / never；不涵盖受限沙箱、反向组合、DeepSeek 双窗口或完整 Git 提交整合，完整边界见 [验收记录](verification.md)。

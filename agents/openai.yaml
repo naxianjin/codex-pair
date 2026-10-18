@@ -1,6 +1,6 @@
 interface:
   display_name: "Codex Pair"
-  short_description: "OpenAI 与 DeepSeek CLI 协作、交付确认与自动接续"
-  default_prompt: "使用 $codex-pair 协调当前打开的两个官方 Codex CLI 窗口：本窗口发起 A 并输出给 B 的加入指令，收到邀请的原窗口直接加入，保留各自的 OpenAI 账号或已配置 DeepSeek API 环境。已授权步骤直接推进，缺失信息先向统筹方报告；工具权限仍以目标会话实际设置为准。"
+  short_description: "2～4个 OpenAI 与 DeepSeek CLI 动态协作、独立审核及自动接续"
+  default_prompt: "使用 $codex-pair 协调当前打开的2～4个官方 Codex CLI 窗口：本窗口发起 A 并输出给 B 的加入指令，收到邀请的原窗口直接加入，可用专用邀请中途加入 C/D，保留各自的 OpenAI 账号或已配置 DeepSeek API 环境。已授权步骤直接推进，缺失信息先向统筹方报告；工具权限仍以目标会话实际设置为准。"
 policy:
   allow_implicit_invocation: true

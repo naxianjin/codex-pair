@@ -209,6 +209,25 @@ def start(args, cli):
     return result
 
 
+def invite_member(args,cli):
+    store=Store(args.pair,home=getattr(args,'codex_home',None),state_root=args.state_root)
+    cli.validate_actor(store,args)
+    with FileLock(store.directory/'membership.lock',timeout=30),store.transaction() as db:
+        if args.member!=store._coordinator(db):raise PairError('Coordinator required / 仅当前统筹可创建成员邀请')
+        if len(list(db.execute('SELECT id FROM members')))>=4:raise PairError('Team full / 最多四名成员')
+        project=db.execute('SELECT project FROM collaborations').fetchone()[0]
+        nonce=uuid.uuid4().hex
+        path=Path(pair_git.prepare_pair_directory(project,str(Path(project)/'.codex-pair'/'handoffs'),'handoffs'))/(store.pair_id+'-'+nonce+'-invite.json')
+        payload={'protocol':'codex-pair/windows/2','pair':store.pair_id,'state_root':str(store.state_root),
+            'project':project,'base_commit':db.execute('SELECT base_commit FROM collaborations').fetchone()[0],
+            'inviter_session':store._member(db,'A')['session_uuid'],'nonce':nonce,'expires':time.time()+86400}
+        content=json.dumps(payload,ensure_ascii=False,sort_keys=True,indent=2)+'\n'
+        with path.open('x',encoding='utf-8',newline='\n') as f:f.write(content)
+        store._put(db,'invite:'+nonce,{'path':str(path),'sha256':hashlib.sha256(content.encode()).hexdigest(),'status':'pending'})
+    argv=[sys.executable,str(Path(cli.__file__).resolve()),'accept','--invite',str(path),'--json']
+    return {'invite_path':str(path),'join_argv':argv,'join_instruction':'CODEX_PAIR_JOIN_V1\n请在要加入的原 CLI 读取本技能 SKILL.md，然后执行：\n'+ps_command(argv)+'\n按 after_join 完成通信与材料确认，不新建 CLI。'}
+
+
 def accept(args, cli):
     payload=json.loads(Path(args.invite).read_text(encoding='utf-8'))
     project=pair_git.inspect_repo(payload['project'])['root']
@@ -219,12 +238,14 @@ def accept(args, cli):
 def _accept(args, cli):
     path=Path(args.invite).resolve(strict=True)
     payload=json.loads(path.read_text(encoding='utf-8'))
-    if payload.get('protocol')!='codex-pair/windows/1':raise PairError('Invalid invitation / 不支持的窗口邀请格式')
+    if payload.get('protocol') not in ('codex-pair/windows/1','codex-pair/windows/2'):raise PairError('Invalid invitation / 不支持的窗口邀请格式')
     store=Store(payload['pair'],state_root=payload['state_root'])
     flow=store.setting('window_flow')
-    if (not flow or Path(flow['invitation']).resolve()!=path
-            or hashlib.sha256(path.read_bytes()).hexdigest()!=flow['sha256']):
+    extra=payload.get('protocol')=='codex-pair/windows/2'
+    record=store.setting('invite:'+payload.get('nonce','')) if extra else flow
+    if not record or Path(record.get('path',record.get('invitation',''))).resolve()!=path or hashlib.sha256(path.read_bytes()).hexdigest()!=record['sha256']:
         raise PairError('Invitation proof mismatch / 邀请内容或路径与发起记录不符')
+    if extra and (record['status']=='revoked' or record['status']=='pending' and payload['expires']<=time.time()):raise PairError('Invitation expired / 邀请已过期或撤销')
     status=store.status()
     if status['pair']['project']!=payload['project'] or status['pair']['base_commit']!=payload['base_commit']:
         raise PairError('Invitation project mismatch / 邀请项目或基准不符')
@@ -234,34 +255,47 @@ def _accept(args, cli):
     window=current_window(getattr(args,'codex',None))
     if window['session_uuid']==a['session_uuid']:raise PairError('Second window required / 请把邀请交给另一个已打开的窗口，不能由 A 自己加入 B')
     binding=find_binding(store.state_root,window)
-    if binding and binding!=(store.pair_id,'B'):
-        raise PairError('Peer already paired / 当前窗口已参加另一协作，不自动改绑')
+    if binding and binding[0]!=store.pair_id:raise PairError('Peer already paired / 当前窗口已参加其他协作')
+    existing=next((m for m in status['members'] if m['session_uuid']==window['session_uuid']),None)
+    if existing:
+        role=existing['id']
+        if extra and record['status']=='accepted' and record.get('session')!=window['session_uuid']:raise PairError('Invitation consumed / 邀请已被其他窗口接受')
+        if not extra and role!='B':raise PairError('Wrong invitation / 该窗口须使用自己的新增成员邀请')
+    elif extra:
+        if record['status']!='pending':raise PairError('Invitation consumed / 邀请已经被其他窗口使用')
+        role=next((m for m in ('B','C','D') if m not in {r['id'] for r in status['members']}),None)
+        if role is None:raise PairError('Team full / 最多四名成员')
+    else:role='B'
     workspace=workspace_for(window,payload['project'])
-    member=bind_window(store,'B',window,workspace,cli,a['delivery_mode'])
-    approval_setup=setup_approval(store,cli,getattr(args,'codex',None))
-    checkpoint_check=store.check_checkpoint('B',window['session_uuid'],window['cwd'])
+    member=bind_window(store,role,window,workspace,cli,a['delivery_mode'])
+    if extra:
+        record.update(status='accepted',member=role,session=window['session_uuid'])
+        store.setting('invite:'+payload['nonce'],record)
+        store.setting('onboarding:'+role,True)
+    approval_setup=setup_approval(store,cli,getattr(args,'codex',None),target=role)
+    checkpoint_check=store.check_checkpoint(role,window['session_uuid'],window['cwd'])
     service=bridge(store,cli,getattr(args,'codex',None))
-    hello=store.send('B','A','窗口连接验证：先按信封领取本问题，再用 send --from A --to B --kind reply --reply-to 本问题ID，正文说明已收到并确认本协作；随后 complete 本问题。B 收到回复后领取并完成回复即可。只验证这两个当前窗口，不分配开发任务、不改项目文件、不发送额外致谢。',
-        kind='question',dedupe_key='window-handshake')
-    return {'role':'B','pair':store.pair_id,'current_window':member,'workspace':member_workspace(member),
-        'goal':flow['goal'],'bridge':service,'handshake_message':hello['id'],'checkpoint_check':checkpoint_check,
+    hello=store.send(role,'A','窗口 '+role+' 连接验证：A 领取本问题，发送关联 reply 并完成问题；本窗口领取、读取并完成回复。只验证通信，不重做业务。',
+        kind='question',dedupe_key='window-handshake' if role=='B' else 'window-handshake:'+role)
+    return {'role':role,'pair':store.pair_id,'current_window':member,'workspace':member_workspace(member),
+        'goal':flow['goal'],'briefing_required':extra,'briefing_instructions':'完整读取目标、用户授权及相关交付，执行 confirm-briefing --body-file 记录依据后才参与业务调度。','bridge':service,'handshake_message':hello['id'],'checkpoint_check':checkpoint_check,
         'status':store.status(),'approval_setup':approval_setup,
         'after_join':('本窗口已绑定手动交接模式，需要用户转交 handoffs 中的领取指令；不会自动唤醒，不报告自动通信通过。' if a['delivery_mode']=='manual' else
             '本窗口已经绑定。结束当前回合，让桥投递连接验证；收到 A 的 reply 后领取和完成。只有 status.window_flow.communication=verified 才报告自动通信验证通过；否则仍待确认。')+
-            ' 如果窗口 B 使用较低权限，请在审批 Hook 安装完成后，在 B 输入 /hooks，审阅并信任本次 codex-pair 的 Hook。输入命令本身不等于完成信任；通信成功不代表审批就绪。'}
+            ' 如果本窗口使用较低权限，请在审批 Hook 安装完成后，在本窗口输入 /hooks，审阅并信任本次 codex-pair 的 Hook。输入命令本身不等于完成信任；通信成功不代表审批就绪。'}
 
 
-def setup_approval(store,cli,executable=None):
+def setup_approval(store,cli,executable=None,target='B'):
     if not store.setting('delegation_enabled'):return {'status':'disabled'}
     try:
-        b=store.member('B');a=store.member('A')
+        b=store.member(target);a=store.member('A')
         with AppServer(codex_home=b['codex_home'],cwd=b['cwd'],executable=executable,metadata_only=True,hook_metadata=True) as observer:
             observer.rpc('hooks/list',{})
             setup=store.install_approval_hook('A',a['session_uuid'],a['cwd'],python=sys.executable,
-                script=str(Path(cli.__file__).with_name('pair_permission_hook.py')))
+                script=str(Path(cli.__file__).with_name('pair_permission_hook.py')),target=target)
         # 使用新观察进程重新读取配置，避免把安装前的列表作为信任证据。
         with AppServer(codex_home=b['codex_home'],cwd=b['cwd'],executable=executable,metadata_only=True,hook_metadata=True) as observer:
-            setup.update(store.record_hook_status(observer.rpc('hooks/list',{})))
+            setup.update(store.record_hook_status(observer.rpc('hooks/list',{}),target=target))
         return setup
     except Exception:
         return {'status':'setup_unverified','active_verified':False,
@@ -270,10 +304,21 @@ def setup_approval(store,cli,executable=None):
 
 def execute(args, cli):
     if args.command=='start':return start(args,cli)
+    if args.command=='invite-member':return invite_member(args,cli)
     if args.command=='accept':return accept(args,cli)
     pair_id=getattr(args,'pair',None)
     if not pair_id:raise PairError('--pair is required / 消息桥需要协作 ID')
     home=Path(getattr(args,'codex_home',None) or effective_home()).resolve()
     store=Store(pair_id,home=home,state_root=cli.resolve_state_root(args,home,pair_id))
+    if args.command=='revoke-invite':
+        cli.validate_actor(store,args)
+        with store.transaction() as db:
+            if args.member!=store._coordinator(db):raise PairError('Coordinator required / 仅统筹可撤销邀请')
+            payload=json.loads(Path(args.invite).read_text(encoding='utf-8'))
+            key='invite:'+payload.get('nonce','')
+            record=store._option(db,key)
+            if not record or record['status']!='pending':raise PairError('Pending invitation required / 只能撤销待接受邀请')
+            record['status']='revoked';store._put(db,key,record)
+        return {'revoked':True}
     if args.action=='stop':return store.control('stopped')
     return bridge(store,cli,getattr(args,'codex',None))

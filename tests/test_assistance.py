@@ -12,7 +12,10 @@ from tests.test_handoff_balance import quota
 
 
 class AssistanceTests(unittest.TestCase):
-    setUp=test_core.CoreTests.setUp
+    def setUp(self):
+        test_core.CoreTests.setUp(self)
+        # 保留既有 9% 策略的双窗口回归；新协作 6% 在多人测试中覆盖。
+        self.store.setting('checkpoint_default',9)
     tearDown=test_core.CoreTests.tearDown
 
     def binding(self,member):return member,self.sessions[member],self.directories[member]
@@ -296,7 +299,7 @@ class AssistanceTests(unittest.TestCase):
         self.assertEqual(upgraded.message(message['id'])['claim_token'],claim['claim_token'])
         with upgraded.transaction() as db:
             self.assertEqual(db.execute('PRAGMA foreign_key_check').fetchall(),[])
-            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],8)
+            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],9)
             upgraded._require_ack(db,'A','delivery:work')
         self.assertTrue(list(upgraded.directory.glob('schema-v5-*.backup.sqlite3')))
 

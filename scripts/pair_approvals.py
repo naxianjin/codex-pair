@@ -146,9 +146,9 @@ class ApprovalMixin:
 
     def _delegation_sent(self,db,message):
         if not self._option(db,'delegation_enabled',False):return
-        if message['kind']=='question' and message['sender']=='B' and message['dedupe_key']!='window-handshake':
-            db.execute('INSERT INTO delegation_questions(id,state,authorization_version,reason,updated) VALUES(?,?,?,?,?)',
-                (message['id'],'pending',self._authorization_version(db),None,time.time()))
+        if message['kind']=='question' and message['sender']!=self._coordinator(db) and not message['dedupe_key'].startswith('window-handshake'):
+            db.execute('INSERT INTO delegation_questions(id,state,authorization_version,reason,updated,owner) VALUES(?,?,?,?,?,?)',
+                (message['id'],'pending',self._authorization_version(db),None,time.time(),self._coordinator(db)))
         if message['kind']=='reply':
             db.execute("UPDATE delegation_questions SET state='answered',updated=? WHERE id=? AND state='pending'",(time.time(),message['reply_to']))
 
@@ -186,7 +186,7 @@ class ApprovalMixin:
         if redact_diagnostic(safe)!=safe:fail('Credentials in approval input / 审批包含认证内容，拒绝复制到协作记录')
         with self.transaction() as db:
             bound=self._member(db,member)
-            if member!='B' or event.get('session_id')!=bound['session_uuid']:fail('Approval member mismatch / 审批不属于本轮 B 原会话')
+            if member=='A' or event.get('session_id')!=bound['session_uuid']:fail('Approval member mismatch / 审批不属于本轮 B 原会话')
             if not self._option(db,'approval_assistance',False):fail('Approval assistance disabled / 本轮未开启 A 审批')
             if db.execute('SELECT status FROM collaborations').fetchone()[0]!='running':fail('Collaboration not running / 协作已暂停或停止，不批准操作')
             if not isinstance(event.get('cwd'),str) or not Path(event['cwd']).is_absolute():
@@ -197,7 +197,7 @@ class ApprovalMixin:
                 ORDER BY (m.turn_id=?) DESC,m.created DESC""",(member,member,event['turn_id'],event['turn_id'])).fetchall()
             source=messages[0] if messages and len({m['task_id'] for m in messages})==1 else None
             task_id=source['task_id'] if source else None
-            operation=fingerprint({k:safe[k] for k in ('cwd','tool_name','tool_input')})
+            operation=fingerprint(dict({k:safe[k] for k in ('cwd','tool_name','tool_input')},member=member))
             version=self._authorization_version(db)
             previous=db.execute('SELECT * FROM approval_requests WHERE operation_digest=? AND authorization_version=? ORDER BY created DESC LIMIT 1',(operation,version)).fetchone()
             if previous and previous['status'] in ('pending','allowed'):fail('Approval already waiting / 相同操作仍在等待，不能重复申请')
@@ -206,7 +206,7 @@ class ApprovalMixin:
                 fail('A must arrange retry / 原请求已失效，须由 A 核实未执行后安排重新请求')
             continuing=previous and previous['status']=='expired' and previous['retry_state']=='ready'
             request_id=uuid.uuid4().hex;now=time.time();summary=fingerprint(safe)
-            body=('B 的原窗口在官方 PermissionRequest Hook 中等待本次审批，尚未执行操作。'
+            body=(member+' 的原窗口在官方 PermissionRequest Hook 中等待本次审批，尚未执行操作。'
                   '你是 A，仅进行只读审核，不执行请求命令，不修改业务文件。核对原用户授权、当前项目、完整命令或补丁、目录、副作用及你当前回合的实际权限。任务关联可为空，不能把无任务记录当作新增授权；项目外但属于已授权任务的操作可审核。'
                   '只有既有授权明确且操作不超过 A 当前权限才允许；权限不清、超范围、明确拒绝或系统禁止必须拒绝。'
                   '使用 review-approval --approval '+request_id+' --digest '+summary+
@@ -214,15 +214,16 @@ class ApprovalMixin:
                   '不能用普通 complete 代替，不新增通配授权，不修改 B 沙箱。\n完整审批输入：\n'+dump(safe))
             body+='\n当前委托依据：'+dump({'project':db.execute('SELECT project FROM collaborations').fetchone()[0],
                 'goal':self._option(db,'window_flow',{}).get('goal'),'basis':self._option(db,'delegation_basis',None),'authorization_version':version})
-            message=self._send(db,'B','A',body,kind='approval_review',task_id=task_id,dedupe_key='approval:'+request_id)
+            message=self._send(db,member,'A',body,kind='approval_review',task_id=task_id,dedupe_key='approval:'+request_id)
             db.execute('''INSERT INTO approval_requests(id,member,task_id,source_message,review_message,event,digest,status,expires,created,updated,
                 authorization_version,operation_digest,previous_id,attempt) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)''',
                 (request_id,member,task_id,source['id'] if source else None,message['id'],dump(safe),summary,'pending',now+timeout,now,now,
                  version,operation,previous['id'] if continuing else None,previous['attempt']+1 if continuing else 1))
             if continuing:db.execute("UPDATE approval_requests SET retry_state='requested' WHERE id=?",(previous['id'],))
-            hook=self._option(db,'approval_hook',{})
+            hook_key='approval_hook' if member=='B' else 'approval_hook:'+member
+            hook=self._option(db,hook_key,{})
             hook.update(status='callback_observed',last_callback=now)
-            self._put(db,'approval_hook',hook)
+            self._put(db,hook_key,hook)
             if self._member_suspended(db,'A'):
                 self.event(db,'approval_requires_user',approval=request_id,reason='A quota unavailable / A 额度不足，请用户处理',notify_user=True)
                 self._expire_approval(db,db.execute('SELECT * FROM approval_requests WHERE id=?',(request_id,)).fetchone(),
@@ -240,7 +241,7 @@ class ApprovalMixin:
                      or not self._option(db,'approval_assistance',False) or row['authorization_version']!=self._authorization_version(db))
             if row['task_id']:
                 task=db.execute('SELECT assignee,status FROM tasks WHERE id=?',(row['task_id'],)).fetchone()
-                invalid=invalid or not task or task['assignee']!='B' or task['status'] not in ('active','waiting_execution')
+                invalid=invalid or not task or task['assignee']!=row['member'] or task['status'] not in ('active','waiting_execution')
             if row['source_message']:
                 source=db.execute('SELECT turn_id,remote_status FROM messages WHERE id=?',(row['source_message'],)).fetchone()
                 if source and source['turn_id']==json.loads(row['event'])['turn_id'] and source['remote_status'] not in ('queued','inProgress'):invalid=True
@@ -261,7 +262,7 @@ class ApprovalMixin:
         if state in ('waiting','needs_user'):
             body=('B 的审批已超时，未获允许。先核对 B 原回合结束且操作未执行，准备好审核后用 prepare-approval-retry 安排 B 重新发起；不能执行原命令或复用旧允许。'
                   if state=='waiting' else 'B 的同一操作已连续两次审批超时。停止自动重试，保留任务和请求，向用户报告阻塞。')
-            self._send(db,'B','A',body+'\napproval='+row['id'],kind='note',dedupe_key='approval-expired:'+row['id'])
+            self._send(db,row['member'],'A',body+'\napproval='+row['id'],kind='note',dedupe_key='approval-expired:'+row['id'])
 
     def prepare_approval_retry(self,member,session,cwd,request_id,reason):
         if not reason.strip() or redact_diagnostic(reason)!=reason:fail('Reconciliation required / 必须记录不含凭据的未执行核查证据')
@@ -272,9 +273,9 @@ class ApprovalMixin:
                 fail('Retry unavailable / 仅 A 可安排尚未连续两次超时的请求')
             if row['authorization_version']!=self._authorization_version(db) or not self._option(db,'approval_assistance',False):fail('Authorization changed / 原请求授权已失效')
             if db.execute('SELECT status FROM collaborations').fetchone()[0]!='running' or self._member_suspended(db,'A'):fail('A not ready / A 尚未恢复审核能力')
-            if not self._idle(db,['B']):fail('B turn unresolved / B 原回合未结束，不能安排重试')
+            if not self._idle(db,[row['member']]):fail('B turn unresolved / B 原回合未结束，不能安排重试')
             if row['retry_state']=='ready':return {'ready':True,'message_id':row['retry_message'],'duplicate':True}
-            message=self._send(db,'A','B','A 已核实旧请求未执行并准备审核。先核对当前用户授权、现场及任务归属，再由原窗口重新发起操作以产生新审批；禁止复用旧允许或重做已执行操作。\n核查依据：'+reason+'\n原请求：'+row['event'],
+            message=self._send(db,'A',row['member'],'A 已核实旧请求未执行并准备审核。先核对当前用户授权、现场及任务归属，再由原窗口重新发起操作以产生新审批；禁止复用旧允许或重做已执行操作。\n核查依据：'+reason+'\n原请求：'+row['event'],
                 kind='note',task_id=row['task_id'],dedupe_key='approval-retry:'+row['id'])
             db.execute("UPDATE approval_requests SET retry_state='ready',retry_message=?,updated=? WHERE id=?",(message['id'],time.time(),row['id']))
             self.event(db,'approval_retry_ready',approval=row['id'],reason=reason)
@@ -297,7 +298,7 @@ class ApprovalMixin:
             source=db.execute('SELECT * FROM messages WHERE id=?',(row['source_message'],)).fetchone()
             event=json.loads(row['event'])
             task=db.execute('SELECT assignee,status FROM tasks WHERE id=?',(row['task_id'],)).fetchone() if row['task_id'] else None
-            if row['task_id'] and (not task or task['assignee']!='B' or task['status'] not in ('active','waiting_execution')):
+            if row['task_id'] and (not task or task['assignee']!=row['member'] or task['status'] not in ('active','waiting_execution')):
                 fail('Approval task changed / 原任务已结束或已转交，不能批准旧操作')
             if source and source['turn_id']==event['turn_id'] and source['remote_status'] not in ('queued','inProgress'):
                 fail('Original turn ended or changed / 原审批回合已经结束或变更，不能批准旧操作')
@@ -313,7 +314,8 @@ class ApprovalMixin:
         if message['kind']!='approval_review':return False
         row=db.execute('SELECT * FROM approval_requests WHERE review_message=?',(message['id'],)).fetchone()
         if not row or row['status']!='pending' or row['expires']<=time.time():return False
-        return message['recipient']=='A' and not self._member_suspended(db,'A')
+        earlier=db.execute("SELECT 1 FROM approval_requests WHERE status='pending' AND (created<? OR created=? AND id<?)",(row['created'],row['created'],row['id'])).fetchone()
+        return not earlier and message['recipient']=='A' and not self._member_suspended(db,'A')
 
     def approval_tick(self,db):
         for row in db.execute("SELECT * FROM approval_requests WHERE status IN ('pending','allowed')").fetchall():
@@ -321,7 +323,7 @@ class ApprovalMixin:
             event=json.loads(row['event'])
             task=db.execute('SELECT assignee,status FROM tasks WHERE id=?',(row['task_id'],)).fetchone() if row['task_id'] else None
             invalid=(row['authorization_version']!=self._authorization_version(db) or not self._option(db,'approval_assistance',False)
-                     or row['task_id'] and (not task or task['assignee']!='B' or task['status'] not in ('active','waiting_execution')))
+                     or row['task_id'] and (not task or task['assignee']!=row['member'] or task['status'] not in ('active','waiting_execution')))
             if invalid or time.time()>=row['expires'] or source and source['turn_id']==event['turn_id'] and source['remote_status'] not in ('queued','inProgress'):
                 self._expire_approval(db,row,'Approval expired or original turn ended / 审批过期或原回合已结束',retry=not invalid)
 
@@ -331,43 +333,45 @@ class ApprovalMixin:
         with self.transaction() as db:
             self._binding(db,member,session,cwd)
             row=db.execute('SELECT * FROM approval_requests WHERE id=?',(request_id,)).fetchone()
-            if member!='B' or not row or row['member']!=member or row['status']!='granted':fail('Granted request required / 只能由 B 记录已交给原 CLI 的操作结果')
+            if member=='A' or not row or row['member']!=member or row['status']!='granted':fail('Granted request required / 只能由 B 记录已交给原 CLI 的操作结果')
             db.execute('UPDATE approval_requests SET status=?,reason=?,updated=? WHERE id=?',(outcome,evidence,time.time(),request_id))
             self.event(db,'approved_operation_result',approval=request_id,outcome=outcome,evidence=evidence)
             return {'approval':request_id,'outcome':outcome,'evidence_recorded':True,'independently_verified':False}
 
-    def record_hook_status(self,listing):
+    def record_hook_status(self,listing,*,target='B'):
         """只保存 hooks/list 白名单字段，不把安装当作信任。"""
         with self.transaction() as db:
-            configured=self._option(db,'approval_hook',{})
-            marker='codex-pair:'+self.pair_id+':B'
+            configured=self._option(db,'approval_hook' if target=='B' else 'approval_hook:'+target,{})
+            marker='codex-pair:'+self.pair_id+':'+target
             hooks=[h for entry in listing.get('data',[]) for h in entry.get('hooks',[]) if h.get('statusMessage')==marker]
             hooks.extend(h for h in listing.get('hooks',[]) if h.get('statusMessage')==marker)
             trusted=bool(hooks) and all(h.get('enabled') and h.get('eventName')=='permissionRequest' and h.get('trustStatus') in ('trusted','managed') for h in hooks)
             if any(entry.get('errors') for entry in listing.get('data',[])):trusted=False
             status='trusted' if trusted else ('installed_requires_trust' if hooks else 'missing_or_unsupported')
             configured.update(status=status,checked_at=time.time(),hooks=[{k:h.get(k) for k in ('key','enabled','trustStatus','currentHash')} for h in hooks])
-            self._put(db,'approval_hook',configured)
+            self._put(db,'approval_hook' if target=='B' else 'approval_hook:'+target,configured)
             return {'status':status,'trust_required':bool(hooks) and not trusted,'active_verified':False,
-                    'detail':'较低权限的 B 请在 Hook 安装后输入 /hooks，审阅并信任 codex-pair 对应项；通信成功不代表自动审批就绪。'}
+                    'detail':'较低权限的请求窗口请在 Hook 安装后输入 /hooks，审阅并信任 codex-pair 对应项；通信成功不代表自动审批就绪。'}
 
-    def install_approval_hook(self,member,session,cwd,*,python,script,timeout=180):
+    def install_approval_hook(self,member,session,cwd,*,python,script,timeout=180,target='B'):
         """只安装已授权的逐请求回调，不修改沙箱、审批策略或信任记录。"""
         import os
         import subprocess
         with self.transaction() as db:
             self._binding(db,member,session,cwd)
             if member!='A':fail('A required / 仅 A 可配置本轮审批回调')
-            b=self._member(db,'B');a=self._member(db,'A')
+            if target not in ('B','C','D'):fail('Invalid hook target / 审批目标必须是 B/C/D')
+            b=self._member(db,target);a=self._member(db,'A')
+            if any(canonical_path(r[0])==canonical_path(b['codex_home']) for r in db.execute('SELECT codex_home FROM members WHERE id<>?',(target,))):fail('Separate config homes required / 多人审批要求各成员配置目录独立')
             if canonical_path(b['codex_home'])==canonical_path(a['codex_home']):fail('Separate config homes required / 当前实现要求 A/B 使用不同配置目录，防止审核递归')
         if not 1<=timeout<=600:fail('Invalid hook timeout / Hook 等待须为 1～600 秒')
         path=Path(b['codex_home'])/'hooks.json'
         if path.resolve()!=path.absolute():fail('Redirected hook config / Hook 配置存在重定向')
         args=[str(Path(python).resolve(strict=True)),str(Path(script).resolve(strict=True)),
-              '--pair',self.pair_id,'--state-root',str(self.state_root),'--member','B','--timeout',str(timeout),
+              '--pair',self.pair_id,'--state-root',str(self.state_root),'--member',target,'--timeout',str(timeout),
               '--session',b['session_uuid'],'--package-digest',approval_package_digest(Path(script).parent)]
         command=subprocess.list2cmdline(args) if os.name=='nt' else __import__('shlex').join(args)
-        marker='codex-pair:'+self.pair_id+':B'
+        marker='codex-pair:'+self.pair_id+':'+target
         group={'matcher':'*','hooks':[{'type':'command','command':command,'timeout':timeout+60,'statusMessage':marker}]}
         previous=path.read_bytes() if path.exists() else None
         data=json.loads(previous.decode('utf-8-sig')) if previous else {}
@@ -383,7 +387,7 @@ class ApprovalMixin:
             for old in groups:
                 handlers=[h for h in old.get('hooks',[]) if not (
                     h.get('statusMessage')==marker or str(h.get('statusMessage','')).startswith('codex-pair:')
-                    and str(h.get('statusMessage','')).endswith(':B') and 'pair_permission_hook.py' in h.get('command',''))]
+                    and str(h.get('statusMessage','')).endswith(':'+target) and 'pair_permission_hook.py' in h.get('command',''))]
                 if handlers:kept.append(dict(old,hooks=handlers))
             groups[:]=kept
             groups.append(group)
@@ -400,7 +404,7 @@ class ApprovalMixin:
                 self._invalidate_approvals(db,'Hook definition updated / 审批 Hook 定义已更新，旧请求失效',cancel_questions=False)
                 db.execute("UPDATE delegation_questions SET authorization_version=? WHERE state IN ('pending','answered','needs_user')",(self._authorization_version(db),))
             self._put(db,'approval_assistance',True)
-            self._put(db,'approval_hook',{'path':str(path),'status':'installed_requires_trust','session':b['session_uuid']})
-            self.event(db,'approval_hook_installed',member='B',path=str(path),trust_bypassed=False)
+            self._put(db,'approval_hook' if target=='B' else 'approval_hook:'+target,{'path':str(path),'status':'installed_requires_trust','session':b['session_uuid']})
+            self.event(db,'approval_hook_installed',member=target,path=str(path),trust_bypassed=False)
         return {'installed':True,'path':str(path),'trust_required':True,'active_verified':False,'sandbox_changed':False,
-                'detail':'Official hooks require exact-definition trust; installation alone does not activate it / 需在 B 信任这一个 Hook，安装不等于已生效'}
+                'detail':'Official hooks require exact-definition trust; installation alone does not activate it / 需在请求窗口信任这一个 Hook，安装不等于已生效'}

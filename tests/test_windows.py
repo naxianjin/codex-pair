@@ -245,7 +245,7 @@ class WindowTests(unittest.TestCase):
         b=self.windows['B'];proof={'id':b['session_uuid'],'cwd':a['cwd']}
         store.join('B',b['session_uuid'],a['cwd'],backend='queue',owned=False,proof=proof,member_codex_home=home)
         with store.transaction() as db:
-            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],8)
+            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],9)
             self.assertFalse(db.execute('PRAGMA foreign_key_check').fetchall())
             self.assertEqual(db.execute("SELECT count(*) FROM events WHERE kind='old_history'").fetchone()[0],1)
         self.assertEqual(len(list(directory.glob('schema-v3-*.backup.sqlite3'))),1)

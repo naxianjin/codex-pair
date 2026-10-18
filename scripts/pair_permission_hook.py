@@ -34,7 +34,7 @@ def main(argv=None):
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--pair',required=True)
     parser.add_argument('--state-root',required=True)
-    parser.add_argument('--member',choices=['B'],required=True)
+    parser.add_argument('--member',choices=['B','C','D'],required=True)
     parser.add_argument('--timeout',type=int,default=180)
     parser.add_argument('--package-digest')
     parser.add_argument('--session')

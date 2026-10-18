@@ -17,7 +17,7 @@ RUNTIME_ROOTS={'SKILL.md','agents','scripts','references'}
 REQUIRED={'SKILL.md','agents/openai.yaml','references/onboarding.md','references/protocol.md',
     'references/repair-multi-account.md','scripts/pair.py','scripts/pair_core.py','scripts/pair_git.py',
     'scripts/pair_transport.py','scripts/pair_windows.py','scripts/install_skill.py',
-    'scripts/pair_balance.py','scripts/pair_quota.py'}
+    'scripts/pair_balance.py','scripts/pair_quota.py','scripts/pair_members.py','references/members.md'}
 
 
 def build_package(source, output):
