@@ -562,6 +562,13 @@ class AssistanceMixin(ApprovalMixin):
         if kind=='checkpoint':return True
         if self._member_suspended(db,member):return False
         if kind=='task':
+            assignment=self._option(db,'review-task:'+message['task_id'])
+            if assignment:
+                review=db.execute('SELECT * FROM work_reviews WHERE task_id=?',(assignment['task'],)).fetchone()
+                source=db.execute('SELECT * FROM tasks WHERE id=?',(assignment['task'],)).fetchone()
+                if (not review or not source or assignment['version']!=review['version']
+                        or assignment['version']!=self._current_work_version(db,source)
+                        or not self._review_artifact_valid(db,source)):return False
             if self._checkpoint_read_required(db,member):return False
             if self._checkpoint_path(db,member).is_file():
                 row=db.execute('SELECT status FROM checkpoints WHERE member=?',(member,)).fetchone()

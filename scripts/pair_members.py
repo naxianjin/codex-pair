@@ -216,7 +216,8 @@ class MembersMixin:
             review=db.execute('SELECT * FROM work_reviews WHERE task_id=?',(assignment['task'],)).fetchone()
             source=db.execute('SELECT * FROM tasks WHERE id=?',(assignment['task'],)).fetchone()
             if not review or not source:continue
-            stale=assignment['version']!=review['version'] or assignment['version']!=self._current_work_version(db,source)
+            # 工作树暂时不匹配只暂停审核；只有登记了替代成果才永久关闭旧任务。
+            stale=assignment['version']!=review['version']
             if not stale or not self._review_unsent(db,task['id']):continue
             now=time.time()
             db.execute("UPDATE tasks SET status='completed',result=?,updated=? WHERE id=?",('过期审核未投递，安全收尾；不代表审核通过',now,task['id']))
@@ -232,6 +233,20 @@ class MembersMixin:
             if row['version']!=self._current_work_version(db,task) or not self._review_artifact_valid(db,task):continue
             review_id='gpt-review-'+hashlib.sha256((row['task_id']+row['version']).encode()).hexdigest()[:24]
             existing=db.execute('SELECT * FROM tasks WHERE id=?',(review_id,)).fetchone()
+            if (existing and existing['status']=='completed'
+                    and existing['result']=='过期审核未投递，安全收尾；不代表审核通过'):
+                messages=db.execute('SELECT * FROM messages WHERE task_id=?',(review_id,)).fetchall()
+                # 兼容旧版误关闭：仅恢复有明确自动关闭痕迹、且从未尝试投递的消息。
+                if messages and all(m['process_status']=='completed' and m['delivery_status']=='failed'
+                        and m['error']=='Stale review closed before delivery / 过期审核在投递前收尾'
+                        and m['attempts']==0 and all(m[k] is None for k in ('claim_token','queue_id','turn_id','remote_status'))
+                        and not db.execute('SELECT 1 FROM attempts WHERE message_id=?',(m['id'],)).fetchone()
+                        for m in messages):
+                    now=time.time()
+                    db.execute("UPDATE tasks SET status='pending',result=NULL,updated=? WHERE id=?",(now,review_id))
+                    db.execute("UPDATE messages SET process_status='unclaimed',delivery_status='pending',error=NULL,envelope=NULL,next_attempt=0,updated=? WHERE task_id=?",(now,review_id))
+                    self.event(db,'work_review_restored',review_task=review_id,reason='artifact_restored')
+                    existing=db.execute('SELECT * FROM tasks WHERE id=?',(review_id,)).fetchone()
             candidates=self._review_candidates(db,row)
             if existing and (existing['status'] not in ('pending','active') or existing['assignee'] in candidates or not self._review_unsent(db,review_id)):continue
             if not candidates:continue

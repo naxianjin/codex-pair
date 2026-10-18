@@ -847,7 +847,9 @@ class Store(MembersMixin, AssistanceMixin):
             if review_assignment:
                 row=db.execute('SELECT status,version FROM work_reviews WHERE task_id=?',(review_assignment['task'],)).fetchone()
                 source=db.execute('SELECT * FROM tasks WHERE id=?',(review_assignment['task'],)).fetchone()
-                stale_review=bool(row and (row['version']!=review_assignment['version'] or self._current_work_version(db,source)!=review_assignment['version']))
+                stale_review=bool(row and row['version']!=review_assignment['version'])
+                if row and not stale_review and (self._current_work_version(db,source)!=review_assignment['version'] or not self._review_artifact_valid(db,source)):
+                    raise PairError('Review artifact changed / 工作树暂时不匹配，请恢复成果后继续审核')
             if message['delivery_id']:self._require_ack(db,member_id,message['delivery_id'])
             if message['kind']=='task' and not stale_review:
                 for record in db.execute('''SELECT r.id FROM dependencies d JOIN deliveries r ON r.id='delivery:'||d.depends_on WHERE d.task_id=?''',(message['task_id'],)).fetchall():

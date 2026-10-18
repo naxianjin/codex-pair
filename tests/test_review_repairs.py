@@ -296,6 +296,81 @@ class ReviewArtifactTests(unittest.TestCase):
         self.store.control('running')
         self.assertEqual(self.store.assign('after','后续任务','A',['after.txt'],dependencies=['work'])['status'],'active')
 
+    def test_temporary_artifact_change_waits_and_restores_same_review(self):
+        message,owned=self.prepare()
+        commit=self.commit('B','code.txt','checked\n')
+        self.store.complete(*self.binding('B'),message['id'],owned['claim_token'],'已提交实现',commits=[commit])
+        review=next(t for t in self.store.status()['tasks'] if t['id'].startswith('gpt-review-'))
+        notice=next(m for m in self.store.status()['messages'] if m['task_id']==review['id'])
+        path=Path(self.trees['b']['path'])/'code.txt'
+        path.write_text('temporary\n',encoding='utf-8')
+        self.store.control('running')
+        self.assertEqual(self.store.task(review['id'])['status'],'active')
+        with self.store.transaction() as db:
+            row=db.execute('SELECT * FROM messages WHERE id=?',(notice['id'],)).fetchone()
+            self.assertFalse(self.store._assistance_dispatchable(db,row))
+        self.assertFalse(self.store.claim(*self.binding('A'),message_id=notice['id'])['claimed'])
+        path.write_text('checked\n',encoding='utf-8')
+        self.store.control('running')
+        self.assertEqual(len([t for t in self.store.status()['tasks'] if t['id'].startswith('gpt-review-')]),1)
+        resumed=self.store.claim(*self.binding('A'),message_id=notice['id'])
+        self.assertTrue(resumed['claimed'])
+        page=self.store.read_delivery(*self.binding('A'),'delivery:work')
+        self.store.ack_delivery(*self.binding('A'),'delivery:work',page['digest'])
+        version=next(r['version'] for r in self.store.status()['work_reviews'] if r['task_id']=='work')
+        self.store.review_work(*self.binding('A'),'work',version,'passed','恢复后检查原提交',GPT)
+        self.store.complete(*self.binding('A'),notice['id'],resumed['claim_token'],'恢复审核完成')
+        with self.store.transaction() as db:self.assertTrue(self.store._review_clear(db,'work'))
+
+    def test_legacy_unsent_auto_closed_review_recovers_without_new_message(self):
+        message,owned=self.prepare();commit=self.commit('B','code.txt','checked\n')
+        self.store.complete(*self.binding('B'),message['id'],owned['claim_token'],'已提交实现',commits=[commit])
+        review=next(t for t in self.store.status()['tasks'] if t['id'].startswith('gpt-review-'))
+        notice=next(m for m in self.store.status()['messages'] if m['task_id']==review['id'])
+        with self.store.transaction() as db:
+            db.execute("UPDATE tasks SET status='completed',result=? WHERE id=?",('过期审核未投递，安全收尾；不代表审核通过',review['id']))
+            db.execute("UPDATE messages SET process_status='completed',delivery_status='failed',error=? WHERE id=?",('Stale review closed before delivery / 过期审核在投递前收尾',notice['id']))
+        self.store.control('running')
+        self.assertEqual(self.store.task(review['id'])['status'],'active')
+        self.assertTrue(self.store.claim(*self.binding('A'),message_id=notice['id'])['claimed'])
+
+    def test_claimed_review_cannot_close_during_temporary_change(self):
+        message,owned=self.prepare();commit=self.commit('B','code.txt','checked\n')
+        self.store.complete(*self.binding('B'),message['id'],owned['claim_token'],'已提交实现',commits=[commit])
+        review=next(t for t in self.store.status()['tasks'] if t['id'].startswith('gpt-review-'))
+        notice=next(m for m in self.store.status()['messages'] if m['task_id']==review['id'])
+        claim=self.store.claim(*self.binding('A'),message_id=notice['id'])
+        path=Path(self.trees['b']['path'])/'code.txt';path.write_text('temporary\n',encoding='utf-8')
+        self.store.control('running')
+        with self.assertRaisesRegex(PairError,'Review artifact changed'):
+            self.store.complete(*self.binding('A'),notice['id'],claim['claim_token'],'不能伪装过期关闭')
+        path.write_text('checked\n',encoding='utf-8');self.store.control('running')
+        self.assertEqual(self.store.message(notice['id'])['claim_token'],claim['claim_token'])
+        self.assertFalse(self.store.claim(*self.binding('A'),message_id=notice['id'])['claimed'])
+
+    def test_pending_review_survives_temporary_change(self):
+        message,owned=self.prepare()
+        self.store.assign('busy','占用审核者','A',['busy.txt'])
+        commit=self.commit('B','code.txt','checked\n')
+        self.store.complete(*self.binding('B'),message['id'],owned['claim_token'],'已提交实现',commits=[commit])
+        review=next(t for t in self.store.status()['tasks'] if t['id'].startswith('gpt-review-'))
+        path=Path(self.trees['b']['path'])/'code.txt';path.write_text('temporary\n',encoding='utf-8')
+        self.store.control('running')
+        self.assertEqual(self.store.task(review['id'])['status'],'pending')
+        path.write_text('checked\n',encoding='utf-8');self.store.control('running')
+        self.assertEqual(self.store.task(review['id'])['status'],'pending')
+        self.assertEqual(len([t for t in self.store.status()['tasks'] if t['id'].startswith('gpt-review-')]),1)
+
+    def test_legacy_auto_closed_review_with_transport_evidence_is_not_replayed(self):
+        message,owned=self.prepare();commit=self.commit('B','code.txt','checked\n')
+        self.store.complete(*self.binding('B'),message['id'],owned['claim_token'],'已提交实现',commits=[commit])
+        review=next(t for t in self.store.status()['tasks'] if t['id'].startswith('gpt-review-'))
+        with self.store.transaction() as db:
+            db.execute("UPDATE tasks SET status='completed',result=? WHERE id=?",('过期审核未投递，安全收尾；不代表审核通过',review['id']))
+            db.execute("UPDATE messages SET process_status='completed',delivery_status='failed',attempts=1,error=? WHERE task_id=?",('Stale review closed before delivery / 过期审核在投递前收尾',review['id']))
+        self.store.control('running')
+        self.assertEqual(self.store.task(review['id'])['status'],'completed')
+
     def test_unrelated_untracked_and_staged_files_do_not_invalidate_review(self):
         _,digest=self.passed_work()
         workspace=Path(self.trees['b']['path'])
