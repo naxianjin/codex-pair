@@ -570,8 +570,9 @@ class Store(MembersMixin, AssistanceMixin):
                        and not db.execute("SELECT 1 FROM integrations WHERE task_id=? AND receiver=? AND status='completed'",(p['id'],workspaces[member_id])).fetchone() for p in parents):continue
                 if review_task:
                     review=db.execute('SELECT * FROM work_reviews WHERE task_id=?',(review_task['task'],)).fetchone()
-                    proof=json.loads(self._member(db,member_id)['proof'])
-                    if not review or member_id in json.loads(review['contributors']) or proof.get('modelProvider')!='openai' or not str(proof.get('model','')).startswith('gpt-'):continue
+                    if (not review or review['version']!=review_task['version']
+                            or review['version']!=self._current_work_version(db,parents[0])
+                            or member_id not in self._review_candidates(db,review)):continue
                 candidates.append(member_id)
             reason='fixed_assignment'
             if task['assignment_mode']=='auto':
@@ -648,11 +649,19 @@ class Store(MembersMixin, AssistanceMixin):
 
     def _delivery(self, db, task):
         row=db.execute('SELECT * FROM deliveries WHERE id=?',('delivery:'+task['id'],)).fetchone()
-        if row:return dict(row)
         body=task['result'] or ''
         commits=task['commits_json'] or '[]'
+        content=[body,commits]
+        review=db.execute('SELECT required FROM work_reviews WHERE task_id=?',(task['id'],)).fetchone()
+        if review and review['required']:content.append(self._current_work_version(db,task))
+        digest=hashlib.sha256(dumps(content).encode('utf-8')).hexdigest()
+        if row:
+            if review and review['required'] and row['digest']!=digest:
+                db.execute('UPDATE deliveries SET digest=? WHERE id=?',(digest,row['id']))
+                return dict(row,digest=digest)
+            return dict(row)
         record={'id':'delivery:'+task['id'],'task_id':task['id'],'body':body,'commits_json':commits,
-                'digest':hashlib.sha256(dumps([body,commits]).encode('utf-8')).hexdigest(),'created':time.time()}
+                'digest':digest,'created':time.time()}
         db.execute('INSERT INTO deliveries VALUES(?,?,?,?,?,?)',tuple(record.values()))
         return record
 
@@ -685,7 +694,7 @@ class Store(MembersMixin, AssistanceMixin):
         allowed=allowed or db.execute('''SELECT 1 FROM dependencies d JOIN tasks t ON t.id=d.task_id
             WHERE d.depends_on=? AND t.assignee=? AND t.status<>'pending' ''',(record['task_id'],member)).fetchone()
         if not allowed:raise PairError('Delivery access denied / 当前成员无权读取本交付')
-        return dict(record)
+        return self._delivery(db,task)
 
     def read_delivery(self, member, session, cwd, delivery_id, *, offset=0, limit=2000):
         if offset<0 or not 1<=limit<=2000:raise PairError('Invalid page / 分页参数无效')
@@ -833,17 +842,22 @@ class Store(MembersMixin, AssistanceMixin):
                     db.execute("INSERT OR REPLACE INTO pair_settings VALUES('goal_completed','true')")
                 elif not db.execute("SELECT 1 FROM tasks WHERE id NOT LIKE 'pair-plan-%' AND created>=? LIMIT 1",(plan['created'],)).fetchone():
                     raise PairError('Register next work / 请先登记后续任务，或用 --goal-complete 确认原目标完成')
+            review_assignment=self._option(db,'review-task:'+(message['task_id'] or ''))
+            stale_review=False
+            if review_assignment:
+                row=db.execute('SELECT status,version FROM work_reviews WHERE task_id=?',(review_assignment['task'],)).fetchone()
+                source=db.execute('SELECT * FROM tasks WHERE id=?',(review_assignment['task'],)).fetchone()
+                stale_review=bool(row and (row['version']!=review_assignment['version'] or self._current_work_version(db,source)!=review_assignment['version']))
             if message['delivery_id']:self._require_ack(db,member_id,message['delivery_id'])
-            if message['kind']=='task':
+            if message['kind']=='task' and not stale_review:
                 for record in db.execute('''SELECT r.id FROM dependencies d JOIN deliveries r ON r.id='delivery:'||d.depends_on WHERE d.task_id=?''',(message['task_id'],)).fetchall():
                     source=record[0][len('delivery:'):]
                     self._require_ack(db,member_id,'delivery:'+self._effective_task(db,source)['id'])
             elif partial:raise PairError('Partial applies to tasks / 只有业务任务可中途交回')
-            review_assignment=self._option(db,'review-task:'+(message['task_id'] or ''))
             if review_assignment:
-                row=db.execute('SELECT status,version FROM work_reviews WHERE task_id=?',(review_assignment['task'],)).fetchone()
-                if not row or row['version']==review_assignment['version'] and row['status'] not in ('passed','blocked'):raise PairError('Review not recorded / 须先记录该版本审核结果')
-                if row['version']!=review_assignment['version']:self.event(db,'stale_review_closed',task=message['task_id'],accepted=False)
+                if not row or not stale_review and row['status'] not in ('passed','blocked'):raise PairError('Review not recorded / 须先记录该版本审核结果')
+                if commits or partial:raise PairError('Review is read-only / 审核任务不能提交代码或中途交回')
+                if stale_review:self.event(db,'stale_review_closed',task=message['task_id'],accepted=False)
             self._assistance_complete(db,member_id,message,token,result)
             db.execute("UPDATE messages SET process_status='completed',updated=? WHERE id=?",(time.time(),message_id))
             if member['delivery_mode']=='manual':
