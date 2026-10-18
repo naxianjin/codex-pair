@@ -404,6 +404,26 @@ def _commit_files(repo: str, commit: str) -> list[str]:
     return [path for path in output.split("\0") if path]
 
 
+def review_artifact_matches(worktree: str, commit: str, allowed_paths: list[str]) -> bool:
+    """核对被审核范围，允许其他任务推进 HEAD 或修改范围外文件。"""
+    root, _ = _repo_paths(worktree)
+    if _real(root) != _real(worktree):
+        return False
+    resolved = _resolve_commit(root, commit)
+    if resolved is None or not _is_ancestor(root, resolved, 'HEAD'):
+        return False
+    scopes = [':(literal)' + _normalize_allowed_path(path)[0] for path in allowed_paths]
+    if not scopes:
+        return True
+    # 分别核对已提交、暂存区和工作区，不能用未提交的反向修改掩盖相关提交。
+    for revisions in ([resolved, 'HEAD'], ['--cached', resolved], [resolved]):
+        result = _git(root, ['diff', '--quiet', '--no-ext-diff', '--no-textconv', *revisions, '--', *scopes], check=False)
+        if result.returncode != 0:
+            return False
+    # 范围内新增文件（包括 ignored）也属于产物变化，不检查范围外文件。
+    return not _git(root, ['ls-files', '--others', '-z', '--', *scopes]).stdout
+
+
 def check_delivery(
     worktree: str,
     base_commit: str,

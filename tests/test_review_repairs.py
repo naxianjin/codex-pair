@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 import time
 import unittest
+from unittest.mock import patch
 
 from scripts.pair_core import Daemon, PairError
 from tests.test_core import FakeTransport
@@ -105,6 +106,68 @@ class ReviewRepairTests(unittest.TestCase):
         self.assertEqual(self.store.task(review['id'])['assignee'],'D')
         self.assertEqual(self.store.task(review['id'])['status'],'pending')
 
+    def test_active_unsent_review_moves_with_message_and_regenerates_envelope(self):
+        self.add('C');self.add('D')
+        review=self.source();self.assertEqual(review['assignee'],'C')
+        message=next(m for m in self.store.status()['messages'] if m['task_id']==review['id'])
+        self.assertEqual(review['status'],'active')
+        self.assertEqual((message['delivery_status'],message['process_status'],message['attempts']),('pending','unclaimed',0))
+        envelope=self.store.envelope(self.store.member('C'),self.store.message(message['id']))
+        with self.store.transaction() as db:db.execute('UPDATE messages SET envelope=? WHERE id=?',(envelope,message['id']))
+        self.store.setting('availability:C',{'state':'unreachable','observed_at':time.time()})
+        self.store.schedule()
+        moved=self.store.message(message['id'])
+        self.assertEqual(self.store.task(review['id'])['assignee'],'D')
+        self.assertEqual(moved['recipient'],'D')
+        self.assertEqual(moved['dedupe_key'],'task:'+review['id'])
+        self.assertIsNone(moved['envelope'])
+        self.assertFalse(self.store.claim(*self.binding('C'),message_id=message['id'])['claimed'])
+        # 接收方改变后，同一逻辑消息的去重指纹也必须匹配。
+        self.assertEqual(self.store.send(moved['sender'],'D',moved['body'],kind='task',task_id=review['id'],dedupe_key=moved['dedupe_key'])['id'],message['id'])
+        transport=FakeTransport(self.store)
+        daemon=Daemon(self.store,transport,member_id='D')
+        self.assertTrue(daemon.dispatch_one())
+        member,delivered=transport.calls[0]
+        self.assertEqual(member['id'],'D')
+        payload=json.loads(delivered['envelope'])
+        self.assertEqual(payload['recipient'],'D')
+        self.assertEqual(payload['actor_cwd'],self.store.member('D')['cwd'])
+        claimed=self.store.claim(*self.binding('D'),message_id=message['id'])
+        self.assertTrue(claimed['claimed'])
+
+    def test_active_unsent_review_waits_if_new_reviewer_has_other_work(self):
+        self.add('C');self.add('D')
+        self.assign('busy-d','D',['busy-d.txt'])
+        busy,owned=self.claim_task('busy-d')
+        review=self.source()
+        self.store.setting('availability:C',{'state':'unreachable','observed_at':time.time()})
+        self.store.schedule()
+        self.assertEqual(self.store.task(review['id'])['assignee'],'D')
+        self.assertEqual(self.store.task(review['id'])['status'],'pending')
+        message=next(m for m in self.store.status()['messages'] if m['task_id']==review['id'])
+        self.assertEqual(message['recipient'],'D')
+        self.assertFalse(self.store.claim(*self.binding('D'),message_id=message['id'])['claimed'])
+        self.store.complete(*self.binding('D'),busy['id'],owned['claim_token'],'原任务已结束')
+        self.assertEqual(self.store.task(review['id'])['status'],'active')
+        self.assertTrue(self.store.claim(*self.binding('D'),message_id=message['id'])['claimed'])
+
+    def test_review_with_transport_evidence_is_not_reassigned(self):
+        evidence=[{'delivery_status':state,'attempts':1} for state in ('accepted','delivering','unknown','retry')]
+        evidence.extend({field:value} for field,value in (('queue_id','queued'),('turn_id','turn'),('remote_status','queued'),('claim_token','retained-token')))
+        for index,record in enumerate(evidence):
+            with self.subTest(record=record):
+                if index:self.tearDown();self.setUp()
+                self.add('C');self.add('D')
+                review=self.source()
+                with self.store.transaction() as db:
+                    db.execute('UPDATE messages SET '+','.join(field+'=?' for field in record)+' WHERE task_id=?',(*record.values(),review['id']))
+                self.store.setting('availability:C',{'state':'unreachable','observed_at':time.time()})
+                self.store.schedule()
+                self.assertEqual(self.store.task(review['id'])['assignee'],'C')
+                message=next(m for m in self.store.status()['messages'] if m['task_id']==review['id'])
+                self.assertEqual(message['recipient'],'C')
+                self.assertEqual(message['delivery_status'],record.get('delivery_status','pending'))
+
     def test_claimed_obsolete_review_closes_without_new_version_ack(self):
         self.add('C');self.add('D')
         review=self.source();message,owned=self.claim_task(review['id']);self.ack('C')
@@ -205,6 +268,83 @@ class ReviewArtifactTests(unittest.TestCase):
         message=next(m for m in self.store.status()['messages'] if m['task_id']=='work')
         owned=self.store.claim(*self.binding('B'),message_id=message['id'])
         return message,owned
+
+    def passed_work(self, *, path='code.txt',scope='code.txt'):
+        message,owned=self.prepare()
+        with self.store.transaction() as db:db.execute('UPDATE tasks SET allowed_paths=? WHERE id=?',(json.dumps([scope]),'work'))
+        commit=self.commit('B',path,'checked\n')
+        self.store.complete(*self.binding('B'),message['id'],owned['claim_token'],'已提交实现',commits=[commit])
+        review=next(t for t in self.store.status()['tasks'] if t['id'].startswith('gpt-review-'))
+        notice=next(m for m in self.store.status()['messages'] if m['task_id']==review['id'])
+        claimed=self.store.claim(*self.binding('A'),message_id=notice['id'])
+        page=self.store.read_delivery(*self.binding('A'),'delivery:work')
+        self.store.ack_delivery(*self.binding('A'),'delivery:work',page['digest'])
+        version=next(r['version'] for r in self.store.status()['work_reviews'] if r['task_id']=='work')
+        self.store.review_work(*self.binding('A'),'work',version,'passed','检查具体文件差异和提交测试',GPT)
+        self.store.complete(*self.binding('A'),notice['id'],claimed['claim_token'],'审核结束')
+        return version,page['digest']
+
+    def test_unrelated_commit_keeps_passed_review_and_allows_integration(self):
+        version,digest=self.passed_work()
+        self.commit('B','unrelated.txt','another task\n')
+        with self.store.transaction() as db:
+            self.assertTrue(self.store._review_clear(db,'work'))
+            self.assertEqual(self.store._current_work_version(db,db.execute("SELECT * FROM tasks WHERE id='work'").fetchone()),version)
+        self.assertEqual(self.store.read_delivery(*self.binding('A'),'delivery:work')['digest'],digest)
+        from scripts import pair
+        self.assertTrue(pair.execute(self.arguments('integrate','--task','work'))['success'])
+        self.store.control('running')
+        self.assertEqual(self.store.assign('after','后续任务','A',['after.txt'],dependencies=['work'])['status'],'active')
+
+    def test_unrelated_untracked_and_staged_files_do_not_invalidate_review(self):
+        _,digest=self.passed_work()
+        workspace=Path(self.trees['b']['path'])
+        for name in ('unrelated.txt','code.txt.extra'):
+            with self.subTest(name=name):
+                (workspace/name).write_text('unrelated\n',encoding='utf-8')
+                with self.store.transaction() as db:self.assertTrue(self.store._review_clear(db,'work'))
+                test_integration.git(workspace,'add','--',name)
+                with self.store.transaction() as db:self.assertTrue(self.store._review_clear(db,'work'))
+        self.assertEqual(self.store.read_delivery(*self.binding('A'),'delivery:work')['digest'],digest)
+
+    def test_related_staged_change_cannot_be_hidden_by_reverting_working_file(self):
+        self.passed_work()
+        workspace=Path(self.trees['b']['path'])
+        (workspace/'code.txt').write_text('staged change\n',encoding='utf-8')
+        test_integration.git(workspace,'add','--','code.txt')
+        (workspace/'code.txt').write_text('checked\n',encoding='utf-8')
+        with self.store.transaction() as db:self.assertFalse(self.store._review_clear(db,'work'))
+
+    def test_directory_scope_covers_new_ignored_files_but_not_similar_prefix(self):
+        self.passed_work(path='src/code.py',scope='src/')
+        workspace=Path(self.trees['b']['path'])
+        self.commit('B','src-other/other.py','outside\n')
+        with self.store.transaction() as db:self.assertTrue(self.store._review_clear(db,'work'))
+        info=Path(test_integration.git(workspace,'rev-parse','--git-common-dir'))
+        if not info.is_absolute():info=workspace/info
+        with (info/'info/exclude').open('a',encoding='utf-8') as exclude:exclude.write('\n*.ignored\n')
+        (workspace/'src/new.ignored').write_text('new related file\n',encoding='utf-8')
+        with self.store.transaction() as db:self.assertFalse(self.store._review_clear(db,'work'))
+
+    def test_integration_artifact_cli_accepts_unrelated_commit(self):
+        from scripts import pair
+        message,owned=self.prepare();commit=self.commit('B','code.txt','checked\n')
+        self.store.setting('review-artifact:work',{'workspace':self.trees['b']['path'],'head':commit,'integration':'fixture'})
+        self.store.complete(*self.binding('B'),message['id'],owned['claim_token'],'已固定整合产物',commits=[commit])
+        review=next(t for t in self.store.status()['tasks'] if t['id'].startswith('gpt-review-'))
+        notice=next(m for m in self.store.status()['messages'] if m['task_id']==review['id'])
+        claimed=self.store.claim(*self.binding('A'),message_id=notice['id'])
+        page=self.store.read_delivery(*self.binding('A'),'delivery:work')
+        self.store.ack_delivery(*self.binding('A'),'delivery:work',page['digest'])
+        version=next(r['version'] for r in self.store.status()['work_reviews'] if r['task_id']=='work')
+        self.commit('B','unrelated.txt','unrelated\n')
+        args=self.arguments('review-work','--member','A','--session',self.binding('A')[1],
+            '--worktree',self.binding('A')[2],'--task','work','--version',version,'--decision','passed','--body','独立检查范围内产物')
+        with patch('scripts.pair.validate_actor'),patch('scripts.pair.AppServer') as observer:
+            observer.return_value.__enter__.return_value.validate.return_value=GPT
+            self.assertEqual(pair.execute(args)['decision'],'passed')
+        self.store.complete(*self.binding('A'),notice['id'],claimed['claim_token'],'整合产物审核结束')
+        with self.store.transaction() as db:self.assertTrue(self.store._review_clear(db,'work'))
 
     def test_uncommitted_file_delivery_cannot_enter_review(self):
         message,owned=self.prepare()

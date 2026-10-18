@@ -122,10 +122,9 @@ class MembersMixin:
         if not artifact:return False
         try:
             if 'head' in artifact:
-                try:from .pair_git import inspect_repo
-                except ImportError:from pair_git import inspect_repo
-                repo=inspect_repo(artifact['workspace'])
-                return repo['head']==artifact['head'] and not repo['dirty']
+                try:from .pair_git import review_artifact_matches
+                except ImportError:from pair_git import review_artifact_matches
+                return review_artifact_matches(artifact['workspace'],artifact['head'],json.loads(task['allowed_paths']))
             return all(not (Path(artifact['workspace'])/p).exists() and
                 not (Path(artifact['workspace'])/p).is_symlink() for p in artifact['absent_paths'])
         except (OSError,ValueError,RuntimeError):
@@ -207,7 +206,7 @@ class MembersMixin:
     def _review_unsent(db,task_id):
         return not db.execute("""SELECT 1 FROM messages m WHERE m.task_id=? AND
             (m.process_status<>'unclaimed' OR m.delivery_status NOT IN ('pending','retry')
-             OR m.attempts<>0 OR m.queue_id IS NOT NULL OR m.turn_id IS NOT NULL
+             OR m.attempts<>0 OR m.claim_token IS NOT NULL OR m.queue_id IS NOT NULL OR m.turn_id IS NOT NULL
              OR m.remote_status IS NOT NULL OR EXISTS (SELECT 1 FROM attempts a WHERE a.message_id=m.id))""",(task_id,)).fetchone()
 
     def _close_stale_reviews(self,db):
@@ -234,11 +233,20 @@ class MembersMixin:
             review_id='gpt-review-'+hashlib.sha256((row['task_id']+row['version']).encode()).hexdigest()[:24]
             existing=db.execute('SELECT * FROM tasks WHERE id=?',(review_id,)).fetchone()
             candidates=self._review_candidates(db,row)
-            if existing and (existing['status']!='pending' or existing['assignee'] in candidates or not self._review_unsent(db,review_id)):continue
+            if existing and (existing['status'] not in ('pending','active') or existing['assignee'] in candidates or not self._review_unsent(db,review_id)):continue
             if not candidates:continue
             reviewer=min(candidates,key=lambda m:(sum(r[0] for r in db.execute("SELECT effort FROM tasks WHERE assignee=? AND status NOT IN ('completed','integrated')",(m,))),m))
             if existing:
-                db.execute('UPDATE tasks SET assignee=?,updated=? WHERE id=?',(reviewer,time.time(),review_id))
+                try:from .pair_core import dumps
+                except ImportError:from pair_core import dumps
+                now=time.time()
+                # 返回调度门重新检查新成员的工作区互斥，不直接占用繁忙成员。
+                db.execute("UPDATE tasks SET assignee=?,status='pending',updated=? WHERE id=?",(reviewer,now,review_id))
+                for message in db.execute("SELECT * FROM messages WHERE task_id=? AND kind='task'",(review_id,)).fetchall():
+                    sender=self._coordinator(db)
+                    fingerprint=hashlib.sha256(dumps([sender,reviewer,message['body'],'task',review_id,message['reply_to'],None]).encode('utf-8')).hexdigest()
+                    db.execute('UPDATE messages SET sender=?,recipient=?,fingerprint=?,envelope=NULL,next_attempt=0,updated=? WHERE id=?',
+                        (sender,reviewer,fingerprint,now,message['id']))
                 self.event(db,'work_review_reassigned',review_task=review_id,previous=existing['assignee'],reviewer=reviewer)
                 continue
             body='独立审核成果 '+row['task_id']+'，版本 '+row['version']+'。完整读取原目标、差异/提交和测试证据；核验当前官方 GPT 提供方及模型，使用 review-work 记录 passed/blocked，再完成本审核任务。不得修改业务实现或自审。'

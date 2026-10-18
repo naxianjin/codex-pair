@@ -592,8 +592,6 @@ def execute(args):
         with AppServer(codex_home=member['codex_home'],cwd=member['cwd'],executable=executable,metadata_only=True) as observer:
             identity=observer.validate(member)
         if args.command=='record-contribution':return store.record_contribution(*binding,args.task,identity)
-        artifact=store.setting('review-artifact:'+args.task)
-        if artifact and (git_run(artifact['workspace'],'rev-parse','HEAD')!=artifact['head'] or pair_git.inspect_repo(artifact['workspace'])['dirty']):raise PairError('Review artifact changed / 整合后工作树已变化，不能沿用此版本')
         return store.review_work(*binding,args.task,args.version,args.decision,read_body(args),identity)
     if args.command=='handoff':return store.handoff(args.task,args.to)
     if args.command=='quota':
