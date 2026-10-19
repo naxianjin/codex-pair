@@ -212,6 +212,8 @@ class ApprovalMixin:
             previous=next((row for row in db.execute(
                 'SELECT * FROM approval_requests WHERE member=? AND authorization_version=? ORDER BY created DESC',
                 (member,version)) if operation_fingerprint(json.loads(row['event']))==operation),None)
+            # 固定协调命令无需汇报自身结果；重复调用仍创建新请求逐次审核。
+            if previous and previous['status']=='granted' and self._coordination_approval(db,previous):previous=None
             if previous and previous['status'] in ('pending','allowed'):fail('Approval already waiting / 相同操作仍在等待，不能重复申请')
             if previous and previous['status'] in ('denied','granted','unknown'):fail('Operation requires reconciliation / 操作已被拒绝或可能执行，先核实并登记用户授权变更')
             if previous and previous['status']=='expired' and previous['retry_state']!='ready':

@@ -180,6 +180,16 @@ class DelegationTests(unittest.TestCase):
         row=self.store.status()['assistance']['approvals'][0]
         self.assertEqual(row['status'],'granted');self.assertTrue(row['coordination_only'])
 
+    def test_granted_coordination_can_request_fresh_review(self):
+        self.enable()
+        command=self.coordination_command('check-checkpoint')
+        first=self.request(tool_input={'command':command})
+        self.allow(first)
+        self.store.approval_outcome('B',self.sessions['B'],first['id'],first['digest'])
+        second=self.request(turn='b-2',tool_input={'command':command})
+        self.assertNotEqual(first['id'],second['id'])
+        self.assertEqual(self.store.approval_outcome('B',self.sessions['B'],second['id'],second['digest'])['status'],'pending')
+
     def test_arbitrary_command_or_appended_shell_is_not_coordination(self):
         self.enable()
         for command in ('python task_script.py',self.coordination_command('check-checkpoint')+'; Write-Output extra'):
