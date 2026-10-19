@@ -61,6 +61,18 @@ class RolloutTests(unittest.TestCase):
         self.assertEqual(result['remote_status'],'interrupted')
         self.assertEqual(result['evidence_turn_id'],'new')
 
+    def test_timestamped_interruption_can_recover_only_after_later_completion(self):
+        self.write(event('task_started','old'),event('task_started','new'))
+        def observe(processed=True):
+            with patch.object(self.client,'validate',return_value={'path':str(self.path)}), \
+                    patch.object(self.client,'turns',return_value=iter([
+                        {'id':'old','status':'interrupted','completedAt':120,'items':[]}])):
+                return self.client.observe(self.member,{'turn_id':'old','process_status':'completed' if processed else 'unclaimed'})
+        self.assertNotIn('completion_source',observe())
+        self.write(event('task_complete','new',completed_at=124))
+        self.assertNotIn('completion_source',observe(False))
+        self.assertEqual(observe()['completion_source'],'rollout_superseded')
+
     def test_protocol_yield_requires_latest_persisted_completion(self):
         self.write(event('task_started','old'),event('task_started','new'))
         self.assertEqual(self.observe(processed=False,protocol_yield=True)['remote_status'],'inProgress')

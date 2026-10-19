@@ -1,6 +1,6 @@
-# 原 A 代答与审核 B/C/D 的权限请求
+# A 代答与审核 B 的权限请求
 
-当前多人接入见 [members.md](members.md)。下文B流程也适用于C/D；Hook安装和查询用 --target 指定请求成员，各自配置隔离并首次信任。成果独立审核使用review-work，与本页权限审批严格区分。
+当前仅支持两个用户已打开的官方 CLI 原窗口 A/B，不支持多人扩容。最新结论及历史测试边界见 [测试汇总](validation-summary-20261019.md)；下文历史版本号不代表当前包版本。
 
 新 start 默认启用委托，作用范围是当前项目、配对和原窗口。旧轮次由 A 明确开启；用户可随时暂停或撤销。工作接管不转移系统权限或审批资格。
 
@@ -90,4 +90,4 @@ report-approval <B身份参数> --approval <ID> --outcome success|failed|unknown
 
 status.assistance 分别显示 delegation_enabled、authorization_version、questions、approval_hook 和 approvals。trusted 只是最近一次只读信任查询，callback_observed 只是曾收到回调，都不等于完整验收。审批区分 pending、allowed、granted、denied、expired、success、failed、unknown；retry_state 显示等待 A、准备重发、已重发、需用户或取消。
 
-状态库当前升级到schema 9（授权版本及重试结构来自schema 8），先停止旧桥，备份后保留任务、领取令牌和交付。旧版 allowed 无法判断是否执行，升级标为 unknown，要求核查。重启桥不重放业务。真实双 CLI 验收还须核验越权拒绝、撤销竞争、超时重发和接管权限边界；合成事件、假 transport、阈值控制和独立后台会话均不冒充两个原窗口的真实验收。
+状态库升级到 schema 8，先停止旧桥，备份后保留任务、领取令牌和交付。旧版 allowed 无法判断是否执行，升级标为 unknown，要求核查。重启桥不重放业务。真实双 CLI 验收还须核验越权拒绝、撤销竞争、超时重发和接管权限边界；合成事件、假 transport、阈值控制和独立后台会话均不冒充两个原窗口的真实验收。

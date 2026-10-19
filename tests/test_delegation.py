@@ -281,7 +281,7 @@ class DelegationTests(unittest.TestCase):
         upgraded=Store('test',home=self.home)
         self.assertEqual(upgraded.message(request['message_id'])['claim_token'],claim['claim_token'])
         with upgraded.transaction() as db:
-            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],9)
+            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],8)
             self.assertFalse(db.execute('PRAGMA foreign_key_check').fetchall())
         class Interrupted(sqlite3.Connection):
             def execute(self,sql,*args):

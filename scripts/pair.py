@@ -34,7 +34,7 @@ def build_parser():
     common.add_argument('--state-root',default=argparse.SUPPRESS,help='共享状态根目录，协作目录为该路径/<ID>；与账号目录独立')
     common.add_argument('--member-codex-home',default=argparse.SUPPRESS,help='成员实际账号目录，默认当前 CODEX_HOME')
     common.add_argument('--codex',default=argparse.SUPPRESS,help='Codex 可执行文件路径')
-    parser=Parser(description='2～4个原 Codex CLI 的持久化动态协作',parents=[common])
+    parser=Parser(description='两个本机 Codex CLI 的持久化协作',parents=[common])
     commands=parser.add_subparsers(dest='command',required=True)
     def command(name,help_text):
         return commands.add_parser(name,help=help_text,parents=[common])
@@ -43,7 +43,7 @@ def build_parser():
         group.add_argument('--body',help='消息或结果正文')
         group.add_argument('--body-file',help='UTF-8 正文文件，保留原有换行')
     def actor(cmd):
-        cmd.add_argument('--member',choices=['A','B','C','D'],required=True)
+        cmd.add_argument('--member',choices=['A','B'],required=True)
         cmd.add_argument('--session',default=os.environ.get('CODEX_THREAD_ID'),help='成员绑定的完整会话 UUID')
         cmd.add_argument('--worktree',default=str(Path.cwd()),help='必须与当前实际工作目录一致')
     cmd=command('start','由当前已打开窗口发起，生成给另一窗口的邀请并启动本地桥')
@@ -55,28 +55,6 @@ def build_parser():
     group=cmd.add_mutually_exclusive_group(required=True)
     group.add_argument('--goal','--body',dest='body',help='协作目标')
     group.add_argument('--goal-file','--body-file',dest='body_file',help='UTF-8 目标文件')
-    cmd=command('invite-member','邀请一个原有 CLI 中途加入，不重建协作')
-    actor(cmd)
-    cmd=command('revoke-invite','撤销尚未消费的新增成员邀请')
-    actor(cmd)
-    cmd.add_argument('--invite',required=True)
-    cmd=command('confirm-briefing','确认已阅读本轮目标、授权和相关交付')
-    actor(cmd);body(cmd,True)
-    cmd=command('suggest-reserve','按现场估计上调当前窗口额度保留线')
-    actor(cmd);body(cmd,True)
-    cmd.add_argument('--percent',type=float,required=True)
-    cmd=command('adjust-reserve','登记用户明确要求的保留线调整，不用于模型自行降低')
-    actor(cmd);body(cmd,True)
-    cmd.add_argument('--target',choices=['A','B','C','D'],required=True)
-    cmd.add_argument('--percent',type=float,required=True)
-    cmd.add_argument('--user-authorized',action='store_true',required=True)
-    cmd=command('record-contribution','登记实质贡献者，变化后使旧审核失效')
-    actor(cmd);cmd.add_argument('--task',required=True)
-    cmd=command('review-work','独立 GPT 官方模型审核具体成果版本')
-    actor(cmd);body(cmd,True)
-    cmd.add_argument('--task',required=True)
-    cmd.add_argument('--version',required=True)
-    cmd.add_argument('--decision',choices=['passed','blocked'],required=True)
     cmd=command('accept','当前已打开的第二个窗口接受邀请，自行识别会话与账号')
     cmd.add_argument('--invite',required=True,help='A 输出的本地邀请 JSON 路径')
     cmd=command('bridge','后台启动或停止当前协作的消息桥')
@@ -86,7 +64,7 @@ def build_parser():
     cmd.add_argument('--base-ref',default='HEAD')
     cmd.add_argument('--worktree-root',help='默认项目 .codex-pair/worktrees，创建或验证 <ID>-a、<ID>-b')
     cmd=command('join','绑定已有 CLI 会话，或创建独占托管会话')
-    cmd.add_argument('--member',choices=['A','B','C','D'],required=True)
+    cmd.add_argument('--member',choices=['A','B'],required=True)
     cmd.add_argument('--worktree',required=True)
     group=cmd.add_mutually_exclusive_group(required=True)
     group.add_argument('--session',help='已有 CLI 的完整会话 UUID')
@@ -98,18 +76,16 @@ def build_parser():
     cmd=command('assign','分配任务；依赖和范围检查通过后才激活')
     cmd.add_argument('--task',required=True)
     cmd.add_argument('--title',required=True)
-    cmd.add_argument('--to',choices=['A','B','C','D','auto'],required=True)
-    cmd.add_argument('--coordinator-epoch',type=int,help='多人协作必须提供 status.coordinator_epoch')
-    cmd.add_argument('--report-to',choices=['A','B','C','D'],help='默认当前统筹方，初始为 A')
+    cmd.add_argument('--to',choices=['A','B','auto'],required=True)
+    cmd.add_argument('--report-to',choices=['A','B'],help='默认当前统筹方，初始为 A')
     cmd.add_argument('--effort',type=int,choices=[1,2,3,5,8],default=3)
     cmd.add_argument('--allow',action='append',required=True,help='仓库相对修改范围，可重复')
     cmd.add_argument('--depends-on',action='append',default=[])
-    cmd.add_argument('--repairs',help='显式修复被阻塞的成果，完整交付替代版本')
     cmd.add_argument('--base-ref',help='任务提交基准；默认使用协作基准')
     body(cmd)
     cmd=command('send','先持久化，再由 daemon 投递')
-    cmd.add_argument('--from',dest='sender',choices=['A','B','C','D'],required=True)
-    cmd.add_argument('--to',choices=['A','B','C','D'],required=True)
+    cmd.add_argument('--from',dest='sender',choices=['A','B'],required=True)
+    cmd.add_argument('--to',choices=['A','B'],required=True)
     cmd.add_argument('--task')
     cmd.add_argument('--kind',choices=['note','question','reply'],default='note')
     cmd.add_argument('--reply-to')
@@ -141,7 +117,7 @@ def build_parser():
     body(cmd,True)
     cmd=command('handoff','幂等补发已有交付，不重做任务')
     cmd.add_argument('--task',required=True)
-    cmd.add_argument('--to',choices=['A','B','C','D'],required=True)
+    cmd.add_argument('--to',choices=['A','B'],required=True)
     for name in ('read-delivery','ack-delivery'):
         cmd=command(name,'分页读取交付记录' if name=='read-delivery' else '确认已完整读取指定版本交付')
         actor(cmd)
@@ -158,11 +134,9 @@ def build_parser():
     cmd.add_argument('--checkpoints',choices=['on','off'])
     cmd=command('install-approval-hook','为已绑定 B 配置官方逐请求审批 Hook，不绕过 Hook 信任')
     actor(cmd)
-    cmd.add_argument('--target',choices=['B','C','D'],default='B')
     cmd.add_argument('--timeout',type=int,default=180)
     cmd=command('check-approval-hook','只读核验本轮 B 的 Hook 支持与信任状态')
     actor(cmd)
-    cmd.add_argument('--target',choices=['B','C','D'],default='B')
     cmd=command('delegation-policy','登记用户委托开启、撤销或授权范围变更，并使旧批准失效')
     actor(cmd)
     cmd.add_argument('--enabled',choices=['on','off'])
@@ -234,12 +208,12 @@ def build_parser():
     body(cmd,True)
     cmd=command('read-checkpoint','分页完整读取交接文档')
     actor(cmd)
-    cmd.add_argument('--source',choices=['A','B','C','D'],required=True)
+    cmd.add_argument('--source',choices=['A','B'],required=True)
     cmd.add_argument('--offset',type=int,default=0)
     cmd.add_argument('--limit',type=int,default=2000)
     cmd=command('consume-checkpoint','持久化恢复计划及接管，再清理文档')
     actor(cmd)
-    cmd.add_argument('--source',choices=['A','B','C','D'],required=True)
+    cmd.add_argument('--source',choices=['A','B'],required=True)
     cmd.add_argument('--digest',required=True)
     body(cmd,True)
     cmd=command('integrate','检查交付范围并按 SHA 整合；自动暂停新投递并保留冲突')
@@ -256,9 +230,9 @@ def build_parser():
         cmd.add_argument('--max-attempts',type=int,default=3)
         cmd.add_argument('--poll-interval',type=float,default=.25)
         cmd.add_argument('--rpc-timeout',type=float,default=15,help='投递回执超时，不是任务耗时限制')
-        if name=='relay':cmd.add_argument('--member',choices=['A','B','C','D'],required=True)
+        if name=='relay':cmd.add_argument('--member',choices=['A','B'],required=True)
     cmd=command('relay-stop','停止指定成员 relay，保留其他 relay 与状态')
-    cmd.add_argument('--member',choices=['A','B','C','D'],required=True)
+    cmd.add_argument('--member',choices=['A','B'],required=True)
     for name,label in [('pause','暂停新投递，保留已开始的回合'),('resume','恢复调度与投递'),('stop','停止守护程序，保留状态及代码')]:
         command(name,label)
     return parser
@@ -363,7 +337,6 @@ def save_plan(store,plan,**changes):
     with store.transaction() as db:
         db.execute('UPDATE integrations SET '+','.join(key+'=?' for key in keys)+' WHERE id=?',
                    [plan[key] for key in keys]+[plan['id']])
-        if plan['status']=='conflict':store._put(db,'integration-conflict:'+plan['id'],True)
         store.event(db,'integration_state',integration=plan['id'],status=plan['status'],next_index=plan['next_index'])
 
 
@@ -415,15 +388,6 @@ def apply_plan(store,plan,*,continuing=False):
     save_plan(store,plan,status='completed',result_json=dumps(result))
     with store.transaction() as db:
         db.execute("UPDATE tasks SET status='integrated',updated=? WHERE id=?",(time.time(),plan['task_id']))
-        review=db.execute('SELECT required FROM work_reviews WHERE task_id=?',(plan['task_id'],)).fetchone()
-        if review and review['required'] and store._option(db,'integration-conflict:'+plan['id'],False):
-            artifact={'workspace':worktree,'head':result['head'],'integration':plan['id']}
-            store._put(db,'review-artifact:'+plan['task_id'],artifact)
-            task=db.execute('SELECT * FROM tasks WHERE id=?',(plan['task_id'],)).fetchone()
-            store._capture_work(db,task,store._coordinator(db))
-            store._register_reviews(db)
-            result['review_required']=True
-            db.execute('UPDATE integrations SET result_json=? WHERE id=?',(dumps(result),plan['id']))
         store.event(db,'task_integrated',task=plan['task_id'],integration=plan['id'],head=result['head'])
     return result
 
@@ -453,9 +417,6 @@ def integrate(store,args):
             return apply_plan(store,plan,continuing=True)
         if not args.task:raise PairError('--task is required / 必须选择交付任务')
         task=store.task(args.task)
-        if store.setting('replacement:'+task['id']):raise PairError('Superseded delivery / 原成果已被修复版本替代，请整合修复任务')
-        with store.transaction() as db:
-            if not store._review_clear(db,task['id']):raise PairError('Independent review required / 必要 GPT 审核未通过，不能整合')
         if task['status'] not in ('delivered','integrated'):
             raise PairError('Task has no accepted commit delivery / 任务尚未交付可验收的提交')
         commits=json.loads(task['commits_json'] or '[]')
@@ -495,7 +456,7 @@ def resolve_state_root(args, home, pair_id):
 
 
 def execute(args):
-    if args.command in ('start','accept','bridge','invite-member','revoke-invite'):
+    if args.command in ('start','accept','bridge'):
         try:from . import pair_windows
         except ImportError:import pair_windows
         return pair_windows.execute(args,sys.modules[__name__])
@@ -568,7 +529,7 @@ def execute(args):
             proof['git']=git_proof
             return store.join(args.member,args.session,cwd,backend=backend,owned=False,proof=proof,member_codex_home=home,delivery_mode=args.delivery_mode)
     if args.command=='assign':
-        members=[store.member(m) for m in store.member_ids()] if args.to=='auto' else [store.member(args.to)]
+        members=[store.member(m) for m in ('A','B')] if args.to=='auto' else [store.member(args.to)]
         for member in members:worktree_proof(store,member['id'],member_workspace(member))
         member=members[0]
         base=git_run(member_workspace(member),'rev-parse','--verify','--end-of-options',args.base_ref+'^{commit}') if args.base_ref else None
@@ -576,23 +537,7 @@ def execute(args):
             try:from .pair_quota import refresh
             except ImportError:from pair_quota import refresh
             refresh(store,executable=executable,max_age=30)
-        requester=None
-        if len(store.member_ids())>2:
-            coordinator=store.member(store.setting('coordinator') or 'A')
-            if os.environ.get('CODEX_THREAD_ID')!=coordinator['session_uuid'] or canonical_path(effective_home())!=canonical_path(coordinator['codex_home']) or canonical_path(Path.cwd())!=coordinator['cwd']:raise PairError('Current coordinator CLI required / 请在当前统筹原窗口派单')
-            requester=(coordinator['id'],coordinator['session_uuid'],coordinator['cwd'])
-        return store.assign(args.task,args.title,args.to,args.allow,body=read_body(args),dependencies=args.depends_on,base_commit=base,report_to=args.report_to,effort=args.effort,requester=requester,coordinator_epoch=args.coordinator_epoch,repairs=args.repairs)
-    if args.command in ('confirm-briefing','suggest-reserve','review-work','record-contribution','adjust-reserve'):
-        validate_actor(store,args)
-        binding=(args.member,args.session,args.worktree)
-        if args.command=='confirm-briefing':return store.confirm_briefing(*binding,read_body(args))
-        if args.command=='adjust-reserve':return store.adjust_reserve(*binding,args.target,args.percent,read_body(args))
-        if args.command=='suggest-reserve':return store.suggest_reserve(*binding,args.percent,read_body(args))
-        member=store.member(args.member)
-        with AppServer(codex_home=member['codex_home'],cwd=member['cwd'],executable=executable,metadata_only=True) as observer:
-            identity=observer.validate(member)
-        if args.command=='record-contribution':return store.record_contribution(*binding,args.task,identity)
-        return store.review_work(*binding,args.task,args.version,args.decision,read_body(args),identity)
+        return store.assign(args.task,args.title,args.to,args.allow,body=read_body(args),dependencies=args.depends_on,base_commit=base,report_to=args.report_to,effort=args.effort)
     if args.command=='handoff':return store.handoff(args.task,args.to)
     if args.command=='quota':
         if args.refresh:
@@ -611,21 +556,21 @@ def execute(args):
         binding=(args.member,args.session,args.worktree)
         if args.command=='delegation-policy':return store.delegation_policy(*binding,read_body(args),enabled=None if args.enabled is None else args.enabled=='on')
         if args.command=='ask-question':
-            if args.member==(store.setting('coordinator') or 'A'):raise PairError('Peer question required / 委托问题须发给另一成员统筹')
+            if args.member!='B':raise PairError('B required / 委托提问由 B 发起')
             if not store.setting('delegation_enabled'):raise PairError('Delegation disabled / 未开启问题委托')
             if args.task:
                 task=store.task(args.task)
-                if task['assignee']!=args.member or task['status']!='active':raise PairError('Active owned task required / 提问关联任务必须是 B 当前负责的活动任务')
-            return store.send(args.member,store.setting('coordinator') or 'A',read_body(args),kind='question',task_id=args.task,dedupe_key='delegated-question:'+('' if args.member=='B' else args.member+':')+args.question_key,progress_note=args.progress_note)
+                if task['assignee']!='B' or task['status']!='active':raise PairError('Active owned task required / 提问关联任务必须是 B 当前负责的活动任务')
+            return store.send('B','A',read_body(args),kind='question',task_id=args.task,dedupe_key='delegated-question:'+args.question_key,progress_note=args.progress_note)
         if args.command=='question-state':return store.question_state(*binding,args.question,args.state,read_body(args))
         if args.command=='prepare-approval-retry':return store.prepare_approval_retry(*binding,args.approval,read_body(args))
         if args.command=='report-approval':return store.report_approval(*binding,args.approval,args.outcome,read_body(args))
         if args.command=='check-approval-hook':
-            b=store.member(args.target)
+            b=store.member('B')
             with AppServer(codex_home=b['codex_home'],executable=executable,cwd=b['cwd'],metadata_only=True,hook_metadata=True) as observer:
-                return store.record_hook_status(observer.rpc('hooks/list',{}),target=args.target)
+                return store.record_hook_status(observer.rpc('hooks/list',{}))
         if args.command=='install-approval-hook':
-            return store.install_approval_hook(*binding,python=sys.executable,script=str(Path(__file__).with_name('pair_permission_hook.py')),timeout=args.timeout,target=args.target)
+            return store.install_approval_hook(*binding,python=sys.executable,script=str(Path(__file__).with_name('pair_permission_hook.py')),timeout=args.timeout)
         if args.command=='review-approval':
             return store.review_approval(*binding,args.approval,args.token,args.digest,args.decision,read_body(args),
                 within_permissions=args.within_a_permissions,capability_evidence=args.capability_evidence)

@@ -126,8 +126,8 @@ class AssistanceMixin(ApprovalMixin):
     def _idle(self,db,members,exclude=()):
         targets={workspace(self._member(db,m)) for m in members}
         if any(m['id'] not in exclude and workspace(self._member(db,m['recipient'])) in targets for m in self._running(db)):return False
-        for row in db.execute("SELECT r.message_id,m.recipient FROM execution_requests r JOIN messages m ON m.id=r.source_message WHERE r.status='running'"):
-            if row[0] not in exclude and targets & {workspace(self._member(db,m)) for m in ('A',row[1])}:return False
+        for row in db.execute("SELECT message_id FROM execution_requests WHERE status='running'"):
+            if row[0] not in exclude and targets & {workspace(self._member(db,m)) for m in ('A','B')}:return False
         return True
 
     def request_execution(self,member,session,cwd,message_id,token,request_id,payload):
@@ -151,7 +151,7 @@ class AssistanceMixin(ApprovalMixin):
         text=encoded(payload);fingerprint=digest(text)
         with self.transaction() as db:
             self._binding(db,member,session,cwd)
-            if member=='A' or not self._option(db,'execution_assistance',False):fail('Execution assistance disabled / 需由 A 显式开启本轮任务内协助执行')
+            if member!='B' or not self._option(db,'execution_assistance',False):fail('Execution assistance disabled / 需由 A 显式开启本轮任务内协助执行')
             existing=db.execute('SELECT * FROM execution_requests WHERE id=?',(request_id,)).fetchone()
             if existing:
                 if existing['digest']!=fingerprint or existing['source_message']!=message_id:fail('Request changed / 请求 ID 已用于不同内容')
@@ -189,9 +189,7 @@ class AssistanceMixin(ApprovalMixin):
             self._owned_message(db,member,row['message_id'],token)
             if row['digest']!=fingerprint:fail('Request digest mismatch / 待执行内容摘要不符')
             if row['status']!='review':fail('Execution already started or unresolved / 操作已开始或结果待核实，禁止再次执行')
-            if not self._idle(db,['A',db.execute('SELECT recipient FROM messages WHERE id=?',(row['source_message'],)).fetchone()[0]],exclude=[row['message_id']]):fail('Workspace busy / 原窗口回合或操作尚未结束')
-            parent=db.execute('SELECT * FROM tasks WHERE id=?',(row['task_id'],)).fetchone()
-            self._capture_work(db,parent,member)
+            if not self._idle(db,['A','B'],exclude=[row['message_id']]):fail('Workspace busy / 原窗口回合或操作尚未结束')
             db.execute("UPDATE execution_requests SET status='running',review=?,updated=? WHERE id=?",(clean(review),time.time(),request_id))
             self.event(db,'execution_started',request=request_id,digest=fingerprint)
             return {'request':request_id,'status':'running','payload':json.loads(row['payload']),'execute_in_original_window':True}
@@ -215,7 +213,7 @@ class AssistanceMixin(ApprovalMixin):
             record_id='execution:'+request_id
             body=encoded({'request':request_id,'outcome':outcome,'result':clean(result)})
             db.execute('INSERT INTO deliveries VALUES(?,?,?,?,?,?)',(record_id,row['task_id'],body,'[]',digest(encoded([body,'[]'])),time.time()))
-            msg=self._send(db,'A',db.execute('SELECT recipient FROM messages WHERE id=?',(row['source_message'],)).fetchone()[0],'执行结果 '+request_id+'：'+outcome+'。完整读取并确认交付后核对现场；未知结果禁止重跑。',
+            msg=self._send(db,'A','B','执行结果 '+request_id+'：'+outcome+'。完整读取并确认交付后核对现场；未知结果禁止重跑。',
                 kind='execution_result',task_id=row['task_id'],dedupe_key='execution-result:'+request_id)
             db.execute('UPDATE messages SET delivery_id=? WHERE id=?',(record_id,msg['id']))
             db.execute("UPDATE messages SET process_status='completed',updated=? WHERE id=?",(time.time(),row['message_id']))
@@ -230,7 +228,7 @@ class AssistanceMixin(ApprovalMixin):
             self._binding(db,member,session,cwd)
             row=db.execute('SELECT * FROM execution_requests WHERE id=?',(request_id,)).fetchone()
             if member!='A' or not row or row['status'] not in ('unknown','needs_authorization','declined'):fail('Unresolved request required / 仅 A 可核实未知操作或新增的用户授权')
-            if not self._idle(db,['A',db.execute('SELECT recipient FROM messages WHERE id=?',(row['source_message'],)).fetchone()[0]]):fail('Workspace busy / 请先等待原回合结束')
+            if not self._idle(db,['A','B']):fail('Workspace busy / 请先等待原回合结束')
             if row['result_delivery']:
                 self._require_ack(db,'B',row['result_delivery'])
                 msg=db.execute("SELECT process_status FROM messages WHERE delivery_id=?",(row['result_delivery'],)).fetchone()
@@ -238,7 +236,7 @@ class AssistanceMixin(ApprovalMixin):
             db.execute("UPDATE execution_requests SET status='resolved',updated=? WHERE id=?",(time.time(),request_id))
             db.execute("UPDATE messages SET process_status='completed',updated=? WHERE id=?",(time.time(),row['message_id']))
             db.execute("UPDATE tasks SET status='active' WHERE id=? AND status='waiting_execution'",(row['task_id'],))
-            self._send(db,'A',db.execute('SELECT recipient FROM messages WHERE id=?',(row['source_message'],)).fetchone()[0],'请求 '+request_id+' 已核实，不自动重跑。核实依据：'+clean(evidence),kind='note',task_id=row['task_id'],dedupe_key='execution-resolved:'+request_id)
+            self._send(db,'A','B','请求 '+request_id+' 已核实，不自动重跑。核实依据：'+clean(evidence),kind='note',task_id=row['task_id'],dedupe_key='execution-resolved:'+request_id)
             self.event(db,'execution_reconciled',request=request_id,evidence=clean(evidence))
             return {'resolved':True,'rerun':False}
 
@@ -254,19 +252,14 @@ class AssistanceMixin(ApprovalMixin):
     def _member_suspended(self,db,member):
         if self._option(db,'quota_state:'+member,'ready')!='ready':return True
         q=self._quotas(db).get(member,{}) if self._option(db,'quota_checkpoints',False) else {}
-        reserve=self._pool_reserve(db,member,self._quotas(db))
-        return q.get('reliability')=='fresh' and q['remaining']<=reserve
+        return q.get('reliability')=='fresh' and q['remaining']<=self._reserve(db,member)
 
     def _reserve(self,db,member):
-        return max(6,min(95,self._option(db,'checkpoint_reserve:'+member,self._option(db,'checkpoint_default',9))))
-
-    def _pool_reserve(self,db,member,quotas):
-        q=quotas.get(member,{})
-        return max([self._reserve(db,m) for m,v in quotas.items() if v.get('pool')==q.get('pool') and v.get('limit_id')==q.get('limit_id')] or [self._reserve(db,member)])
+        return max(9,min(95,self._option(db,'checkpoint_reserve:'+member,9)))
 
     def _healthy(self,db,member,quotas):
         q=quotas.get(member,{})
-        return q.get('reliability')=='fresh' and q.get('remaining',0)>=min(100,self._pool_reserve(db,member,quotas)+5)
+        return q.get('reliability')=='fresh' and q.get('remaining',0)>=min(100,self._reserve(db,member)+5)
 
     def _checkpoint_read_required(self,db,member):
         return any(r['status'] not in ('consumed','transferred') for r in db.execute('SELECT status FROM checkpoints WHERE member=? OR recipient=?',(member,member)))
@@ -308,7 +301,7 @@ class AssistanceMixin(ApprovalMixin):
         members=[r[0] for r in db.execute('SELECT id FROM members')]
         for member in members:
             q=quotas[member];state=self._option(db,'quota_state:'+member,'ready')
-            if state=='ready' and q.get('reliability')=='fresh' and q['remaining']<=self._pool_reserve(db,member,quotas):
+            if state=='ready' and q.get('reliability')=='fresh' and q['remaining']<=self._reserve(db,member):
                 self._put(db,'quota_state:'+member,'saving')
                 self._put(db,'checkpoint_start:'+member,{'remaining':q['remaining'],'pool':q.get('pool'),'limit_id':q.get('limit_id'),'windows':q.get('windows',[])})
                 generation=uuid.uuid4().hex
@@ -320,9 +313,8 @@ class AssistanceMixin(ApprovalMixin):
                 continue
             checkpoint=db.execute("SELECT * FROM checkpoints WHERE member=? AND status='saved'",(member,)).fetchone()
             if not checkpoint:continue
-            peers=[m for m in members if m!=member and quotas[m].get('pool')!=q.get('pool') and self._member_ready(db,m) and self._healthy(db,m,quotas) and not self._member_suspended(db,m) and self._transfer_workspaces_safe(db,member,m)]
-            peer=min(peers,key=lambda m:(sum(r[0] for r in db.execute("SELECT effort FROM tasks WHERE assignee=? AND status NOT IN ('completed','integrated')",(m,))),m)) if peers else None
-            same_pool=False
+            peer='B' if member=='A' else 'A'
+            same_pool=quotas.get(peer,{}).get('pool')==q.get('pool')
             manifest=json.loads(checkpoint['manifest'])
             transferable=self._transferable_messages(manifest['messages']) and not db.execute("SELECT 1 FROM execution_requests WHERE status NOT IN ('success','failed','declined','resolved')").fetchone()
             if self._approval_unresolved(db,grants_only=True):transferable=False
@@ -330,7 +322,7 @@ class AssistanceMixin(ApprovalMixin):
             if not recipient and self._healthy(db,member,quotas):recipient=member
             if not recipient:continue
             if not self._idle(db,[member,recipient]):continue
-            if member!=recipient and not self._transfer_workspaces_safe(db,member,recipient):
+            if member!=recipient and workspace(self._member(db,member))!=workspace(self._member(db,recipient)):
                 # shortcut: 跨 worktree 的未提交修改不能自动搬运，原窗口恢复后继续。
                 continue
             msg=self._send(db,member,recipient,'交接已保存。先 check-checkpoint，再 read-checkpoint 分页读完，核对现场，用 consume-checkpoint 附恢复计划持久化接管并清理；完成本通知后继续剩余工作，不能重做已完成操作。',
@@ -390,10 +382,7 @@ class AssistanceMixin(ApprovalMixin):
             after=self._quotas(db).get(member,{})
             if before and after.get('reliability')=='fresh' and before.get('pool')==after.get('pool') and before.get('limit_id')==after.get('limit_id') and before.get('windows') and [w['resets_at'] for w in before['windows']]==[w['resets_at'] for w in after['windows']]:
                 spent=before['remaining']-after['remaining']
-                if spent>=0:
-                    calibrated=max(self._reserve(db,member),6,min(95,spent*2+2))
-                    self._put(db,'checkpoint_reserve:'+member,calibrated)
-                    self._put(db,'reserve_evidence:'+member,{'value':calibrated,'source':'observed','reason':'可比额度池及重置周期内的实际交接消耗','spent_percent':spent,'updated':time.time()})
+                if spent>=0:self._put(db,'checkpoint_reserve:'+member,max(self._reserve(db,member),min(95,spent*2+2)))
             self.event(db,'checkpoint_saved',member=member,path=str(path),digest=digest(text))
             return {'saved':True,'path':str(path),'digest':digest(text),'end_turn':True}
 
@@ -450,7 +439,6 @@ class AssistanceMixin(ApprovalMixin):
             if digest(path.read_text(encoding='utf-8'))!=fingerprint:fail('Checkpoint changed / 文件已变化，不能接管')
             manifest=json.loads(row['manifest'])
             if member!=source:
-                if not self._transfer_workspaces_safe(db,source,member):fail('Workspace transfer unsafe / 跨工作树存在未提交改动或版本不一致，保留原现场')
                 if not self._transferable_messages(manifest['messages']):
                     fail('Messages unresolved / 原窗口有未收尾问答或执行，须由原窗口恢复核实后再转交')
                 if db.execute("SELECT 1 FROM execution_requests WHERE status NOT IN ('success','failed','declined','resolved')").fetchone():
@@ -477,9 +465,7 @@ class AssistanceMixin(ApprovalMixin):
                         db.execute("UPDATE messages SET process_status='completed',updated=? WHERE id=?",(time.time(),old['id']))
                 self.event(db,'approval_takeover_boundary',reviewer='A',notify_user=True,
                     reason='工作接管不转移系统权限；A 不可用时，需要其审核的请求交给用户')
-            if manifest['coordinator']==source:
-                self._put(db,'coordinator',member)
-                self._put(db,'coordinator_epoch',self._option(db,'coordinator_epoch',1)+1)
+            if manifest['coordinator']==source:self._put(db,'coordinator',member)
             if member!=source:
                 db.execute("UPDATE tasks SET assignee=?,report_to=CASE WHEN report_to=? THEN ? ELSE report_to END WHERE status='pending' AND assignee=?",(member,source,member,source))
             self._put(db,'quota_state:'+member,'ready')
@@ -553,7 +539,7 @@ class AssistanceMixin(ApprovalMixin):
         if kind=='approval_review':return self.approval_review_ready(db,message)
         if kind=='execution_request':
             r=db.execute('SELECT status FROM execution_requests WHERE message_id=?',(message['id'],)).fetchone()
-            return bool(r and r[0]=='review') and self._idle(db,[message['sender'],message['recipient']],exclude=[message['id']]) and not self._member_suspended(db,member)
+            return bool(r and r[0]=='review') and self._idle(db,['A','B'],exclude=[message['id']]) and not self._member_suspended(db,member)
         if kind=='checkpoint_resume':
             row=db.execute("SELECT * FROM checkpoints WHERE message_id=? AND status='offered'",(message['id'],)).fetchone()
             if not row:return False
@@ -562,13 +548,6 @@ class AssistanceMixin(ApprovalMixin):
         if kind=='checkpoint':return True
         if self._member_suspended(db,member):return False
         if kind=='task':
-            assignment=self._option(db,'review-task:'+message['task_id'])
-            if assignment:
-                review=db.execute('SELECT * FROM work_reviews WHERE task_id=?',(assignment['task'],)).fetchone()
-                source=db.execute('SELECT * FROM tasks WHERE id=?',(assignment['task'],)).fetchone()
-                if (not review or not source or assignment['version']!=review['version']
-                        or assignment['version']!=self._current_work_version(db,source)
-                        or not self._review_artifact_valid(db,source)):return False
             if self._checkpoint_read_required(db,member):return False
             if self._checkpoint_path(db,member).is_file():
                 row=db.execute('SELECT status FROM checkpoints WHERE member=?',(member,)).fetchone()
@@ -580,7 +559,7 @@ class AssistanceMixin(ApprovalMixin):
         if not self._assistance_claimable(db,message):return False
         if not self._idle(db,[message['recipient']],exclude=[message['id']]):return False
         if message['kind']=='execution_request':
-            return self._idle(db,[message['sender'],message['recipient']])
+            return self._idle(db,['A','B'])
         return True
 
     def _assistance_complete(self,db,member,message,token,result):
@@ -611,9 +590,8 @@ class AssistanceMixin(ApprovalMixin):
                 'questions':[dict(r) for r in db.execute('SELECT * FROM delegation_questions')],
                 'approval_enabled':self._option(db,'approval_assistance',False),
                 'approval_hook':self._option(db,'approval_hook'),
-                'approval_hooks':{m[0]:self._option(db,'approval_hook' if m[0]=='B' else 'approval_hook:'+m[0]) for m in db.execute("SELECT id FROM members WHERE id<>'A'")},
                 'approvals':approvals,
                 'checkpoints_enabled':self._option(db,'quota_checkpoints',False),'coordinator':self._coordinator(db),
-                'members':{r[0]:{'state':self._option(db,'quota_state:'+r[0],'ready'),'reserve_percent':self._reserve(db,r[0]),'reserve_evidence':self._option(db,'reserve_evidence:'+r[0],{'source':'legacy' if self._option(db,'checkpoint_reserve:'+r[0]) is not None else 'default','value':self._reserve(db,r[0]),'reason':'保留已建立的旧策略或本轮初始默认值','updated':self._member(db,r[0])['joined']})} for r in db.execute('SELECT id FROM members')},
+                'members':{r[0]:{'state':self._option(db,'quota_state:'+r[0],'ready'),'reserve_percent':self._reserve(db,r[0])} for r in db.execute('SELECT id FROM members')},
                 'requests':[dict(r) for r in db.execute('SELECT id,task_id,status,digest,result_delivery FROM execution_requests')],
                 'checkpoints':[dict(r) for r in db.execute('SELECT member,path,digest,status,recipient FROM checkpoints')]}

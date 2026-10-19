@@ -1,65 +1,20 @@
 # codex-pair
 
-审核恢复修复：工作树临时变化只暂停审核，恢复原产物后继续原任务；已登记替代版本才关闭未发送的旧审核。兼容恢复旧版误关闭且能证明从未投递的同版本任务，不重放已领取或投递未知消息。详见 [独立成果审核](references/members.md#独立成果审核)。
+让用户当前打开的两个官方 Codex CLI 窗口协作：A 发起，用户把邀请交给 B，双方通过本地消息桥问答、分工、交付和整合。各自保留原会话、配置目录、模型与权限。
 
-当前源码新增默认双人、中途扩至3～4个原 CLI 的动态协作。新增成员邀请、独立 GPT 成果审核、逐成员审批及最低6%动态交接线见 [多人协作说明](references/members.md)。新能力尚未完成真实三/四窗口验收；现有 Release 和下方历史验收不能替代该项验证。不另开 CLI、不重建已有协作，旧协作策略及已校准保留线保留。
+## 当前支持范围
 
-2026-10-18 专项修复审核版本与交付确认绑定、未投递的过期审核收尾，以及未发送审核人不可用时的重新选择。文件成果须固定为提交；审核校验具体提交和任务声明范围，无关改动不撤销审核，范围内变化仍阻止旧结论放行。已激活但完全未发送的审核也可安全改派，并同步消息接收方。复现与回归见 [验收记录](references/verification.md#审核范围与未发送改派补充维修)。这些是源码修复，不代表现有 Release 已更新。
+- 仅两个已有原窗口，固定 A/B；不支持三、四窗口扩容，不创建额外模型会话或用后台托管会话冒充原窗口。
+- Windows、Python 3.10+、Git、支持 queue/app-server 的官方 Codex CLI。历史验证使用过 0.162.1、0.163.0，不保证任意版本兼容。
+- 提供方仅限 OpenAI 官方账号和原 CLI 已配置的 DeepSeek API；不配置 API、不复制登录信息或 Key。
+- 同工作树业务串行；已有独立 worktree 可在范围不冲突时并行。安装到多个配置目录不等于多个成员同时协作。
+- 这是个人维护项目，并非 OpenAI 官方项目。
 
+当前维护版为 2026-10-19 两窗口版，以本窗口保留审批和握手修复的源码为基准。此前三、四窗口实验实现从当前运行包撤回，历史提交与模拟测试记录保留；不要用本版打开 schema 9 多人数据库或做降级迁移。
 
-让你当前打开的两个 Codex CLI 窗口一起完成项目。
+## 安装当前版本
 
-在窗口 A 说明任务，把它生成的邀请粘贴到窗口 B。B 加入并通过连接验证后，双方通过本地消息桥分工、提问、回复和交付；A 负责统筹与整合。
-
-协作对象由你选择，不固定是哪两个账号或配置目录。同一账号的两个会话、不同账号的两个会话都可以参与。普通入口沿用原窗口，不另开模型会话，也不要求你手填会话 UUID 或账号目录。
-
-这是个人维护的项目，并非 OpenAI 官方项目。
-
-源码另新增 [A 代答与审核 B 权限请求](references/approval-review.md)：新协作默认将普通问题交给 A，并通过官方 PermissionRequest Hook 按用户授权和 A 当前权限审核请求，B 保留原沙箱限制。较低权限的 B 首次在 Hook 安装后输入 `/hooks`，审阅并信任对应项。审批超时三分钟后保留记录，由 A 核实后安排重发；连续两次超时通知用户。安装不代表生效，真实双窗口验收单独记录。
-
-v1.2.0 新增 A 在当前任务授权内承接 B 无法执行的操作，以及低额度时在项目内保存现场、转交和恢复。新窗口协作默认以剩余 9% 为初始交接线；双方额度都低时各自保存，可靠额度恢复后继续原窗口。权限协助需要显式开启，不改变 B 的权限，也不绕过用户拒绝。完整用法、清理规则及未验证边界见 [协助执行与交接](references/assistance.md)。v1.2.0 发布包包含这些新增功能；此前 v1.1.3 发布包不包含。
-
-## 适用范围
-
-- 运行环境：Windows、Python 3.10+、Git，以及可用的官方 Codex CLI。
-- CLI 接口：自动通信需要 `queue` 和 `app-server`。OpenAI 历史验证使用 Codex CLI 0.162.1，新增 DeepSeek 基础验证使用 0.163.0；其他版本需要检查接口兼容性。
-- 接入范围：OpenAI 官方账号，以及在官方 Codex CLI 中已经配置好的 DeepSeek API。不支持其他 AI 客户端或模型提供方。
-- DeepSeek：OpenAI A × DeepSeek B 原窗口的邀请、握手、工具写入回读、技能 CLI 和 15 项专项单元测试已实测通过。此次后半程使用用户授权的 Full access / never；DeepSeek 双窗口、反向组合及完整 Git 交付矩阵仍未验证。使用前请读 [DeepSeek 接入与验收说明](references/deepseek.md)。
-
-各窗口保留自己的 `CODEX_HOME`、登录信息、模型和权限设置。技能不配置 API，不收集或复制 Key，也不会借用另一个窗口的账号替它推理。
-
-## 环境与安装
-
-### 下载发布包
-
-当前版本为 [v1.2.0](https://github.com/naxianjin/codex-pair/releases/tag/v1.2.0)：新增委托问答、原生审批审核、任务内协助执行和低额度交接。发布前本地回归 224 项，221 项通过、3 项跳过；新增流程尚未完成完整真实双窗口验收，验证范围见 [验收记录](references/verification.md)。下方发行包包含同版运行文件及 SHA-256 校验文件；需要测试代码时使用源码安装。
-
-[下载 codex-pair.zip](https://github.com/naxianjin/codex-pair/releases/latest/download/codex-pair.zip) · [SHA-256 校验文件](https://github.com/naxianjin/codex-pair/releases/latest/download/SHA256SUMS.txt) · [全部版本](https://github.com/naxianjin/codex-pair/releases)
-
-在当前窗口使用的 PowerShell 环境中执行以下命令。`python` 应指向实际安装的 Python，不要使用 WindowsApps 占位程序。
-
-```powershell
-$pairAccountRoot = if ($env:CODEX_HOME) { $env:CODEX_HOME } else { Join-Path $env:USERPROFILE '.codex' }
-$pairDownload = Join-Path ([IO.Path]::GetTempPath()) ('codex-pair-' + [guid]::NewGuid().ToString('N'))
-New-Item -ItemType Directory -Path $pairDownload | Out-Null
-
-Invoke-WebRequest 'https://github.com/naxianjin/codex-pair/releases/latest/download/codex-pair.zip' -OutFile (Join-Path $pairDownload 'codex-pair.zip')
-Invoke-WebRequest 'https://github.com/naxianjin/codex-pair/releases/latest/download/SHA256SUMS.txt' -OutFile (Join-Path $pairDownload 'SHA256SUMS.txt')
-$pairExpected = ((Get-Content (Join-Path $pairDownload 'SHA256SUMS.txt')) -split '\s+')[0]
-$pairActual = (Get-FileHash (Join-Path $pairDownload 'codex-pair.zip') -Algorithm SHA256).Hash
-if ($pairActual -ne $pairExpected) { throw 'SHA-256 mismatch / 下载包校验失败，停止安装' }
-
-Expand-Archive -LiteralPath (Join-Path $pairDownload 'codex-pair.zip') -DestinationPath $pairDownload
-python (Join-Path $pairDownload 'codex-pair/scripts/install_skill.py') --source (Join-Path $pairDownload 'codex-pair') --home $pairAccountRoot
-```
-
-安装位置是 `<有效 CODEX_HOME>/skills/codex-pair/`。两个窗口使用不同配置目录时，分别在各自环境安装；共用配置目录时只需安装一次。安装器先备份旧技能，再逐文件核对 SHA-256，不修改认证、模型配置或会话记录。
-
-发布包解压后只有一层 `codex-pair/`，包含技能说明、脚本和参考文档，不含测试、Git 历史或本机协作记录。手动安装时，将这个文件夹放入对应环境的 `skills/`，替换前自行备份旧版。
-
-### 安装当前源码
-
-需要查看实现、运行测试或使用尚未发布的改动时，可以从源码安装：
+本轮只更新源码，不创建 Release 或标签。旧 v1.2.0 ZIP 不含本轮修复，不能用 releases/latest 下载结果声称安装了本轮版本。
 
 ```powershell
 git clone https://github.com/naxianjin/codex-pair.git
@@ -68,124 +23,53 @@ $pairAccountRoot = if ($env:CODEX_HOME) { $env:CODEX_HOME } else { Join-Path $en
 python scripts/install_skill.py --source . --home $pairAccountRoot
 ```
 
-需要一次安装到多个本机配置目录时，可重复提供 `--home <实际目录>`；安装器按真实路径去重，不重复安装指向同一目录的联接，也不因名字带 `.codex` 就扫描主题或清理工具目录。
+已有仓库先检查工作树再获取更新，不覆盖用户修改。python 应为实际 Python，而非 WindowsApps 占位程序。安装器仅安装 skills/codex-pair，先备份旧版，再逐文件校验 SHA-256；不改认证、模型配置、会话或权限。可重复 --home 安装多个已确认真实配置目录，同一 junction 目标去重。
 
-已有窗口要使用更新后的说明，可以让它显式读取安装目录里的最新 `SKILL.md`。磁盘安装完成不等于当前会话已经加载新版说明；运行中的旧消息桥也需要停止后从新版脚本重新启动。确认新版安装、哈希和发布包一致后，可将不再需要的旧技能备份、旧 ZIP 及独立解压副本移入系统回收站；不要连带清理账号配置、协作数据库、日志或已登记的 Git worktree。
+安装不等于当前会话已加载。已有窗口显式读取最新 SKILL.md；先安全停止旧桥，再由新版恢复原协作。审批代码摘要变化后，须安装匹配本轮的 Hook，并由 B 在 /hooks 中审阅信任，不写内部信任状态，不自动重放旧请求。
 
-## 使用方式
+## 使用两个原窗口
 
-当前源码支持每轮重新确定 A/B、显式恢复旧协作、交付分页读取确认与额度感知均衡。普通 start 创建新一轮，start --resume-pair <ID> 才保留旧角色；未决旧工作阻止自动换绑。assign 可用 --to auto --effort 5 --report-to A，已明确的后续工作用 --depends-on 登记。quota --refresh 查询双方自身账号额度；未知或不可比较时按工作量分配，不把百分比当作绝对容量。
+1. 在 A 调用 `$codex-pair` 并说明目标仓库、任务。
+2. A 执行 `python <技能目录>/scripts/pair.py start --project <仓库> --goal <目标> --json`。
+3. 将返回的完整 CODEX_PAIR_JOIN_V1 邀请粘贴到已经打开的 B；B 从自身环境 accept。
+4. 关联问答、业务回执及模型回合完成后，communication=verified，开始任务。Queued/accepted 不等于模型已执行。
+5. 完成后暂停或停止桥并保留记录，不删除状态、worktree 或用户文件。
 
-完成通知按 report_to 路由，支持交给自身并等待当前回合结束。handoff --task <ID> --to A/B 幂等补发已有交付；不重做任务、不修改负责人。结果与前置交付先 read-delivery 分页读取，再 ack-delivery 确认。中途交回使用 complete --partial，不能满足完成依赖。后台10秒检查任务、60秒刷新额度；模型无需保持回合轮询。接口、数据可靠性及恢复边界见 [协作协议](references/protocol.md)。
+不按窗口标题、目录名称或最近会话猜成员；不要在普通终端手填别人的 UUID 冒充原窗口。原会话 cwd 与任务 workspace 分开，领取/完成从 actor_cwd 执行。
 
-结果回合只负责读取、确认和收尾。新轮次在阶段交付和整合完成、所有结果收尾后，会自动给 A 登记独立的规划任务；桥等原回合结束后投递。A 在规划任务中核对原目标、登记剩余任务及依赖，再由桥自动调度两个窗口，无需用户手动输入“继续”。原目标已全部实现时，A 用 `complete --goal-complete` 记录验收结论，停止接续。该机制只推进已授权的原目标；关键输入或新增授权缺失时仍需用户提供。
+## 审批、恢复与审核边界
 
+正式 PermissionRequest Hook 将 B 的受支持请求交给 A 单次审核；B 保留自己的限制。首次信任在 B 的 /hooks 完成，通信成功不代表审批就绪。用户授权变化须登记 delegation-policy，不能复用旧允许。
 
-回合检测对 A、B 使用相同规则。非拥有者 API 可能返回 `notLoaded`，或把已结束回合合成为缺少完成时间的 `interrupted`；这些状态及等待时长都不单独证明完成。桥会只读官方返回的本账号会话日志，核对目录、会话和 cwd，按准确 `turn_id` 匹配持久化 `task_complete`。旧通知已经处理完成且有后续回合开始并完成时，可确认旧回合被取代并保存证据引用；最新回合仍在执行、日志不完整或证据缺失时继续等待，不重派业务。无需每次交接重新加入协作。
+默认等待180秒。首次超时后核实未执行与原回合结束，再由 prepare-approval-retry 安排唯一第二次；连续两次后 needs_user，停止自动重试。granted/unknown 先核实结果，不重放。固定协调命令重复调用仍需新请求逐次审核。
 
-### 1. 在窗口 A 给出任务
+DeepSeek 实质成果必须由经提供方/模型元数据确认的 OpenAI 官方 GPT 独立审核，登记审核任务及依赖，绑定交付版本；本版无多人实验分支的自动 review-work 门槛。无合格审核窗口则保留产物并报告，不能自行验收。
 
-打开两个已能正常使用的官方 Codex CLI 窗口。在 A 中输入，例如：
+任务内 A 代执行须显式开启。低额度检查点初始保留线9%，未知额度不猜、共享池不算独立资源；真实额度耗尽、双低接管及恢复清理仍未完整验收，不因模拟测试通过宣传已完成。
 
-```text
-使用 $codex-pair，与我另一个已打开的 Codex CLI 窗口协作。
-项目：D:\work\my-project
-目标：修复登录页问题，补充测试，由 A 检查并整合结果。
-```
+## 测试与已知限制
 
-将示例项目路径和目标换成自己的。A 会核验当前窗口、建立项目内共享状态，并输出一整段以 `CODEX_PAIR_JOIN_V1` 标识的加入指令。
-
-### 2. 将完整邀请粘贴到窗口 B
-
-B 在自己的原窗口执行邀请中的命令，不另建协作，不切换账号目录。首次邀请用于确认你选中的目标窗口，不能仅靠窗口标题或最近会话猜测 B 是谁。
-
-B 如果尚未安装技能，也可以读取邀请所指向的同一份技能文件。消息沿用本轮数据库绑定，不需要每条消息都重新邀请；普通 start 建立新轮次，只有 start --resume-pair <ID> 明确恢复才沿用旧角色。
-
-### 3. 等待连接验证，再开始分工
-
-本地消息桥由脚本在后台启动，普通使用无需另开第三个终端。双方完成关联问答、业务领取与完成回执，并确认模型回合结束后，`status.window_flow.communication` 才会变为 `verified`，随后通知 A 开始组织任务。
-
-`awaiting_peer` 或 `awaiting_handshake` 仍表示等待。队列返回接受回执只代表消息入队，不代表 B 已执行或回复。
-
-连接成立后，A 可以分配任务，双方都能提问和反馈。交付按允许修改的路径和完整提交 SHA 验收，再由 A 整合。详细操作见 [首次接入流程](references/onboarding.md) 和 [协作协议](references/protocol.md)。
-
-## 工作目录与记录
-
-普通入口不强制创建 worktree。两个窗口共用工作树时，代码任务和模型回合串行执行，避免同时操作文件与 Git 暂存区；已有独立 worktree 时，允许范围不重叠的任务并行。
-
-原会话的工作目录与任务工作目录可以不同。任务文件和 Git 操作用 `workspace`，领取与完成用通知中的 `actor_cwd`，不修改原会话根目录。
-
-新协作产生的共享状态、worktree、日志、邀请和交接文件集中在目标项目内：
-
-```text
-<项目>/.codex-pair/
-├── state/       # SQLite 与协作状态
-├── worktrees/   # 选择隔离工作树模式时使用
-├── logs/        # 消息桥日志
-├── handoffs/    # 邀请和手动交接文件
-└── archives/    # 归档与诊断记录
-```
-
-脚本设置本地 Git 排除规则，防止这些数据库和嵌套工作树进入提交。旧状态保留原位置，不静默搬迁；暂停或停止协作也不会删除代码、历史或工作树。不要把真实凭据放进任务正文、结果或日志。
-
-## 消息失败与恢复
-
-消息先持久化再投递，通过原子领取防止重复执行。`claimed=false` 时不能继续处理正文；结果不明的投递不会因为等待时间长就自动重派。
-
-| 情况 | 处理方式 |
-| --- | --- |
-| 审查结果或任务正文很长 | 长信封改为短通知，原文保留在数据库；领取后按通知分页读取，任务还需读完范围与基准 |
-| 领取成功，但工具输出截断、令牌回执丢失 | 不重复领取；原会话确认上一回合已结束并核实进度后，按协议用 `recover-claim` 取回原令牌 |
-| 旧版发送前因 Windows 命令行长度检查失败，且消息未领取 | 可显式用 `recover-delivery` 恢复原消息；保留消息 ID、去重键及尝试历史 |
-| 投递为 `unknown`、已接受或已领取 | 不适用投递恢复入口，不复制正文重新分配；先核对原记录 |
-| CLI 无法自动唤醒原窗口 | 报告限制，按需使用逐成员 relay；仍不可用时明确改为手动交接 |
-
-恢复命令的身份校验、参数及停止条件见 [协作协议](references/protocol.md)。文件信箱只代表手动交接，不能当作自动通信通过。技能不模拟键盘、不自动批准权限请求，也不擅自新开托管会话替代原窗口。
-
-## 权限与重复询问
-
-已授权的常规步骤由执行方直接完成，缺失信息先向 A 报告。工具反复弹审批时检查目标窗口的实际权限，而不只看磁盘 `config.toml`：`on-request` 仍可能要求确认，`never` 不弹审批但不会自动解除沙箱。用户明确选择 Full access 时，在该原窗口用 `/permissions` 切换，并核对后续回合实际权限；旧回合仍用旧权限时，先结束旧回合，再在同一会话从断点继续，不能重复领取任务。
-
-此次 DeepSeek 基础实测使用 Full access / never 完成，它取消本地沙箱限制；技能不默认替用户切换，也不要求所有 DeepSeek 用户都选择此模式。详细失败记录与环境边界见 [DeepSeek 说明](references/deepseek.md)。
-
-## 验证与限制
-
-v1.1.3 已由原 DeepSeek CLI 窗口使用 Python 3.12.13 执行源码完整回归：160 项测试，157 项通过、3 项真实环境测试显式跳过，0 失败、0 错误、退出码 0。此前专项实测为 15 项全部通过、无跳过，退出码 0。两批结果均基于 Full access / never，不代表受限沙箱通过。覆盖账号路由、会话识别、凭据隔离、领取去重与恢复、旧库兼容、Git 交付、安装、打包、长消息分页、角色重置、额度刷新失败边界和阶段结果收尾后的自动接续。
-
-在源码目录运行：
+[完整测试汇总](references/validation-summary-20261019.md) 汇总本窗口及此前其他 CLI 的实测、回归、失败与未验证项。历史全量统计不能相加成为一个测试总数。
 
 ```powershell
-python -m unittest discover -v
+python -X utf8 -B -m unittest discover -q
 ```
 
-Windows 下临时目录路径过深时，Git worktree 或 SQLite 备份可能报路径错误。可在源码仓库内指定较短的测试临时目录，再运行完整测试：
+本轮两窗口源码回归229项，226通过、3项需显式开启的真实环境测试跳过。最新发布副本与安装校验另见汇总，不把安装哈希一致当作每个账号都运行了真实双窗口矩阵。
 
-```powershell
-$pairTestTemp = Join-Path (Get-Location) '.codex-pair\tmp'
-New-Item -ItemType Directory -Force -Path $pairTestTemp | Out-Null
-$env:TEMP = $pairTestTemp
-$env:TMP = $pairTestTemp
-$env:GIT_CEILING_DIRECTORIES = $pairTestTemp
-python -m unittest discover -v
-```
+已验证：原窗口基础协作、两阶段自动接续、长消息分页与受限写入协助、握手恢复、已有 HEAD 的 integrate 幂等、审批允许与拒绝、两次真实180秒超时停止，以及待审批 pending 时撤销授权。撤销项未覆盖 allowed 已返回但未消费竞争。
 
-额度刷新失败单独记录 `refresh_status=unavailable`；最近一次尚未超过 120 秒且周期未重置的快照继续有效。复杂任务刷新等待超时也不会解除有效 `remaining=0` 快照的耗尽保护。过期或周期重置后仍需重新查询，不自行增加可用额度。
+仍有限制：安装目录曾反复被旧版覆盖，来源未查明；共享工作树空闲判定可能令同回合 prepare 返回 B turn unresolved，原回合结束后再按协议处理，不绕过。DeepSeek×DeepSeek、反向组合、其他 CLI 版本及完整跨分支 Git 矩阵仍未完成实机验收。
 
-已有验证记录与尚未完成的验证分开列出：
+## 文档
 
-- OpenAI：此前两个可见原窗口已通过邀请和双向握手，完成文档、测试的分工、提交与整合；另有独立账号后台托管会话的问答、去重、重启与冲突整合记录。这不保证每个 CLI 版本或新配对都能自动通信。
-- 当前窗口接续：2026-10-16，v1.1.2 在两个既有 OpenAI 原窗口完成 B 测试→A 阅读→B 再次接续→安装目录测试→A 结果确认；相关任务与结果均完成，每条投递一次。目标完成后不再生成任务，所有模型回合结束后测试桥已停止。源码回归 160 项（157 通过、3 跳过），安装目录专项 35 项（34 通过、1 跳过），31 个包文件哈希一致。本轮未新增 Git 提交整合验证；详见 [验收记录](references/verification.md)。
-- DeepSeek：2026-10-16 在官方 Codex CLI 0.163.0 的用户所选窗口完成 OpenAI A × DeepSeek B 邀请与双向握手（communication=verified）、任务领取交付、分页确认和目标收尾；B 使用现有 Python 3.12.13 完成工具写入回读、技能 CLI status 和 15 项专项单元测试（15 通过、0 跳过、退出码 0）。用户中途选择 Full access / never 后写入成功，不能据此宣称受限沙箱已通过。DeepSeek×DeepSeek、反向组合、安装副本执行及完整 Git 交付矩阵仍未验证。
+- [技能入口](SKILL.md)
+- [首次接入](references/onboarding.md)
+- [协作协议](references/protocol.md)
+- [原生审批](references/approval-review.md)
+- [协助执行与额度交接](references/assistance.md)
+- [DeepSeek 边界](references/deepseek.md)
+- [安装维修](references/repair-multi-account.md)
+- [历史验收索引](references/verification.md)
 
-离线测试通过、模型能对话、队列接受、业务完成与原窗口自动协作是不同证据，不能互相替代。
-
-## 更多文档
-
-- [技能入口](SKILL.md)：调用条件和当前窗口流程。
-- [首次接入](references/onboarding.md)：A 发起、B 加入与目录约定。
-- [协作协议](references/protocol.md)：消息、任务、Git 交付、停止与恢复。
-- [DeepSeek 接入与验收](references/deepseek.md)：配置边界和真实测试清单。
-- [维修与安装诊断](references/repair-multi-account.md)：旧状态兼容、账号路由与安装校验。
-- [验收记录](references/verification.md)：本轮自动接续的实测结果、证据层级与未验证范围。
-
-遇到问题可在 [Issues](https://github.com/naxianjin/codex-pair/issues) 提供 CLI 版本、复现步骤和脱敏错误。不要上传认证文件、API Key、完整账号配置或未经检查的协作数据库。
+反馈请提供脱敏版本、复现步骤及英文原错。不要上传认证文件、完整配置、会话日志、令牌或协作数据库。

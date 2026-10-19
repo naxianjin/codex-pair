@@ -1,10 +1,10 @@
 # codex-pair 协作协议
 
-当前源码成员注册扩展至A～D，schema 9迁移、专用中途邀请、独立成果审核及6%新协作保留线见 [members.md](members.md)。双人历史记录和低层示例不限制新增成员；当前统筹与原A审批资格分别保存。
+当前仅支持两个用户已打开的官方 CLI 原窗口 A/B，不支持多人扩容。最新结论及历史测试边界见 [测试汇总](validation-summary-20261019.md)；下文历史版本号不代表当前包版本。
 
-源码新增的 A 协助执行、低额度检查点、接管和恢复遵守 [assistance.md](assistance.md)。新增状态包括 waiting_execution、quota_wait；执行请求和交接通知使用专用完成接口。额度接管后由 status.assistance.coordinator 指定统筹方，原数据库 A/B 与账号权限不变。以下 v1.1.3 验收是历史记录，不覆盖新增流程。schema 1～5 按旧机制备份、取得桥与派发锁后迁移至 schema 6，保留领取令牌、业务交付和读取确认；旧轮次不自动开启新策略。
+源码新增的 A 协助执行、低额度检查点、接管和恢复遵守 [assistance.md](assistance.md)。新增状态包括 waiting_execution、quota_wait；执行请求和交接通知使用专用完成接口。额度接管后由 status.assistance.coordinator 指定统筹方，原数据库 A/B 与账号权限不变。以下 v1.1.3 验收是历史记录，不覆盖新增流程。当前两窗口库为 schema 8；升级前安全停止桥并备份，保留领取令牌、业务交付和读取确认，旧轮次不自动开启新策略。禁止降级打开 schema 9 多人库。
 
-本文对应 v1.1.3。保留此前两个 OpenAI 原窗口的自动接续与安装版验证；2026-10-16 另完成 OpenAI A × DeepSeek B 原窗口的基础握手、工具执行、技能 CLI、15 项单元测试和交付读取确认。DeepSeek 测试后半程使用用户授权的 Full access / never；不涵盖受限沙箱、反向组合、DeepSeek 双窗口或完整 Git 提交整合，完整边界见 [验收记录](verification.md)。
+以下介绍中 v1.1.3 是历史验收版本。保留此前两个 OpenAI 原窗口的自动接续与安装版验证；2026-10-16 另完成 OpenAI A × DeepSeek B 原窗口的基础握手、工具执行、技能 CLI、15 项单元测试和交付读取确认。DeepSeek 测试后半程使用用户授权的 Full access / never；不涵盖受限沙箱、反向组合、DeepSeek 双窗口或完整 Git 提交整合，完整边界见 [验收记录](verification.md)。
 
 首次调用先读 [onboarding.md](onboarding.md)：主动发起者默认 A，收到用户转交的加入指令者为 B。双方保留独立 CODEX_HOME，通过共享状态与成员账号路由协作。角色提示不等于双账号传输已通过真实验收，不得统一双方登录目录。
 
@@ -42,7 +42,7 @@ accept 发出 window-handshake 问题，A 领取、发送关联 reply 并完成�
 
 - 已有 CLI 默认 queue 后端，完整 UUID 与实际 cwd 从官方 API 验证。用参数数组调用 `codex queue`，正文封装为 ASCII JSON 避开 Windows 中文参数代码页损坏。已实测空闲自动启动、繁忙后排队；回执 Queued 仅说明入队。
 - 旁路 app-server 只读目标元数据和回合，绝不 resume 已有 CLI。目标未加载时队列仍可持久化，不能声称已处理。历史 API 可能暂报 interrupted 且 completedAt 为空；只有持久化完成时间才能证明终态。
-- `join --new-session` 使用 managed 后端，成员独占 app-server CLI，通过 turn/start 启动。仅恢复本协作创建的持久会话。shared proxy 是可选后端，本机 socket 曾报 os error 10050，未将它列为通过验收。
+- 遗留 managed/shared 后端仅为历史兼容和隔离测试保留，不属于当前支持入口；普通协作只使用两个已有原窗口的 start/accept。shared proxy 历史 socket 曾报 os error 10050，不记为通过。
 - delivery_status 是 pending/retry/delivering/accepted/unknown/failed；remote_status 是 queued/inProgress/有完成时间的 completed、failed、interrupted；process_status 是 unclaimed/claimed/completed。三者独立，模型结束不自动完成任务。
 - 消息、信封与尝试先写入 SQLite，再调用传输。确定尚未发送的临时错误最多重试三次（可设 1–10）；发送后超时或崩溃进入 unknown，绝不自动重发。用消息 ID、原始信封和回合记录对账；查不到记录不是未投递证明。仍不明时保留记录，由操作者核实，禁止重派执行中的任务。
 - 业务 complete 不释放尚在运行的模型回合；后续消息等待该回合结束。预检确认繁忙时尚未提交消息，记录 deferred 并等待，不消耗实际投递重试额度，不据此判断失联。
@@ -58,7 +58,7 @@ accept 发出 window-handshake 问题，A 领取、发送关联 reply 并完成�
 & $py $script init --pair $pair --project 'D:\work\project' --base-ref HEAD --worktree-root 'D:\work\project\.codex-pair\worktrees' --json
 & $py $script join --pair $pair --state-root 'D:\work\project\.codex-pair\state' --member A --member-codex-home '<A账号目录>' --session '<A-UUID>' --worktree '<A目录>' --json
 & $py $script join --pair $pair --state-root 'D:\work\project\.codex-pair\state' --member B --member-codex-home '<B账号目录>' --session '<B-UUID>' --worktree '<B目录>' --json
-# 独占托管会话可用 --new-session 替代 --session。
+# 当前支持仅绑定两个原窗口，不使用 --new-session。
 & $py $script daemon --pair $pair --state-root 'D:\work\project\.codex-pair\state' --json
 ```
 
@@ -95,7 +95,7 @@ assign 支持 --report-to A/B（默认当前统筹方，初始为 A），负责�
 
 ## 额度与负担
 
-assign --to auto --effort 1/2/3/5/8（默认3）选择安全成员；普通固定指派、已激活、执行中、blocked、已交付任务不迁移。独立审核任务只在确证尚未发送、未领取时允许安全改派，详见 [members.md](members.md#独立成果审核)。方案细化、审查、测试和整合准备均登记 effort。新轮次复杂任务（5、8）在可比较额度相差至少20个百分点时优先额度高者；70/50适用，70/51按负担均衡；轻任务按负担。40%～60%是软目标，依赖、范围、能力和工作树安全优先。已明确耗尽的成员不接新自动任务，两方均耗尽时保留 pending 并说明原因。
+assign --to auto --effort 1/2/3/5/8（默认3）选择安全成员；固定指派、已激活、执行中、blocked、已交付任务不迁移。方案细化、审查、测试和整合准备均登记 effort。新轮次复杂任务（5、8）在可比较额度相差至少20个百分点时优先额度高者；70/50适用，70/51按负担均衡；轻任务按负担。40%～60%是软目标，依赖、范围、能力和工作树安全优先。已明确耗尽的成员不接新自动任务，两方均耗尽时保留 pending 并说明原因。
 
 额度通过成员自身环境的 account/rateLimits/read 读取，启动读取、变化通知触发重读、后台60秒刷新；复杂派发前超过30秒请求刷新，最多等待本地查询预算后退回工作量，超过120秒过期。周期重置到时只触发重读，不能自行增加剩余额度。优先按可靠模型/limitId 对应选择 rateLimitsByLimitId，多桶映射不明时为 bucket_unknown；兼容单桶旧格式，不混用其他桶。有效周期剩余额度取 100-usedPercent 的最低值。周期长度不一致、未知、过期、提供方不支持时按工作量；百分比不代表不同套餐的相同绝对容量。同账号身份摘要及同 CODEX_HOME 作为共享资源池处理，不保存原始邮箱或认证响应。
 
@@ -201,9 +201,13 @@ unknown、已接受、已领取、已完成或其他失败不适用此恢复；�
 
 在目标 Codex 会话内可用 `join --current-session` 替代手填 `--session`；它要求环境中的 CODEX_THREAD_ID 和当前实际 cwd，仍通过本成员账号的 app-server 验证会话。普通 PowerShell 中没有该上下文时会报错，不会猜最近 UUID。
 
-旧数据库留在原 home/codex-pair/<ID>，只从原账号查找，不扫描其他账号。首次打开 schema 1～5 时，取得旧 daemon 与派发锁，先创建 schema-v<版本>-<时间>.backup.sqlite3，再事务升级到 schema 6；schema 1～3 仍须先核实未决投递。迁移保留旧账号字段、窗口设置、领取令牌、交付和分页确认，补充协助执行与检查点记录，外键须完整。旧成员继承原 home，历史与路径不搬动。低层 init 默认项目内隔离布局，普通使用走 start/accept；旧 Python Store API 未传 state_root 时保留旧路径语义。
+旧数据库留在原 home/codex-pair/<ID>，只从原账号查找，不扫描其他账号。升级旧两窗口库时，取得旧 daemon 与派发锁，先创建备份，再按受支持迁移链事务升级至 schema 8；schema 1～3 仍须先核实未决投递。迁移保留旧账号字段、窗口设置、领取令牌、交付和分页确认，补充协助执行与检查点记录，外键须完整。旧成员继承原 home，历史与路径不搬动。低层 init 默认项目内隔离布局，普通使用走 start/accept；旧 Python Store API 未传 state_root 时保留旧路径语义。
 
-两个可见原窗口的验收优先使用上述 start/accept 邀请和后台桥，不要求第三个终端。以下仅为低层手动测试：在 A/B 各自目录启动 codex，让各自用实际 UUID 执行 join；第三个终端运行 daemon。按上述命令分配任务、提问、关联回复、提交交付，再 integrate 并测试。记录 UUID、消息 ID、提交 SHA 和 status，不能只检查 Queued 回执。禁止模拟键盘或根据窗口标题推测 UUID。未执行的可见双窗口验收必须明确列为未完成。
+两个可见原窗口的验收优先使用上述 start/accept 邀请和后台桥，不要求第三个终端。以下仅为低层手动测试：在 A/B 各自目录启动 codex，让各自用实际 UUID 执行 join；由 start/accept 自动启动后台桥。按上述命令分配任务、提问、关联回复、提交交付，再 integrate 并测试。记录 UUID、消息 ID、提交 SHA 和 status，不能只检查 Queued 回执。禁止模拟键盘或根据窗口标题推测 UUID。未执行的可见双窗口验收必须明确列为未完成。
+
+### 握手中断后的恢复
+
+握手消息已领取并完成，但原投递回合曾中断时，桥继续只读核对该账号、会话和 cwd 的日志。只有后续回合已持久化完成，才保存 `rollout_superseded` 及证据回合 ID，并允许双方业务回执均完成的握手通过；原回合仍记 interrupted，不伪造 completed。未处理消息、仅 API interrupted、缺少结束证据或新回合仍运行时，不据此放行，不重新投递原消息。此恢复不转移身份、令牌或审批资格。
 
 ## Git 接口返回结构
 

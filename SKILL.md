@@ -1,17 +1,13 @@
 ---
 name: codex-pair
-description: 让用户当前打开的2～4个官方 Codex CLI 窗口动态协作，通过邀请加入、本地消息桥问答、分工、交付与整合。支持 OpenAI 官方账号与已配置 DeepSeek API 的官方 Codex CLI，不支持其他提供方；不固定账号目录，不另开模型会话，普通单窗口 Git 操作无需启用。
+description: 让用户当前打开的两个官方 Codex CLI 窗口协作，通过邀请加入、本地消息桥问答、分工、交付与整合。支持 OpenAI 官方账号与已配置 DeepSeek API 的官方 Codex CLI，不支持其他提供方；不固定账号目录，不另开模型会话，普通单窗口 Git 操作无需启用。
 ---
 
 # Codex Pair
 
-当前源码新增2～4人动态协作、独立 GPT 成果审核与最低6%保留线。多人成员邀请、调度、审核和迁移前先读 [多人协作](references/members.md)。真实三/四窗口验收尚未执行；下方历史版本记录不代表新增能力已通过原窗口验收。默认A/B，以 invite-member 中途加入C/D，不重建协作或另开CLI。
+当前维护版：2026-10-19 两窗口版，以本窗口已修复源码为基准；仅支持用户选中的两个已有官方 Codex CLI 原窗口 A/B，不支持第三、第四成员，不另开模型会话。源码更新不等于旧 Release ZIP 已更新；安装使用当前源码。
 
-审核版本修复：含文件的待审交付须先提交并保持工作树干净；审核绑定具体提交及任务声明范围，范围内变化使旧结论和读取确认失效，范围外改动不撤销审核。临时不匹配只暂停审核，恢复原产物后继续；只有登记替代版本才关闭未发送的旧审核。旧审核任务不能登记新版本结论；安全收尾不代表通过。恢复边界见 [独立成果审核](references/members.md#独立成果审核)。
-
-当前发行版本 v1.2.0 新增 A 协助执行、低额度交接与恢复，说明见 [assistance.md](references/assistance.md)。本地回归 224 项，221 项通过、3 项跳过；新增流程尚未完成完整真实双窗口验收。以下 v1.1.3 验收记录不包含新增流程，不能作为新增流程已通过原窗口测试的依据。
-
-当前源码版本 v1.1.3：已在用户选择的 OpenAI A 与 DeepSeek B 原窗口验证邀请、双向握手、工具写入回读、技能 CLI 和 15 项专项单元测试；Windows 模拟测试目录改为继承现有 ACL。此次测试后半程使用用户明确授权的 Full access / never，不代表受限沙箱下也通过。此前两个 OpenAI 原窗口及安装版的验收记录保留；各项范围与未验证项见 [验收记录](references/verification.md)。
+已验证和未验证范围见 [测试汇总](references/validation-summary-20261019.md)：保留此前原窗口、后台 CLI、模拟测试和失败记录，各层证据不能互相替代。协助执行与低额度恢复规则见 [assistance.md](references/assistance.md)，未完成的真实额度场景不得说成通过。
 
 ## 适用范围
 
@@ -19,12 +15,12 @@ description: 让用户当前打开的2～4个官方 Codex CLI 窗口动态协作
 
 涉及 DeepSeek 时，先读 [接入边界与验收清单](references/deepseek.md)。仅使用原 CLI 已配置的 Responses API，不安装或改写 API 配置，不收集或复制 Key。模型对话成功、工具执行成功、原窗口自动协作通过必须分别验证。OpenAI A × DeepSeek B 的基础流程已有实测；DeepSeek×DeepSeek、反向组合及完整 Git 交付矩阵仍待验证。
 
-协作对象是用户选中的2～4个现有窗口。同账号或不同账号均可；各窗口的账号目录、会话 UUID 和实际 cwd 由自身环境与 CLI API 验证，用户无需配置是哪两个 .codex-*。A 统筹整合，B 参与开发，双方均可提问与反馈。
+协作对象是用户选中的两个现有窗口。同账号或不同账号均可；各窗口的账号目录、会话 UUID 和实际 cwd 由自身环境与 CLI API 验证，用户无需配置是哪两个 .codex-*。A 统筹整合，B 参与开发，双方均可提问与反馈。
 
 ## 判断当前输入
 
 - 收到消息信封：先在 actor_cwd 运行 claim_argv，只有 claimed=true 才处理；不要重新 start。
-- 收到用户转交的 CODEX_PAIR_JOIN_V1：本窗口按邀请原子分配为 B/C/D，读取邀请中的技能路径并执行 accept 命令；不要另建协作。
+- 收到用户转交的 CODEX_PAIR_JOIN_V1：本窗口是 B，读取邀请中的技能路径并执行 accept 命令；不要另建协作。
 - 用户在本窗口调用技能并给出项目目标：本窗口发起 A，先读 [onboarding.md](references/onboarding.md)。
 - 普通 start 建立新一轮，第一个成功登记的窗口为数据库 A，接受本轮邀请者为 B；只有 start --resume-pair <ID> 明确恢复时保留旧角色。口头分工不能改变底层角色。
 
@@ -50,19 +46,19 @@ description: 让用户当前打开的2～4个官方 Codex CLI 窗口动态协作
 
 每次开始或恢复本项目工作，先执行信封 checkpoint_check_argv 或 check-checkpoint。只检查本窗口及明确指定接管的项目内文档；没有则继续，不扫描目录或读取历史。有则按 [assistance.md](references/assistance.md) 分页读完、核对现场、持久化恢复计划后清理，不只依赖口头“记住了”。
 
-新 start 默认开启低额度交接，旧轮次由 A 显式 assistance-policy --checkpoints on。新协作可靠剩余额度达到或低于6%或已上调保留线（旧协作保留9%及已校准余量）时停止新业务，save-checkpoint 后结束回合。一方充足则接管，同低则各自保存等待；超过保留线 5 个百分点才自动恢复。额度未知不猜测；共享额度不算两个资源池。保存中或未消费交接阻止后续规划。原操作未结束、执行结果未知或不同 worktree 存在未提交修改时不自动转交。普通问题随交接移交决策，审批资格不随统筹权转移；A 不可用且 B 需要其审核时通知用户。接管后以 status.assistance.coordinator 指定的窗口统筹，自动规划也发给它，数据库 A/B 身份及权限不变。
+新 start 默认开启低额度交接，旧轮次由 A 显式 assistance-policy --checkpoints on。可靠剩余额度降至 9% 或实测提高后的保留线时停止新业务，save-checkpoint 后结束回合。一方充足则接管，同低则各自保存等待；超过保留线 5 个百分点才自动恢复。额度未知不猜测；共享额度不算两个资源池。保存中或未消费交接阻止后续规划。原操作未结束、执行结果未知或不同 worktree 存在未提交修改时不自动转交。普通问题随交接移交决策，审批资格不随统筹权转移；A 不可用且 B 需要其审核时通知用户。接管后以 status.assistance.coordinator 指定的窗口统筹，自动规划也发给它，数据库 A/B 身份及权限不变。
 
 用户要求任务内权限协助时，由 A 显式 start --execution-assistance task-scoped 或 assistance-policy --execution on。B 工作树不可写时用 request-execution --request-stdin 直接提交 UTF-8 JSON，不先在受限 D 盘创建请求文件；保留父任务令牌并结束回合。A 完整核对授权、脚本与影响范围，begin-execution 登记后才用自己的正常工具执行，再 finish-execution 回传证据。协调命令经过 A 自动审核不等于用户逐次手动同意；两项分别记录。桥不执行命令，明确拒绝或系统禁止不得绕过。unknown 必须核实，不能重跑。相关消息先读 [assistance.md](references/assistance.md)，不能直接 complete 关闭执行请求或保存通知。
 
 accept 经本地桥发起关联问答验证。双方按信封领取、回复和完成后，status.window_flow.communication 才变为 verified，随后桥通知 A 按原目标分工。B 按 after_join 结束当前回合，给新消息进入下一轮的机会；不要阻塞轮询等回复。
 
-awaiting_peer/awaiting_handshake 只表示等待加入/验证；queue 接受回执不等于模型已回复。若接口无法唤醒原窗口，明确报告限制。manual 只表示用户转交消息的手动模式，不是自动通信成功；不模拟键盘，不擅自新建 managed 会话。
+awaiting_peer/awaiting_handshake 只表示等待加入/验证；queue 接受回执不等于模型已回复。若接口无法唤醒原窗口，明确报告限制。manual 只表示用户转交消息的手动模式，不是自动通信成功；不模拟键盘，不使用遗留 managed 新会话入口替代原窗口。
 
 开发与交付遵守 [protocol.md](references/protocol.md)：允许范围、原子领取、关联问答、完整 SHA 交付与整合。任务文件和 Git 操作用 workspace，claim/complete 用 actor_cwd，二者可能不同。同一工作树的代码任务和模型回合串行，已有独立 worktree 可并行。保留用户修改，不把用户未提交文件一起提交。
 
-多人新增成员完成通信验证和 confirm-briefing 后才派单；当前统筹派单附 status.coordinator_epoch。DeepSeek 实质成果必须由独立官方 GPT 审核；参与实现者不能自审，review-work 绑定版本，相关改动后重新审核。原 A 的权限审批身份不随统筹交接。
+DeepSeek 实质产出在验收、整合、发布或供后续依赖使用前，必须由经实际提供方和模型元数据确认的 OpenAI 官方 GPT 独立审核。用 assign 登记独立审核任务并依赖原任务，下游依赖审核任务；绑定交付 digest/提交 SHA，实际读取证据并记录结论。当前两窗口版没有多人实验分支的 review-work 自动门槛，流程依靠任务依赖和审核记录执行；无合格审核窗口时保留交付并通知用户，不伪称已审核。
 
-分工时把已明确的后续工作登记为任务，用 --depends-on 保存依赖；不要只在对话里说“做完我再继续”。assign 支持 --to auto、--effort 1/2/3/5/8（默认3）及 --report-to A/B/C/D（默认当前统筹方，初始为 A）。方案细化、审查、测试和整合准备也要登记工作量，避免统筹独揽。新轮次默认额度感知均衡，旧轮次保留原策略；额度未知时使用工作量，不推算套餐容量。
+分工时把已明确的后续工作登记为任务，用 --depends-on 保存依赖；不要只在对话里说“做完我再继续”。assign 支持 --to auto、--effort 1/2/3/5/8（默认3）及 --report-to A/B（默认当前统筹方，初始为 A）。方案细化、审查、测试和整合准备也要登记工作量，避免统筹独揽。新轮次默认额度感知均衡，旧轮次保留原策略；额度未知时使用工作量，不推算套餐容量。
 
 完成任务后按 report_to 生成结果，即使交给自身也排队等待当前回合结束。结果消息仅阅读交付及收尾，绝不重跑原任务，也不生成新的结果通知。信封有 required_deliveries 时，逐条运行 read_delivery_argv_template，以 next_offset 分页至 null，再按返回 digest 执行 ack_delivery_argv_template。任务交付前会检查前置记录确认，结果消息完成前会检查本次交付确认。证据引用也须实际检查，不把脚本读取确认当作理解或测试证据。
 

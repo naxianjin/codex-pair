@@ -186,6 +186,24 @@ class WindowTests(unittest.TestCase):
         argv=envelope['claim_argv']
         self.assertEqual(argv[argv.index('--worktree')+1],self.windows['A']['cwd'])
 
+    def test_completed_handshake_recovers_after_original_turn_interrupted(self):
+        _,_,store=self.joined();a=store.member('A');b=store.member('B')
+        question=store.status()['messages'][0]
+        owned=store.claim('A',a['session_uuid'],a['cwd'],message_id=question['id'])
+        reply=store.send('A','B','确认连接',kind='reply',reply_to=question['id'])
+        store.complete('A',a['session_uuid'],a['cwd'],question['id'],owned['claim_token'],'已回复')
+        owned=store.claim('B',b['session_uuid'],b['cwd'],message_id=reply['id'])
+        store.complete('B',b['session_uuid'],b['cwd'],reply['id'],owned['claim_token'],'后续回合完成回复')
+        with store.transaction() as db:
+            db.execute("UPDATE messages SET remote_status='completed',delivery_status='accepted' WHERE id=?",(question['id'],))
+            db.execute("UPDATE messages SET remote_status='interrupted',delivery_status='accepted',turn_id='old' WHERE id=?",(reply['id'],))
+        self.assertEqual(store.status()['window_flow']['communication'],'awaiting_handshake')
+        fake=FakeTransport(store)
+        fake.observation={'turn_id':'old','remote_status':'interrupted','completion_source':'rollout_superseded','evidence_turn_id':'resumed'}
+        Daemon(store,fake).reconcile()
+        self.assertEqual(store.status()['window_flow']['communication'],'verified')
+        self.assertEqual(store.message(reply['id'])['attempts'],0)
+
     def test_ready_notification_waits_for_real_handshake_terminal_states(self):
         _,_,store=self.joined();a=store.member('A');b=store.member('B')
         question=store.status()['messages'][0]
@@ -245,7 +263,7 @@ class WindowTests(unittest.TestCase):
         b=self.windows['B'];proof={'id':b['session_uuid'],'cwd':a['cwd']}
         store.join('B',b['session_uuid'],a['cwd'],backend='queue',owned=False,proof=proof,member_codex_home=home)
         with store.transaction() as db:
-            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],9)
+            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],8)
             self.assertFalse(db.execute('PRAGMA foreign_key_check').fetchall())
             self.assertEqual(db.execute("SELECT count(*) FROM events WHERE kind='old_history'").fetchone()[0],1)
         self.assertEqual(len(list(directory.glob('schema-v3-*.backup.sqlite3'))),1)

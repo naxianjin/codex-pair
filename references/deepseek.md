@@ -1,6 +1,8 @@
 # DeepSeek 接入边界与验收
 
-本文对应源码 v1.1.3。2026-10-16 已完成 OpenAI A × DeepSeek B 的真实原窗口基础测试：邀请、双向握手、工具写入回读、技能 CLI、专项单元和结果确认。测试后半程使用用户明确授权的 Full access / never；组合矩阵与未验证项如下，完整记录见 [验收记录](verification.md)。
+当前仅支持两个用户已打开的官方 CLI 原窗口 A/B，不支持多人扩容。最新结论及历史测试边界见 [测试汇总](validation-summary-20261019.md)；下文历史版本号不代表当前包版本。
+
+下述 v1.1.3 基础验收为历史记录；后续受限审批、分页和撤销等结果见测试汇总。2026-10-16 已完成 OpenAI A × DeepSeek B 的真实原窗口基础测试：邀请、双向握手、工具写入回读、技能 CLI、专项单元和结果确认。测试后半程使用用户明确授权的 Full access / never；组合矩阵与未验证项如下，完整记录见 [验收记录](verification.md)。
 
 本文适用于官方 Codex CLI 中已配置 DeepSeek API 的原窗口。支持范围仅为 OpenAI 官方账号与 DeepSeek API，不因兼容接口而扩展其他提供方。普通入口、消息恢复和 Git 交付继续遵守 [protocol.md](protocol.md)。
 

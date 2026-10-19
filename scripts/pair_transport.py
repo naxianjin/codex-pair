@@ -434,7 +434,7 @@ class AppServer:
                         'reported_status':turn['status'],'completed_at':turn.get('completedAt'),
                         'result': [item.get('text', '') for item in turn.get('items', [])
                                    if item.get('type') == 'agentMessage'], 'error': redact_diagnostic(turn.get('error'))}
-                if state=='inProgress':
+                if state=='inProgress' or state=='interrupted' and message.get('process_status')=='completed':
                     proof=self.rollout_completion(member,thread,message,turn['id'])
                     if proof:receipt.update(proof)
                 return receipt

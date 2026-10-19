@@ -15,12 +15,10 @@ import uuid
 try:
     from .pair_transport import DeliveryUnknown, SessionBusy, TransportError, canonical_path, session_uuid, binding_proof, provider_identity, redact_diagnostic
     from . import pair_balance
-    from .pair_members import MembersMixin, MEMBERS
     from .pair_assistance import AssistanceMixin
 except ImportError:
     from pair_transport import DeliveryUnknown, SessionBusy, TransportError, canonical_path, session_uuid, binding_proof, provider_identity, redact_diagnostic
     import pair_balance
-    from pair_members import MembersMixin, MEMBERS
     from pair_assistance import AssistanceMixin
 
 
@@ -169,7 +167,7 @@ COMMIT;
 '''
 
 
-class Store(MembersMixin, AssistanceMixin):
+class Store(AssistanceMixin):
     def __init__(self, pair_id, *, home=None, state_root=None, create=False):
         self.pair_id = identifier(pair_id)
         self.home = Path(home or effective_home()).resolve()
@@ -198,11 +196,11 @@ class Store(MembersMixin, AssistanceMixin):
     def _upgrade(self):
         with closing(sqlite3.connect(self.path)) as db:
             version=db.execute('PRAGMA user_version').fetchone()[0]
-        if version==9:return
-        if version not in (1,2,3,4,5,6,7,8):raise PairError('Unsupported schema / 不支持的数据库版本')
+        if version==8:return
+        if version not in (1,2,3,4,5,6,7):raise PairError('Unsupported schema / 不支持的数据库版本')
         with FileLock(self.daemon_lock,timeout=2), FileLock(self.control_lock,timeout=30),closing(sqlite3.connect(self.path)) as db:
             version=db.execute('PRAGMA user_version').fetchone()[0]
-            if version==9:return
+            if version==8:return
             unresolved=db.execute("SELECT 1 FROM messages WHERE delivery_status IN ('delivering','unknown') OR (delivery_status='accepted' AND (remote_status IS NULL OR remote_status IN ('queued','inProgress'))) LIMIT 1").fetchone()
             if unresolved and version<4:raise PairError('Legacy delivery unresolved / 请先停止旧派发并对账处理中消息，再升级；原状态未移动')
             with closing(sqlite3.connect(self.directory/('schema-v%d-%s.backup.sqlite3'%(version,time.time_ns())))) as backup:
@@ -213,8 +211,7 @@ class Store(MembersMixin, AssistanceMixin):
             if version<5:self._upgrade_handoffs(db)
             if version<6:self._upgrade_assistance(db)
             if version<7:self._upgrade_approvals(db)
-            if version<8:self._upgrade_delegation(db)
-            self._upgrade_members(db)
+            self._upgrade_delegation(db)
 
     def _upgrade_handoffs(self, db):
         with db:
@@ -315,7 +312,7 @@ class Store(MembersMixin, AssistanceMixin):
                 if version == 0:
                     db.execute('PRAGMA journal_mode=WAL')
                     db.executescript(SCHEMA)
-                elif version not in (1,2,3,4,5,6,7,8,9):
+                elif version not in (1,2,3,4,5,6,7,8):
                     raise PairError('Unsupported schema / 不支持的数据库版本')
                 if version==0:
                     db.executescript(MIGRATION_2)
@@ -325,10 +322,9 @@ class Store(MembersMixin, AssistanceMixin):
                     store._upgrade_assistance(db)
                     store._upgrade_approvals(db)
                     store._upgrade_delegation(db)
-                    store._upgrade_members(db,fresh=True)
             finally:
                 db.close()
-            if version in (1,2,3,4,5,6,7,8):
+            if version in (1,2,3,4,5,6,7):
                 raise PairError('Upgrade existing state first / 请先使用 status 升级旧状态，再初始化')
             with store.transaction() as db:
                 existing = db.execute('SELECT * FROM collaborations').fetchone()
@@ -390,8 +386,8 @@ class Store(MembersMixin, AssistanceMixin):
             return dict(row)
 
     def join(self, member_id, session, cwd, *, backend, owned, proof, member_codex_home=None, delivery_mode='auto'):
-        if member_id not in MEMBERS:
-            raise PairError('Member must be A through D / 成员必须为 A～D')
+        if member_id not in ('A','B'):
+            raise PairError('Member must be A or B / 成员必须为 A 或 B')
         session, cwd = session_uuid(session), canonical_path(cwd)
         member_home=canonical_path(member_codex_home or self.home)
         if delivery_mode not in ('auto','manual'):raise PairError('Invalid delivery mode / 无效通信模式')
@@ -426,7 +422,12 @@ class Store(MembersMixin, AssistanceMixin):
     def window_verified(db):
         return bool(db.execute('''SELECT 1 FROM messages q JOIN messages r ON r.reply_to=q.id AND r.kind='reply'
             WHERE q.dedupe_key='window-handshake' AND q.process_status='completed' AND r.process_status='completed'
-            AND q.remote_status='completed' AND r.remote_status='completed' LIMIT 1''').fetchone())
+            AND (q.remote_status='completed' OR (q.remote_status='interrupted'
+                AND json_extract(q.remote_result,'$.completion_source')='rollout_superseded'
+                AND json_extract(q.remote_result,'$.evidence_turn_id') IS NOT NULL))
+            AND (r.remote_status='completed' OR (r.remote_status='interrupted'
+                AND json_extract(r.remote_result,'$.completion_source')='rollout_superseded'
+                AND json_extract(r.remote_result,'$.evidence_turn_id') IS NOT NULL)) LIMIT 1''').fetchone())
 
     def _send(self, db, sender, recipient, body, *, kind='note', task_id=None,
               dedupe_key=None, reply_to=None, progress_note=None):
@@ -447,7 +448,7 @@ class Store(MembersMixin, AssistanceMixin):
             if existing['fingerprint'] != fingerprint:
                 raise PairError('Dedupe key reused with different content / 去重键被用于不同内容')
             return dict(existing)
-        if kind=='question' and sender!=self._coordinator(db) and not dedupe_key.startswith('window-handshake') and self._option(db,'delegation_enabled',False):
+        if kind=='question' and sender=='B' and dedupe_key!='window-handshake' and self._option(db,'delegation_enabled',False):
             if self._option(db,'delegated_no_progress',0)>=2 and not (progress_note and progress_note.strip()):
                 raise PairError('Question loop stopped / 连续两轮无进展，请通知用户或提供新增信息')
             if progress_note and progress_note.strip():self._put(db,'delegated_no_progress',0)
@@ -474,7 +475,7 @@ class Store(MembersMixin, AssistanceMixin):
         if kind=='reply' and delegated and not task_id and self._option(db,'delegated_no_progress',0)>=2:
             db.execute("UPDATE delegation_questions SET state='needs_user',reason='连续两轮没有新增进展，停止循环并通知用户' WHERE id=?",(reply_to,))
             self.event(db,'question_loop_stopped',question=reply_to,notify_user=True)
-            self._send(db,recipient,self._coordinator(db),'连续两轮问题未提供新增进展，停止自动问答并向用户报告。',kind='blocked',dedupe_key='question-loop:'+reply_to)
+            self._send(db,'B','A','连续两轮问题未提供新增进展，停止自动问答并向用户报告。',kind='blocked',dedupe_key='question-loop:'+reply_to)
         if kind=='reply' and task_id:
             db.execute('UPDATE tasks SET no_progress_rounds=CASE WHEN ? THEN 0 ELSE no_progress_rounds+1 END,updated=? WHERE id=?',
                        (bool(progress_note and progress_note.strip()),now,task_id))
@@ -484,8 +485,8 @@ class Store(MembersMixin, AssistanceMixin):
                 db.execute("UPDATE tasks SET status='blocked' WHERE id=?",(task_id,))
                 self.event(db,'task_blocked', task=task_id, reason=str(limit)+'_rounds_without_progress',notify_user=True)
                 # A 自己发出的回复也要获得可审计的阻塞通知。
-                other=recipient if recipient!=self._coordinator(db) else sender
-                self._send(db,other,self._coordinator(db),'任务 '+task_id+' 连续 '+str(limit)+' 轮问答未提供实际进展证据，已阻塞；请向用户报告原因。',
+                other='B'
+                self._send(db,other,'A','任务 '+task_id+' 连续 '+str(limit)+' 轮问答未提供实际进展证据，已阻塞；请向用户报告原因。',
                            kind='blocked',task_id=task_id,dedupe_key='blocked:'+task_id)
         return dict(db.execute('SELECT * FROM messages WHERE id=?',(message_id,)).fetchone())
 
@@ -493,16 +494,13 @@ class Store(MembersMixin, AssistanceMixin):
         with self.transaction() as db:
             return self._send(db,sender,recipient,body,**kwargs)
 
-    def assign(self, task_id, title, assignee, allowed_paths, *, body='', dependencies=(),base_commit=None, report_to=None, effort=3, requester=None, coordinator_epoch=None, repairs=None):
+    def assign(self, task_id, title, assignee, allowed_paths, *, body='', dependencies=(),base_commit=None, report_to=None, effort=3):
         identifier(task_id);allowed_paths=normalize_scopes(allowed_paths)
-        if task_id.startswith(('pair-plan-','gpt-review-')):raise PairError('Reserved task prefix / pair-plan- 为自动规划任务保留')
+        if task_id.startswith('pair-plan-'):raise PairError('Reserved task prefix / pair-plan- 为自动规划任务保留')
         if isinstance(effort,bool) or not isinstance(effort,int) or effort not in (1,2,3,5,8):raise PairError('Invalid effort / 工作量须为 1/2/3/5/8')
         if not title.strip():
             raise PairError('Task needs a title / 任务需要标题')
         with self.transaction() as db:
-            if db.execute('SELECT count(*) FROM members').fetchone()[0]>2:
-                if not requester or requester[0]!=self._coordinator(db) or coordinator_epoch!=self._option(db,'coordinator_epoch',1):raise PairError('Current coordinator required / 多人派单必须由当前统筹及最新职责版本发起')
-                self._binding(db,*requester)
             report_to=report_to or self._coordinator(db)
             self._member(db,'A');self._member(db,report_to)
             auto=assignee=='auto'
@@ -513,31 +511,11 @@ class Store(MembersMixin, AssistanceMixin):
             for dependency in dependencies:
                 if not db.execute('SELECT 1 FROM tasks WHERE id=?',(dependency,)).fetchone():
                     raise PairError('Dependency not found / 依赖任务不存在: '+dependency)
-            repair=None
-            if repairs:
-                repair=db.execute('SELECT * FROM work_reviews WHERE task_id=?',(repairs,)).fetchone()
-                original=db.execute('SELECT * FROM tasks WHERE id=?',(repairs,)).fetchone()
-                if not repair or repair['status']!='blocked' or not original or original['status'] not in ('completed','delivered','integrated') or self._option(db,'replacement:'+repairs):raise PairError('Blocked version required / 只能为未被替代的阻塞成果登记修复')
-                review_id='gpt-review-'+hashlib.sha256((repairs+repair['version']).encode()).hexdigest()[:24]
-                if not db.execute("SELECT 1 FROM tasks WHERE id=? AND status='completed'",(review_id,)).fetchone():raise PairError('Review still active / 须先收尾阻塞审核任务，再登记修复')
-                if assignee!=original['assignee'] or not set(allowed_paths).issubset(set(json.loads(original['allowed_paths']))):raise PairError('Repair scope mismatch / 修复须沿用原实现者及允许范围')
-                pending=list(dependencies);seen=set()
-                while pending:
-                    parent=pending.pop()
-                    if parent==repairs:raise PairError('Repair dependency cycle / 修复不能直接或间接等待原阻塞版本')
-                    if parent in seen:continue
-                    seen.add(parent)
-                    pending.extend(r[0] for r in db.execute('SELECT depends_on FROM dependencies WHERE task_id=?',(parent,)))
-                base_commit=original['base_commit']
             now=time.time()
             base_commit=base_commit or db.execute('SELECT base_commit FROM collaborations').fetchone()[0]
             db.execute('INSERT INTO tasks(id,title,body,assignee,allowed_paths,status,created,updated,base_commit,report_to,effort,assignment_mode) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)',
                        (task_id,title,body,assignee,dumps(allowed_paths),'pending',now,now,base_commit,report_to,effort,'auto' if auto else 'fixed'))
             db.executemany('INSERT INTO dependencies VALUES(?,?)',[(task_id,d) for d in set(dependencies)])
-            if repair:
-                self._put(db,'replacement:'+repairs,task_id)
-                self._put(db,'repair-source:'+task_id,repairs)
-                db.execute('INSERT INTO work_reviews VALUES(?,?,?,?,?,?,?,?,?)',(task_id,'pending',repair['contributors'],repair['required'],None,'pending',None,None,now))
             self.event(db,'task_assigned',task=task_id,assignee=assignee)
             self._schedule(db)
             return dict(db.execute('SELECT * FROM tasks WHERE id=?',(task_id,)).fetchone())
@@ -545,34 +523,25 @@ class Store(MembersMixin, AssistanceMixin):
     def _schedule(self, db):
         if db.execute('SELECT status FROM collaborations').fetchone()[0]!='running':
             return
-        self._register_reviews(db)
         active=list(db.execute("SELECT * FROM tasks WHERE status IN ('active','blocked','waiting_execution','quota_wait','checkpoint_wait')"))
         workspaces={r['id']:member_workspace(dict(r)) for r in db.execute('SELECT * FROM members')}
-        delivered=[r for r in db.execute("SELECT * FROM tasks WHERE status='delivered'") if not self._option(db,'replacement:'+r['id']) or not self._review_clear(db,r['id'])]
+        delivered=list(db.execute("SELECT * FROM tasks WHERE status='delivered'"))
         policy=db.execute("SELECT value FROM pair_settings WHERE key='scheduling_policy'").fetchone()
         balanced=bool(policy and json.loads(policy[0])=='quota-balanced')
         quotas=self._quotas(db)
         burden=pair_balance.loads(db)
         for row in db.execute("SELECT * FROM tasks WHERE status='pending' ORDER BY created,id").fetchall():
             task=dict(row)
-            parent_ids=[r[0] for r in db.execute('SELECT depends_on FROM dependencies WHERE task_id=?',(task['id'],))]
-            unmet=any(self._effective_task(db,p)['status'] not in ('completed','integrated') for p in parent_ids)
-            review_task=self._option(db,'review-task:'+task['id'])
-            if unmet and not review_task:continue
-            if not review_task and any(not self._review_clear(db,r[0]) for r in db.execute('SELECT depends_on FROM dependencies WHERE task_id=?',(task['id'],))):continue
+            unmet=db.execute("SELECT 1 FROM dependencies d JOIN tasks t ON t.id=d.depends_on WHERE d.task_id=? AND t.status NOT IN ('completed','integrated') LIMIT 1",(task['id'],)).fetchone()
+            if unmet:continue
             candidates=[]
             for member_id in workspaces:
-                if self._member_suspended(db,member_id) or not self._member_ready(db,member_id):continue
+                if self._member_suspended(db,member_id):continue
                 if any(a['assignee']==member_id or scopes_overlap(json.loads(a['allowed_paths']),json.loads(task['allowed_paths'])) for a in active):continue
-                if any(workspaces[a['assignee']]==workspaces[member_id] for a in active+([a for a in delivered if a['id']!=self._option(db,'repair-source:'+task['id'])] if not review_task else [])):continue
-                parents=[self._effective_task(db,p) for p in parent_ids]
+                if any(workspaces[a['assignee']]==workspaces[member_id] for a in active+delivered):continue
+                parents=db.execute('''SELECT p.id,p.assignee,p.commits_json FROM dependencies d JOIN tasks p ON p.id=d.depends_on WHERE d.task_id=?''',(task['id'],)).fetchall()
                 if task['allowed_paths']!='[]' and any(json.loads(p['commits_json'] or '[]') and workspaces[p['assignee']]!=workspaces[member_id]
                        and not db.execute("SELECT 1 FROM integrations WHERE task_id=? AND receiver=? AND status='completed'",(p['id'],workspaces[member_id])).fetchone() for p in parents):continue
-                if review_task:
-                    review=db.execute('SELECT * FROM work_reviews WHERE task_id=?',(review_task['task'],)).fetchone()
-                    if (not review or review['version']!=review_task['version']
-                            or review['version']!=self._current_work_version(db,parents[0])
-                            or member_id not in self._review_candidates(db,review)):continue
                 candidates.append(member_id)
             reason='fixed_assignment'
             if task['assignment_mode']=='auto':
@@ -594,7 +563,6 @@ class Store(MembersMixin, AssistanceMixin):
             db.execute("UPDATE tasks SET status='active',updated=? WHERE id=?",(time.time(),task['id']))
             prerequisites=[dict(r) for r in db.execute('''SELECT p.id,p.result,p.commits_json,d.id delivery_id FROM dependencies x
                 JOIN tasks p ON p.id=x.depends_on LEFT JOIN deliveries d ON d.id='delivery:'||p.id WHERE x.task_id=?''',(task['id'],))]
-            prerequisites=[dict(self._effective_task(db,p['id']),delivery_id='delivery:'+self._effective_task(db,p['id'])['id']) for p in prerequisites]
             summary=[{'task':p['id'],'summary':(p['result'] or '')[:600],'commits':json.loads(p['commits_json'] or '[]'),'delivery_id':p['delivery_id']} for p in prerequisites]
             body=task['body'] or task['title']
             if summary:body+='\n前置交付（执行前分页读取并确认记录）：\n'+dumps(summary)
@@ -649,19 +617,11 @@ class Store(MembersMixin, AssistanceMixin):
 
     def _delivery(self, db, task):
         row=db.execute('SELECT * FROM deliveries WHERE id=?',('delivery:'+task['id'],)).fetchone()
+        if row:return dict(row)
         body=task['result'] or ''
         commits=task['commits_json'] or '[]'
-        content=[body,commits]
-        review=db.execute('SELECT required FROM work_reviews WHERE task_id=?',(task['id'],)).fetchone()
-        if review and review['required']:content.append(self._current_work_version(db,task))
-        digest=hashlib.sha256(dumps(content).encode('utf-8')).hexdigest()
-        if row:
-            if review and review['required'] and row['digest']!=digest:
-                db.execute('UPDATE deliveries SET digest=? WHERE id=?',(digest,row['id']))
-                return dict(row,digest=digest)
-            return dict(row)
         record={'id':'delivery:'+task['id'],'task_id':task['id'],'body':body,'commits_json':commits,
-                'digest':digest,'created':time.time()}
+                'digest':hashlib.sha256(dumps([body,commits]).encode('utf-8')).hexdigest(),'created':time.time()}
         db.execute('INSERT INTO deliveries VALUES(?,?,?,?,?,?)',tuple(record.values()))
         return record
 
@@ -694,7 +654,7 @@ class Store(MembersMixin, AssistanceMixin):
         allowed=allowed or db.execute('''SELECT 1 FROM dependencies d JOIN tasks t ON t.id=d.task_id
             WHERE d.depends_on=? AND t.assignee=? AND t.status<>'pending' ''',(record['task_id'],member)).fetchone()
         if not allowed:raise PairError('Delivery access denied / 当前成员无权读取本交付')
-        return self._delivery(db,task)
+        return dict(record)
 
     def read_delivery(self, member, session, cwd, delivery_id, *, offset=0, limit=2000):
         if offset<0 or not 1<=limit<=2000:raise PairError('Invalid page / 分页参数无效')
@@ -752,7 +712,6 @@ class Store(MembersMixin, AssistanceMixin):
             if not self._assistance_claimable(db,message):
                 return {'claimed':False,'reason':'assistance_waiting'}
             db.execute("UPDATE messages SET process_status='claimed',claim_token=?,updated=? WHERE id=?",(token,time.time(),message['id']))
-            if message['kind']=='task' and not message['task_id'].startswith('pair-plan-') and not self._option(db,'review-task:'+message['task_id']):self._capture_work(db,task,member_id)
             self.event(db,'message_claimed',message=message['id'],member=member_id)
             result=dict(db.execute('SELECT * FROM messages WHERE id=?',(message['id'],)).fetchone())
             result['claimed']=True
@@ -832,34 +791,19 @@ class Store(MembersMixin, AssistanceMixin):
             planning=message['kind']=='task' and (message['task_id'] or '').startswith('pair-plan-')
             if goal_complete and not planning:raise PairError('Planning task required / 只能在自动规划任务中确认目标完成')
             if planning:
-                if member_id!=self._coordinator(db):raise PairError('Coordinator changed / 统筹已变更，旧规划不能继续')
                 if commits or partial:raise PairError('Planning is read-only / 规划任务不交付代码提交或中途交回')
                 plan=db.execute('SELECT created FROM tasks WHERE id=?',(message['task_id'],)).fetchone()
                 if goal_complete:
-                    if any(self._effective_task(db,r[0])['status'] not in ('completed','integrated') for r in db.execute("SELECT id FROM tasks WHERE id<>? AND status NOT IN ('completed','integrated')",(message['task_id'],))):
+                    if db.execute("SELECT 1 FROM tasks WHERE id<>? AND status NOT IN ('completed','integrated') LIMIT 1",(message['task_id'],)).fetchone():
                         raise PairError('Work remains / 仍有未完成工作，不能确认目标完成')
-                    if any(not self._review_clear(db,r[0]) for r in db.execute('SELECT task_id FROM work_reviews WHERE required=1')):raise PairError('Reviews remain / 仍有未通过的必要审核')
                     db.execute("INSERT OR REPLACE INTO pair_settings VALUES('goal_completed','true')")
                 elif not db.execute("SELECT 1 FROM tasks WHERE id NOT LIKE 'pair-plan-%' AND created>=? LIMIT 1",(plan['created'],)).fetchone():
                     raise PairError('Register next work / 请先登记后续任务，或用 --goal-complete 确认原目标完成')
-            review_assignment=self._option(db,'review-task:'+(message['task_id'] or ''))
-            stale_review=False
-            if review_assignment:
-                row=db.execute('SELECT status,version FROM work_reviews WHERE task_id=?',(review_assignment['task'],)).fetchone()
-                source=db.execute('SELECT * FROM tasks WHERE id=?',(review_assignment['task'],)).fetchone()
-                stale_review=bool(row and row['version']!=review_assignment['version'])
-                if row and not stale_review and (self._current_work_version(db,source)!=review_assignment['version'] or not self._review_artifact_valid(db,source)):
-                    raise PairError('Review artifact changed / 工作树暂时不匹配，请恢复成果后继续审核')
             if message['delivery_id']:self._require_ack(db,member_id,message['delivery_id'])
-            if message['kind']=='task' and not stale_review:
+            if message['kind']=='task':
                 for record in db.execute('''SELECT r.id FROM dependencies d JOIN deliveries r ON r.id='delivery:'||d.depends_on WHERE d.task_id=?''',(message['task_id'],)).fetchall():
-                    source=record[0][len('delivery:'):]
-                    self._require_ack(db,member_id,'delivery:'+self._effective_task(db,source)['id'])
+                    self._require_ack(db,member_id,record[0])
             elif partial:raise PairError('Partial applies to tasks / 只有业务任务可中途交回')
-            if review_assignment:
-                if not row or not stale_review and row['status'] not in ('passed','blocked'):raise PairError('Review not recorded / 须先记录该版本审核结果')
-                if commits or partial:raise PairError('Review is read-only / 审核任务不能提交代码或中途交回')
-                if stale_review:self.event(db,'stale_review_closed',task=message['task_id'],accepted=False)
             self._assistance_complete(db,member_id,message,token,result)
             db.execute("UPDATE messages SET process_status='completed',updated=? WHERE id=?",(time.time(),message_id))
             if member['delivery_mode']=='manual':
@@ -868,14 +812,13 @@ class Store(MembersMixin, AssistanceMixin):
                 db.execute("UPDATE messages SET delivery_status='manual_handoff',remote_status='completed' WHERE id=?",(message_id,))
             if message['kind']=='reply' and message['reply_to'] and member['delivery_mode']=='auto':
                 original=db.execute('SELECT dedupe_key FROM messages WHERE id=?',(message['reply_to'],)).fetchone()
-                if original and original['dedupe_key'].startswith('window-handshake'):
-                    self._send(db,member_id,'A','当前成员窗口的连接验证回复已完成。领取并完成本通知，查看 status.window_flow.communication；确认 verified 后按 window_flow.goal 组织任务，不再要求用户配置账号或重新开窗口。',
-                        kind='note',dedupe_key='window-ready:'+member_id)
+                if original and original['dedupe_key']=='window-handshake':
+                    self._send(db,'B','A','两个当前窗口的连接验证回复已完成。领取并完成本通知，查看 status.window_flow.communication；确认 verified 后按 window_flow.goal 组织任务，不再要求用户配置账号或重新开窗口。',
+                        kind='note',dedupe_key='window-ready')
             if message['kind']=='task':
                 db.execute('UPDATE tasks SET status=?,result=?,commits_json=?,no_progress_rounds=0,updated=? WHERE id=?',
                            ('handed_back' if partial else ('delivered' if commits else 'completed'),result,dumps(list(commits)),time.time(),message['task_id']))
                 task=dict(db.execute('SELECT * FROM tasks WHERE id=?',(message['task_id'],)).fetchone())
-                if not planning and not review_assignment:self._capture_work(db,task,member_id)
                 if planning:
                     self.event(db,'continuation_planned',task=task['id'],goal_completed=goal_complete)
                 elif partial:
@@ -900,8 +843,9 @@ class Store(MembersMixin, AssistanceMixin):
         policy=db.execute("SELECT value FROM pair_settings WHERE key='scheduling_policy'").fetchone()
         if not flow or not policy or json.loads(policy[0])!='quota-balanced':return
         if db.execute('SELECT status FROM collaborations').fetchone()[0]!='running':return
-        if db.execute("SELECT 1 FROM tasks WHERE id LIKE 'pair-plan-%' AND status NOT IN ('completed','integrated') LIMIT 1").fetchone():return
-        tasks=[r[0] for r in db.execute("SELECT id FROM tasks WHERE id NOT LIKE 'pair-plan-%' AND status IN ('completed','integrated') ORDER BY id") if self._review_clear(db,r[0]) and not db.execute("SELECT 1 FROM messages WHERE task_id=? AND kind='result' AND (process_status<>'completed' OR delivery_status IN ('unknown','failed'))",(r[0],)).fetchone()]
+        if db.execute("SELECT 1 FROM tasks WHERE status NOT IN ('completed','integrated') LIMIT 1").fetchone():return
+        if db.execute("SELECT 1 FROM messages WHERE kind='result' AND (process_status<>'completed' OR delivery_status IN ('unknown','failed')) LIMIT 1").fetchone():return
+        tasks=[r[0] for r in db.execute("SELECT id FROM tasks WHERE id NOT LIKE 'pair-plan-%' ORDER BY id")]
         if not tasks:return
         if db.execute("SELECT 1 FROM pair_settings WHERE key='goal_completed' AND value='true'").fetchone():return
         stage=hashlib.sha256(dumps(tasks).encode()).hexdigest()
@@ -1030,7 +974,6 @@ class Store(MembersMixin, AssistanceMixin):
             result['waiting']=waiting
             result['runtime'].update(lock_held=held,probe_confirmed=bool(nonce and db.execute('SELECT probe_ack FROM runtime').fetchone()[0]==nonce))
             for member in result['members']:
-                member['availability']=self._option(db,'availability:'+member['id'],{'state':'unverified','observed_at':None})
                 member['workspace']=member_workspace(member)
                 member['connection']=provider_identity(json.loads(member['proof']))
                 received=[m for m in result['messages'] if m['recipient']==member['id']]
@@ -1041,17 +984,15 @@ class Store(MembersMixin, AssistanceMixin):
                     'turn_completion':('verified' if auto and any(m['remote_status']=='completed' for m in received) else 'unverified'),
                     'business_processing':('verified' if any(m['process_status']=='completed' for m in received) else 'unverified'),
                     'task_tools':'unverified',
-                    'automatic_communication':('verified' if auto and self.peer_verified(db,member['id']) else ('manual' if not auto else 'unverified'))}
+                    'automatic_communication':('verified' if auto and self.window_verified(db) else ('manual' if not auto else 'unverified'))}
                 member.pop('proof')
             flow=db.execute("SELECT value FROM pair_settings WHERE key='window_flow'").fetchone()
             if flow:
                 flow=json.loads(flow[0])
-                verified=all(self.peer_verified(db,m['id']) for m in result['members'])
+                verified=self.window_verified(db)
                 manual=any(m['delivery_mode']=='manual' for m in result['members'])
                 result['window_flow']={'goal':flow['goal'],'goal_completed':goal_done,'mode':'existing-windows','coordinator':self._coordinator(db),
                     'communication':'manual' if manual else ('verified' if verified else ('awaiting_peer' if len(result['members'])<2 else 'awaiting_handshake'))}
-            result['work_reviews']=[dict(r) for r in db.execute('SELECT * FROM work_reviews')]
-            result['coordinator_epoch']=self._option(db,'coordinator_epoch',1)
             for relay in result['relays']:
                 relay['probe_confirmed']=bool(nonce and relay['probe_ack']==nonce)
                 relay_lock=FileLock(self.directory/('relay-'+relay['member']+'.lock'))
@@ -1131,7 +1072,7 @@ class Daemon:
             busy_workspaces.update(member_workspace(members[r['member']]) for r in db.execute("SELECT member FROM approval_requests WHERE status='pending'"))
             message=next((m for m in candidates if self.store._assistance_dispatchable(db,m)
                 and (m['kind']=='approval_review' or member_workspace(members[m['recipient']]) not in busy_workspaces)
-                and (not m['dedupe_key'].startswith('window-ready') or self.store.peer_verified(db,m['sender']))),None)
+                and (m['dedupe_key']!='window-ready' or self.store.window_verified(db))),None)
             if not message:return None
             if message['task_id'] and message['kind']=='task':
                 if db.execute('SELECT status FROM tasks WHERE id=?',(message['task_id'],)).fetchone()[0]!='active':
@@ -1175,7 +1116,6 @@ class Daemon:
                     db.execute("UPDATE messages SET delivery_status=?,turn_id=?,remote_status=?,queue_id=?,updated=? WHERE id=?",
                                (receipt.get('delivery_status','accepted'),receipt['turn_id'],receipt['remote_status'],receipt.get('queue_id'),time.time(),message['id']))
                     db.execute("UPDATE attempts SET outcome='accepted',ended=? WHERE message_id=? AND outcome='started'",(time.time(),message['id']))
-                    self.store._put(db,'availability:'+member['id'],{'state':'accepted','observed_at':time.time()})
                     self.store.event(db,'delivery_accepted',message=message['id'],turn=receipt['turn_id'])
             return True
 
@@ -1206,12 +1146,15 @@ class Daemon:
             db.execute('UPDATE messages SET delivery_status=?,error=?,next_attempt=?,updated=? WHERE id=?',
                        (state,error,time.time()+2**message['attempts'],time.time(),message['id']))
             db.execute("UPDATE attempts SET outcome=?,detail=?,ended=? WHERE message_id=? AND outcome='started'",(state,error,time.time(),message['id']))
-            if state in ('failed','retry'):self.store._put(db,'availability:'+message['recipient'],{'state':'unreachable','observed_at':time.time()})
             self.store.event(db,'delivery_'+state,message=message['id'],error=error)
 
     def reconcile(self):
         with self.store.transaction() as db:
-            messages=[dict(r) for r in db.execute("SELECT * FROM messages WHERE delivery_status IN ('accepted','unknown') AND (remote_status IS NULL OR remote_status IN ('inProgress','queued')) AND (? IS NULL OR recipient=?)",(self.member_id,self.member_id))]
+            messages=[dict(r) for r in db.execute("""SELECT * FROM messages WHERE delivery_status IN ('accepted','unknown')
+                AND (remote_status IS NULL OR remote_status IN ('inProgress','queued')
+                    OR (remote_status='interrupted' AND process_status='completed'
+                        AND COALESCE(json_extract(remote_result,'$.completion_source'),'')<>'rollout_superseded'))
+                AND (? IS NULL OR recipient=?)""",(self.member_id,self.member_id))]
         for message in messages:
             if self.store.member(message['recipient'])['delivery_mode']=='manual':
                 # 文件存在也不代表目标执行；未知状态须由操作者检查后在目标领取。
@@ -1249,7 +1192,7 @@ class Daemon:
             # 真正存活的守护进程仍持锁，超时后拒绝重复启动，不抢占。
             gate=FileLock(self.store.daemon_lock,timeout=1).acquire()
             try:
-                for member in ([self.member_id] if self.member_id else self.store.member_ids()):
+                for member in ([self.member_id] if self.member_id else ['A','B']):
                     locks.enter_context(FileLock(self.store.directory/('relay-'+member+'.lock')))
                 if self.member_id:gate.release()
                 else:locks.callback(gate.release)
