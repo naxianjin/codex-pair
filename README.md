@@ -14,7 +14,9 @@
 
 ## 安装当前版本
 
-本轮只更新源码，不创建 Release 或标签。旧 v1.2.0 ZIP 不含本轮修复，不能用 releases/latest 下载结果声称安装了本轮版本。
+当前正式版为 [v1.2.1：两窗口维护版](https://github.com/naxianjin/codex-pair/releases/tag/v1.2.1)，包含已验证的握手恢复与审批修复。下载 [codex-pair.zip](https://github.com/naxianjin/codex-pair/releases/download/v1.2.1/codex-pair.zip) 后，按 [SHA256SUMS.txt](https://github.com/naxianjin/codex-pair/releases/download/v1.2.1/SHA256SUMS.txt) 校验再解压，使用包内 scripts/install_skill.py 安装。旧 v1.2.0 ZIP 保持原样，不含本轮修复。
+
+发布记录见 [CHANGELOG.md](CHANGELOG.md)。下方源码安装方式继续可用；历史测试汇总中“不创建 Release”描述的是此前源码同步阶段，本次另行获得用户授权发布。
 
 ```powershell
 git clone https://github.com/naxianjin/codex-pair.git
