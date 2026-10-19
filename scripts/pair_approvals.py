@@ -27,6 +27,15 @@ def dump(value):return json.dumps(value,ensure_ascii=False,sort_keys=True)
 def fingerprint(value):return hashlib.sha256(dump(value).encode('utf-8')).hexdigest()
 
 
+def operation_fingerprint(event):
+    operation={k:event.get(k) for k in ('cwd','tool_name','tool_input')}
+    payload=operation['tool_input']
+    # 只排除 Bash 命令的说明文字，执行参数及未知工具字段仍参与匹配。
+    if operation['tool_name']=='Bash' and isinstance(payload,dict) and isinstance(payload.get('command'),str):
+        operation['tool_input']={k:v for k,v in payload.items() if k!='description'}
+    return fingerprint(operation)
+
+
 def approval_package_digest(directory):
     # 把代码版本纳入官方信任定义，避免只信任固定脚本路径而静默更换实现。
     return fingerprint({p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(Path(directory).glob('pair*.py'))})
@@ -197,9 +206,12 @@ class ApprovalMixin:
                 ORDER BY (m.turn_id=?) DESC,m.created DESC""",(member,member,event['turn_id'],event['turn_id'])).fetchall()
             source=messages[0] if messages and len({m['task_id'] for m in messages})==1 else None
             task_id=source['task_id'] if source else None
-            operation=fingerprint(dict({k:safe[k] for k in ('cwd','tool_name','tool_input')},member=member))
+            operation=operation_fingerprint(safe)
             version=self._authorization_version(db)
-            previous=db.execute('SELECT * FROM approval_requests WHERE operation_digest=? AND authorization_version=? ORDER BY created DESC LIMIT 1',(operation,version)).fetchone()
+            # 按原始事件兼容旧摘要，不重写历史审批或跨成员关联。
+            previous=next((row for row in db.execute(
+                'SELECT * FROM approval_requests WHERE member=? AND authorization_version=? ORDER BY created DESC',
+                (member,version)) if operation_fingerprint(json.loads(row['event']))==operation),None)
             if previous and previous['status'] in ('pending','allowed'):fail('Approval already waiting / 相同操作仍在等待，不能重复申请')
             if previous and previous['status'] in ('denied','granted','unknown'):fail('Operation requires reconciliation / 操作已被拒绝或可能执行，先核实并登记用户授权变更')
             if previous and previous['status']=='expired' and previous['retry_state']!='ready':

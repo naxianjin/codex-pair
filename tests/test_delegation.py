@@ -86,11 +86,43 @@ class DelegationTests(unittest.TestCase):
         with self.assertRaisesRegex(PairError,'turn unresolved'):
             self.store.prepare_approval_retry(*self.binding('A'),request['id'],'不能只凭时间判断已结束')
 
+    def test_description_change_keeps_timeout_retry_chain(self):
+        self.enable()
+        first=self.request(tool_input={'command':'python -m pip --version','description':'第一次请求'})
+        self.expire(first)
+        with self.store.transaction() as db:
+            db.execute("UPDATE approval_requests SET operation_digest='legacy-digest' WHERE id=?",(first['id'],))
+        self.store.prepare_approval_retry(*self.binding('A'),first['id'],'已核实未执行')
+        second=self.request(turn='b-2',tool_input={'command':'python -m pip --version','description':'第二次请求'})
+        self.assertNotEqual(first['digest'],second['digest'])
+        with self.store.transaction() as db:
+            row=db.execute('SELECT previous_id,attempt FROM approval_requests WHERE id=?',(second['id'],)).fetchone()
+            self.assertEqual(tuple(row),(first['id'],2))
+        self.expire(second)
+        row=next(r for r in self.store.status()['assistance']['approvals'] if r['id']==second['id'])
+        self.assertEqual(row['retry_state'],'needs_user')
+        with self.assertRaisesRegex(PairError,'arrange retry'):
+            self.request(turn='b-3',tool_input={'command':'python -m pip --version','description':'第三次请求'})
+
     def test_unknown_execution_not_replayed(self):
         self.enable();request=self.request();self.allow(request)
         self.store.approval_outcome('B',self.sessions['B'],request['id'],request['digest'])
         self.store.report_approval(*self.binding('B'),request['id'],'unknown','连接中断，不能确定退出码或副作用')
         with self.assertRaisesRegex(PairError,'reconciliation'):self.request(turn='b-2')
+
+    def test_operation_identity_preserves_execution_fields(self):
+        from scripts.pair_approvals import operation_fingerprint
+        original=self.event(tool_input={'command':'echo first','description':'说明','timeout_ms':1000})
+        baseline=operation_fingerprint(original)
+        for event in (
+            self.event(tool_input={'command':'echo second','description':'说明','timeout_ms':1000}),
+            self.event(tool_input={'command':'echo first','description':'说明','timeout_ms':2000}),
+            self.event(cwd=str(self.root/'other'),tool_input=original['tool_input']),
+            self.event(tool_name='Other',tool_input=original['tool_input']),
+        ):
+            self.assertNotEqual(operation_fingerprint(event),baseline)
+        self.assertNotEqual(operation_fingerprint(self.event(tool_name='Other',tool_input={'command':'echo first','description':'changed','timeout_ms':1000})),
+            operation_fingerprint(self.event(tool_name='Other',tool_input=original['tool_input'])))
 
     def test_question_dedupe_reply_and_adoption(self):
         self.enable()
