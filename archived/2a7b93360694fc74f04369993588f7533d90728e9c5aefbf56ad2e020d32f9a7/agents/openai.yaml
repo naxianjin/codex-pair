@@ -1,0 +1,6 @@
+interface:
+  display_name: "Codex Pair"
+  short_description: "两到四个原CLI窗口分工，独立隐藏审核、阶段交付与动态额度交接"
+  default_prompt: "使用 $codex-pair 从当前A/B原窗口开始协作，按邀请扩到最多四个可见CLI，由A管理一个独立官方GPT隐藏审核会话；保留原账号和权限，按固定阶段送审，区分已实现与已验证，仅在用户授权和必要验收后发布。"
+policy:
+  allow_implicit_invocation: true

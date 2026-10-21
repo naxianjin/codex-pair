@@ -1,0 +1,3 @@
+# Skill backup 2026-10-21
+
+User-authorized archival backup before local obsolete installation cleanup. current: exact 70-file repaired candidate, four installs identical; official independent review 366 tests,363 passed,3 real tests skipped; installed28 tests passed. Full hidden-review/native-approval/multiwindow acceptance remains unfinished. archived: historical recovery only, not accepted releases. manifest.json maps16 local old backups to deduplicated package hashes. No credentials, config, sessions or operational logs. Active unreviewed receipt repair excluded. Original worktree/index/branches untouched. Initial archival copy in deep fixture failed WinError3 before any push or deletion; retained partial output, then used this short workspace.
