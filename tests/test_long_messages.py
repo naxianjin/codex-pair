@@ -113,7 +113,7 @@ class LongMessageTests(unittest.TestCase):
         self.assertTrue(pair.execute(args)['recovered'])
         claim_args=test_claim_recovery.ClaimRecoveryTests.argv(self,'claim',message,'--compact')
         read_args=test_claim_recovery.ClaimRecoveryTests.argv(self,'read-message',message,'--offset','2000','--limit','500')
-        with patch('scripts.pair.Path.cwd',return_value=Path(self.members['B']['cwd'])),patch('scripts.pair.AppServer'):
+        with patch.dict('os.environ',{'CODEX_THREAD_ID':self.members['B']['session_uuid']}),patch('scripts.pair.Path.cwd',return_value=Path(self.members['B']['cwd'])),patch('scripts.pair.AppServer'):
             receipt=pair.execute(pair.build_parser().parse_args(claim_args))
             self.assertTrue(receipt['claimed'])
             self.assertNotIn('body',receipt)

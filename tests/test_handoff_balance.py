@@ -144,7 +144,8 @@ class HandoffTests(unittest.TestCase):
         self.assertEqual(task['assignment_mode'],'fixed')
 
     def test_same_home_is_one_resource_pool(self):
-        self.store.save_quota('A',quota(70,pool='a'));self.store.save_quota('B',quota(0,pool='b'))
+        now=time.time()
+        self.store.save_quota('A',quota(70,pool='a',now=now));self.store.save_quota('B',quota(0,pool='b',now=now))
         data=self.store.quota()
         self.assertEqual(data['A']['pool'],data['B']['pool'])
         self.assertEqual(data['A']['remaining'],0)

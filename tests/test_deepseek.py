@@ -65,11 +65,12 @@ class DeepSeekTests(unittest.TestCase):
         client.read_thread = Mock(return_value=self.thread(name, provider))
         return client
 
-    def test_current_window_uses_provider_metadata_without_account_rpc(self):
+    def test_current_window_uses_account_rpc_only_for_openai_fingerprint(self):
         for provider in ('openai', 'deepseek'):
             with self.subTest(provider=provider):
                 client = self.observer(provider=provider)
-                client.rpc = Mock(side_effect=AssertionError('account RPC forbidden'))
+                client.rpc = (Mock(return_value={'account':{'id':'test-account','type':'chatgpt'}}) if provider=='openai'
+                              else Mock(side_effect=AssertionError('account RPC forbidden')))
                 with patch.dict(os.environ, {'CODEX_THREAD_ID': self.members['A']['session_uuid'],
                                             'CODEX_HOME': self.homes['A']}), \
                      patch('scripts.pair_windows.AppServer', return_value=client) as constructor:
@@ -78,7 +79,10 @@ class DeepSeekTests(unittest.TestCase):
                 self.assertEqual(result['session_uuid'], self.members['A']['session_uuid'])
                 constructor.assert_called_once()
                 self.assertTrue(constructor.call_args.kwargs['metadata_only'])
-                client.rpc.assert_not_called()
+                if provider=='openai':
+                    client.rpc.assert_called_once_with('account/read',{'refreshToken':False})
+                    self.assertIn('accountFingerprint',result['proof'])
+                else:client.rpc.assert_not_called()
 
     def test_current_window_rejects_unknown_or_missing_provider_despite_model(self):
         for provider in (None, 'compatible', 'DeepSeek'):

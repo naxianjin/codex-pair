@@ -197,6 +197,14 @@ def _branch_exists(repo: str, branch: str) -> bool:
     return result.returncode == 0
 
 
+def filesystem_path(path: str | os.PathLike[str]) -> Path:
+    """仅用于文件I/O；归属及边界校验继续使用原规范路径。"""
+    value = os.path.abspath(os.fspath(path))
+    if os.name == 'nt' and not value.startswith('\\\\?\\'):
+        value = '\\\\?\\UNC\\' + value[2:] if value.startswith('\\\\') else '\\\\?\\' + value
+    return Path(value)
+
+
 def prepare_pair_directory(project: str, path: str, kind: str) -> str:
     """验证专用协作目录并设置仓库本地排除，不读取或复制账号配置。"""
 
@@ -237,7 +245,7 @@ def prepare_pair_directory(project: str, path: str, kind: str) -> str:
     ignored = _git(root, ["check-ignore", "--quiet", "--", ".codex-pair/__exclude_probe__"], check=False)
     if ignored.returncode != 0:
         raise GitError("本地 Git 排除未生效，拒绝创建协作目录", stderr=ignored.stderr)
-    Path(lexical).mkdir(parents=True, exist_ok=True)
+    filesystem_path(lexical).mkdir(parents=True, exist_ok=True)
     if _real(lexical) != os.path.normcase(lexical):
         # 目录创建后再次验证，避免既有路径组件发生替换。
         raise GitError("协作目录含路径重定向，拒绝继续")
@@ -277,7 +285,9 @@ def create_worktrees(project: str, pair_id: str, base_ref: str, worktree_root: s
     root.mkdir(parents=True, exist_ok=True)
     completed: list[dict] = []
     for role in ("a", "b"):
-        command_args = ["worktree", "add", "-b", branches[role], os.fspath(paths[role]), base]
+        # 边界已校验；相对参数避免 Git 子进程的绝对 GIT_DIR 长度限制。
+        target = os.path.relpath(paths[role], repo["root"]) if os.name == "nt" else os.fspath(paths[role])
+        command_args = ["worktree", "add", "-b", branches[role], target, base]
         try:
             _git(repo["root"], command_args)
         except GitError as exc:

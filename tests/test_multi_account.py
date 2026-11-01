@@ -52,7 +52,9 @@ class MultiAccountTests(unittest.TestCase):
         self.assertEqual(Path(argv[argv.index('--state-root')+1]),self.state_root)
         self.assertEqual(canonical_path(argv[argv.index('--codex-home')+1]),canonical_path(self.homes['B']))
         self.assertEqual(other.member('A')['codex_home'],canonical_path(self.homes['A']))
-        self.assertFalse((self.homes['B']/'codex-pair').exists())
+        self.assertTrue((self.homes['B']/'codex-pair'/'session-bindings.sqlite3').is_file())
+        self.assertEqual(list((self.homes['B']/'codex-pair').rglob('state.sqlite3')),[])
+        self.assertEqual(other.path,self.store.path)
 
     def test_pool_routes_and_caches_by_account_without_fallback(self):
         pool=TransportPool(codex_home=self.homes['A'])
@@ -76,7 +78,7 @@ class MultiAccountTests(unittest.TestCase):
     def test_cli_actor_and_relay_reject_wrong_home_before_contact(self):
         b=self.store.member('B')
         args=self.args('claim','--member','B','--session',b['session_uuid'],'--worktree',b['cwd'])
-        with patch('scripts.pair.Path.cwd',return_value=Path(b['cwd'])),patch('scripts.pair.AppServer') as server:
+        with patch.dict('os.environ',{'CODEX_THREAD_ID':b['session_uuid']}),patch('scripts.pair.Path.cwd',return_value=Path(b['cwd'])),patch('scripts.pair.AppServer') as server:
             with self.assertRaisesRegex(PairError,'account mismatch'):pair.execute(args)
             server.assert_not_called()
         with patch('scripts.pair.TransportPool') as pool:
@@ -96,6 +98,14 @@ class MultiAccountTests(unittest.TestCase):
             result=pair.execute(args)
             self.assertEqual(result['session_uuid'],b['session_uuid'])
             self.assertEqual(canonical_path(server.call_args.kwargs['codex_home']),canonical_path(self.homes['B']))
+
+    def test_cli_actor_rejects_other_thread_even_with_correct_home(self):
+        b=self.store.member('B')
+        args=self.args('claim','--member','B','--session',b['session_uuid'],'--worktree',b['cwd'],
+                       '--member-codex-home',str(self.homes['B']))
+        with patch.dict('os.environ',{'CODEX_THREAD_ID':self.store.member('A')['session_uuid']}),patch('scripts.pair.Path.cwd',return_value=Path(b['cwd'])),patch('scripts.pair.AppServer') as server:
+            with self.assertRaisesRegex(PairError,'Current original CLI required'):pair.execute(args)
+            server.assert_not_called()
 
     def test_shared_database_two_home_concurrent_claim_once(self):
         message=self.store.send('A','B','只执行一次')
@@ -231,7 +241,7 @@ class MultiAccountTests(unittest.TestCase):
         with closing(sqlite3.connect(backups[0])) as db:
             self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],1)
         with store.transaction() as db:
-            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],8)
+            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],13)
             self.assertEqual(db.execute("SELECT count(*) FROM events WHERE kind='user_history'").fetchone()[0],1)
         Store('legacy',home=self.homes['A'])
         self.assertEqual(len(list(directory.glob('*.backup.sqlite3'))),1)

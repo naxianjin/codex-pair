@@ -4,37 +4,63 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 from pathlib import Path
+import tempfile
 import zipfile
 
 try:
-    from .install_skill import package_manifest
+    from .install_skill import package_manifest,checked_path,path_stat
 except ImportError:
-    from install_skill import package_manifest
+    from install_skill import package_manifest,checked_path,path_stat
 
 
 RUNTIME_ROOTS={'SKILL.md','agents','scripts','references'}
+HANDOFF_RUNTIME='scripts/pair_role_handoff.py'
 REQUIRED={'SKILL.md','agents/openai.yaml','references/onboarding.md','references/protocol.md',
     'references/repair-multi-account.md','scripts/pair.py','scripts/pair_core.py','scripts/pair_git.py',
     'scripts/pair_transport.py','scripts/pair_windows.py','scripts/install_skill.py',
-    'scripts/pair_balance.py','scripts/pair_quota.py'}
+    'scripts/pair_balance.py','scripts/pair_quota.py','scripts/pair_reviewer.py',
+    'scripts/pair_team.py','scripts/pair_stages.py','scripts/pair_managed.py',
+    'scripts/pair_review_runtime.py','scripts/pair_workspace.py','scripts/pair_commands.py',
+    'references/team-commands.md','references/validation-handoff-four-cli.md'}
 
 
 def build_package(source, output):
-    source=Path(source).resolve(strict=True)
-    output=Path(output).absolute()
+    source=checked_path(source).resolve(strict=True)
+    output=checked_path(output)
     if output.suffix.lower()!='.zip':raise ValueError('技能包必须使用 .zip 扩展名')
-    if output.resolve()!=output:raise ValueError('输出路径包含重定向')
     checksum=output.with_name('SHA256SUMS.txt')
-    if output.exists() or checksum.exists():raise FileExistsError('发布包或校验文件已存在，拒绝覆盖')
+    pending=output.with_name('.'+output.name+'.pending.json')
+    if any(path_stat(path) is not None for path in (output,checksum,pending)):raise FileExistsError('发布包、校验或未完成标记已存在，拒绝覆盖')
+    if any(c in output.name for c in '\r\n\\'):raise ValueError('校验文件名包含不支持的换行或转义字符')
+    if output.is_relative_to(source):raise ValueError('输出不得位于技能源目录内')
     manifest={name:digest for name,digest in package_manifest(source).items()
         if Path(name).parts[0] in RUNTIME_ROOTS}
-    missing=REQUIRED-manifest.keys()
+    missing=(REQUIRED | {HANDOFF_RUNTIME})-manifest.keys()
     if missing:raise ValueError('技能包缺少运行文件：'+', '.join(sorted(missing)))
     output.parent.mkdir(parents=True,exist_ok=True)
-    with zipfile.ZipFile(output,'x',compression=zipfile.ZIP_DEFLATED,compresslevel=9) as bundle:
+    recovery=Path(tempfile.mkdtemp(prefix='.codex-pair-package-',dir=output.parent))
+    archive=recovery/output.name
+    sums=recovery/checksum.name
+    marker=recovery/pending.name
+    published=[]
+    try:
+        return _build_package(source,output,checksum,manifest,recovery,archive,sums,published,pending,marker)
+    except Exception as error:
+        # 只撤回与本次暂存文件仍为同一实体的发布项，保留完整失败现场。
+        for final,staged in reversed(published):
+            info=path_stat(checked_path(final))
+            if info is not None and os.path.samestat(info,staged.stat()):
+                final.rename(recovery/('published-'+final.name))
+        if hasattr(error,'add_note'):error.add_note('打包失败现场保留：'+str(recovery))
+        raise
+
+
+def _build_package(source,output,checksum,manifest,recovery,archive,sums,published,pending,marker):
+    with zipfile.ZipFile(archive,'x',compression=zipfile.ZIP_DEFLATED,compresslevel=9) as bundle:
         for relative in sorted(manifest):
-            data=(source/relative).read_bytes()
+            data=checked_path(source/relative).read_bytes()
             if hashlib.sha256(data).hexdigest()!=manifest[relative]:
                 raise ValueError('构建时源文件发生变化：'+relative)
             info=zipfile.ZipInfo('codex-pair/'+relative,date_time=(2020,1,1,0,0,0))
@@ -42,16 +68,32 @@ def build_package(source, output):
             info.external_attr=0o100644 << 16
             info.compress_type=zipfile.ZIP_DEFLATED
             bundle.writestr(info,data,compress_type=zipfile.ZIP_DEFLATED,compresslevel=9)
-    with zipfile.ZipFile(output) as bundle:
+    with zipfile.ZipFile(archive) as bundle:
         if bundle.testzip() is not None:raise ValueError('ZIP 完整性校验失败')
         for relative,digest in manifest.items():
             if hashlib.sha256(bundle.read('codex-pair/'+relative)).hexdigest()!=digest:
                 raise ValueError('ZIP 内文件哈希不一致：'+relative)
-    digest=hashlib.sha256(output.read_bytes()).hexdigest()
-    with checksum.open('x',encoding='ascii',newline='\n') as file:
+    digest=hashlib.sha256(archive.read_bytes()).hexdigest()
+    # UTF-8无BOM、LF、hex + 两空格 + 原文件名；ASCII包名字节格式保持兼容。
+    with sums.open('x',encoding='utf-8',newline='\n') as file:
         file.write(digest+'  '+output.name+'\n')
-    return {'archive':str(output),'checksum_file':str(checksum),'sha256':digest,
+    marker.write_text(json.dumps({'status':'incomplete','recovery_directory':str(recovery)},ensure_ascii=False),encoding='utf-8')
+    # 两文件不能作为一个目录项原子发布；中断时的pending标记明确禁止当成功包消费。
+    for staged,final in ((marker,pending),(archive,output),(sums,checksum)):
+        checked_path(final)
+        # 同卷硬链接发布是原子的no-clobber；不支持时失败关闭，保留暂存包。
+        os.link(staged,final)
+        published.append((final,staged))
+    pending.unlink()
+    published.remove((pending,marker))
+    result={'archive':str(output),'checksum_file':str(checksum),'sha256':digest,
         'files':manifest,'root_directory':'codex-pair'}
+    try:
+        archive.unlink();sums.unlink();marker.unlink();recovery.rmdir()
+    except OSError:
+        # 两项已完整发布；暂存清理失败不撤回成功交付，显式返回待检查路径。
+        result['staging_directory']=str(recovery)
+    return result
 
 
 def main():

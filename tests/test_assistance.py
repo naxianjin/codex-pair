@@ -1,7 +1,11 @@
+from tests.schema_fixture import remove_team_extensions
 """协助执行和低额度交接的行为测试；不调用付费模型。"""
 import json
+import os
+import tempfile
 from pathlib import Path
 import subprocess
+import time
 import unittest
 from unittest.mock import patch
 
@@ -108,6 +112,74 @@ class AssistanceTests(unittest.TestCase):
                 db.execute('UPDATE members SET proof=? WHERE id=?',(json.dumps(proof),member))
         self.store.configure_assistance(*self.binding('A'),checkpoints=True)
 
+    def test_saved_checkpoint_stale_queue_receipt_allows_resume_and_consume(self):
+        self.prepare_checkpoints()
+        self.store.control('paused')
+        notice=self.store.send('B','B','保存现场',kind='checkpoint')
+        self.store.save_checkpoint(*self.binding('B'),'工具结束，保存现场')
+        with self.store.transaction() as db:
+            db.execute("UPDATE messages SET delivery_status='accepted',remote_status='queued' WHERE id=?",(notice['id'],))
+            for column,value in [('remote_status','inProgress'),('delivery_status','unknown'),('process_status','claimed'),('turn_id','real-turn'),('kind','task'),('recipient_version',99)]:
+                old=db.execute('SELECT '+column+' FROM messages WHERE id=?',(notice['id'],)).fetchone()[0]
+                db.execute('UPDATE messages SET '+column+'=? WHERE id=?',(value,notice['id']))
+                self.assertFalse(self.store._idle(db,['B']),column)
+                db.execute('UPDATE messages SET '+column+'=? WHERE id=?',(old,notice['id']))
+        offered=self.store.resume_checkpoint(*self.binding('B'),'用户要求继续')
+        self.assertTrue(offered['offered'])
+        result=self.store.consume_checkpoint(*self.binding('B'),'B',self.read_all('B','B'),'核对原操作已结束，继续协调')
+        self.assertTrue(result['consumed'])
+        self.store.control('running')
+        selected=Daemon(self.store,None)._begin()
+        self.assertIsNotNone(selected)
+        self.assertEqual(selected[1]['id'],offered['message_id'])
+        claim=self.store.claim(*self.binding('B'),message_id=offered['message_id'])
+        self.assertTrue(claim['claimed'])
+        self.store.complete(*self.binding('B'),offered['message_id'],claim['claim_token'],'已消费检查点并完成通知收尾')
+
+    def test_checkpoint_preserves_cancelled_and_handed_back_tasks(self):
+        self.prepare_checkpoints()
+        for status in ('cancelled','handed_back'):
+            self.store.assign(status,'历史任务','B',[status+'.txt'])
+        with self.store.transaction() as db:
+            for status in ('cancelled','handed_back'):
+                db.execute('UPDATE tasks SET status=? WHERE id=?',(status,status))
+            db.execute("UPDATE messages SET process_status='completed',delivery_status='accepted',remote_status='completed'")
+        saved=self.store.save_checkpoint(*self.binding('B'),'保留历史终态')
+        with self.store.transaction() as db:
+            manifest=json.loads(db.execute("SELECT manifest FROM checkpoints WHERE member='B'").fetchone()[0])
+        self.assertFalse(manifest['tasks'])
+        self.store.schedule()
+        for status in ('cancelled','handed_back'):
+            self.assertEqual(self.store.task(status)['status'],status)
+        self.assertTrue(saved['saved'])
+
+    def test_recovered_checkpoint_does_not_revive_terminal_tasks(self):
+        self.prepare_checkpoints()
+        self.task()
+        with self.store.transaction() as db:
+            db.execute("UPDATE tasks SET status='cancelled' WHERE id='work'")
+            db.execute("UPDATE messages SET process_status='completed',delivery_status='accepted',remote_status='completed'")
+        event=self.store.event
+        def crash(db,kind,**kwargs):
+            if kind=='checkpoint_saved':raise RuntimeError('checkpoint transaction interrupted')
+            return event(db,kind,**kwargs)
+        with patch.object(self.store,'event',side_effect=crash):
+            with self.assertRaises(RuntimeError):
+                self.store.save_checkpoint(*self.binding('B'),'文件已保存，数据库事务未提交')
+        self.assertTrue(self.store.recover_checkpoint(*self.binding('B'))['recovered'])
+        self.assertEqual(self.store.task('work')['status'],'cancelled')
+
+    def test_consumption_preserves_task_cancelled_after_save(self):
+        self.prepare_checkpoints()
+        self.task()
+        self.store.save_checkpoint(*self.binding('B'),'任务尚未完成')
+        with self.store.transaction() as db:
+            db.execute("UPDATE tasks SET status='cancelled' WHERE id='work'")
+            db.execute("UPDATE messages SET process_status='completed',delivery_status='accepted',remote_status='completed'")
+        self.store.resume_checkpoint(*self.binding('B'),'只恢复窗口')
+        self.store.consume_checkpoint(*self.binding('B'),'B',self.read_all('B','B'),'任务已取消，不再续办')
+        self.assertEqual(self.store.task('work')['status'],'cancelled')
+
     def separate_pools(self):
         other=self.root/'other-home';other.mkdir(exist_ok=True)
         with self.store.transaction() as db:db.execute("UPDATE members SET codex_home=? WHERE id='B'",(str(other),))
@@ -123,6 +195,214 @@ class AssistanceTests(unittest.TestCase):
         self.prepare_checkpoints()
         with patch.object(Path,'read_text',side_effect=AssertionError('unexpected read')),patch.object(Path,'rglob',side_effect=AssertionError('unexpected scan')):
             self.assertFalse(self.store.check_checkpoint(*self.binding('B'))['exists'])
+
+    def test_pinned_pending_task_blocks_peer_takeover_and_preserves_binding(self):
+        self.prepare_checkpoints();self.separate_pools()
+        self.store.control('paused')
+        self.store.assign('pinned','原窗口恢复','B',['b.txt'],pin_member=True)
+        self.store.save_checkpoint(*self.binding('B'),'等待原B')
+        self.store.save_quota('A',quota(80,pool='a'));self.store.save_quota('B',quota(9,pool='b'))
+        self.store.control('running');self.store.schedule()
+        self.assertFalse(any(m['kind']=='checkpoint_resume' for m in self.store.status()['messages']))
+        self.store.save_quota('B',quota(50,pool='b'));self.store.schedule()
+        notice=next(m for m in self.store.status()['messages'] if m['kind']=='checkpoint_resume')
+        self.assertEqual(notice['recipient'],'B')
+        self.assertEqual(self.store.task('pinned')['assignee'],'B')
+        with self.store.transaction() as db:
+            task=db.execute("SELECT * FROM tasks WHERE id='pinned'").fetchone()
+            self.assertTrue(self.store._task_member_allowed(db,task,'B'))
+            self.assertFalse(self.store._task_member_allowed(db,task,'A'))
+            db.execute("UPDATE members SET binding_version=binding_version+1 WHERE id='B'")
+            self.assertFalse(self.store._task_member_allowed(db,task,'B'))
+
+    def test_independent_reviewer_cannot_take_over_implementation(self):
+        self.prepare_checkpoints();self.separate_pools()
+        self.store.control('paused')
+        self.store.assign('impl','实现','B',['b.txt'])
+        self.store.assign('verify','独立核验','A',['a.txt'],dependencies=['impl'],independent_of=['impl'])
+        self.store.save_checkpoint(*self.binding('B'),'保留独立性')
+        self.store.save_quota('A',quota(80,pool='a'));self.store.save_quota('B',quota(9,pool='b'))
+        self.store.control('running');self.store.schedule()
+        self.assertFalse(any(m['kind']=='checkpoint_resume' for m in self.store.status()['messages']))
+        with self.store.transaction() as db:
+            task=db.execute("SELECT * FROM tasks WHERE id='verify'").fetchone()
+            self.assertFalse(self.store._task_member_allowed(db,task,'B'))
+            self.assertTrue(self.store._task_member_allowed(db,task,'A'))
+            self.assertFalse(self.store._checkpoint_transfer_allowed(db,'B','A'))
+
+    def test_transfer_rechecks_new_constraint_before_consumption(self):
+        saved,fingerprint=self.offered_checkpoint()
+        self.store.control('paused')
+        self.store.assign('late','新原窗口约束','B',['late.txt'],pin_member=True)
+        with self.assertRaisesRegex(PairError,'transfer constrained'):
+            self.store.consume_checkpoint(*self.binding('A'),'B',fingerprint,'不能沿用旧offer')
+        self.assertTrue(Path(saved['path']).exists())
+
+    def test_recovered_origin_accepts_new_work_without_reclaiming(self):
+        saved,fingerprint=self.offered_checkpoint()
+        self.store.consume_checkpoint(*self.binding('A'),'B',fingerprint,'接管剩余工作')
+        self.store.save_quota('B',quota(10,pool='b'));self.store.schedule()
+        self.assertEqual(self.store.status()['assistance']['members']['B']['state'],'paused')
+        self.store.save_quota('B',quota(50,pool='b'))
+        with self.store.transaction() as db:db.execute("UPDATE members SET verified=0 WHERE id='B'")
+        self.store.schedule()
+        self.assertEqual(self.store.status()['assistance']['members']['B']['state'],'paused')
+        with self.store.transaction() as db:db.execute("UPDATE members SET verified=1 WHERE id='B'")
+        self.store.save_quota('B',quota(50,pool='b'));self.store.schedule();self.store.schedule()
+        self.assertEqual(self.store.status()['assistance']['members']['B']['state'],'ready')
+        self.assertEqual(self.store.task('work')['assignee'],'A')
+        self.assertEqual(self.store.status()['assistance']['checkpoints'][0]['status'],'transferred')
+
+    def test_execution_policy_validation_is_atomic_and_cli_exposes_flags(self):
+        self.prepare_checkpoints();self.store.control('paused')
+        with self.assertRaises(PairError):
+            self.store.assign('bad','错误独立约束','B',['b.txt'],independent_of=['missing'])
+        with self.store.transaction() as db:
+            self.assertIsNone(db.execute("SELECT 1 FROM tasks WHERE id='bad'").fetchone())
+        with self.assertRaises(PairError):
+            self.store.assign('auto-pin','不明确原窗口','auto',['b.txt'],pin_member=True)
+        args=build_parser().parse_args(['assign','--task','x','--title','x','--to','B','--allow','b.txt','--pin-member','--independent-of','base'])
+        self.assertTrue(args.pin_member);self.assertEqual(args.independent_of,['base'])
+
+    def test_configure_policy_persists_when_other_rules_are_updated(self):
+        self.prepare_checkpoints();self.store.control('paused')
+        self.store.assign('work','原窗口限定','B',['b.txt'])
+        self.store.configure_task(*self.binding('A'),'work',pin_member=True)
+        self.store.configure_task(*self.binding('A'),'work',priority=90)
+        with self.store.transaction() as db:
+            task=db.execute("SELECT * FROM tasks WHERE id='work'").fetchone()
+            self.assertFalse(self.store._task_member_allowed(db,task,'A'))
+        with self.assertRaises(PairError):
+            self.store.configure_task(*self.binding('A'),'work',pin_member='true')
+
+    def test_independent_constraint_survives_member_and_quota_changes(self):
+        self.prepare_checkpoints();self.store.control('paused')
+        self.store.assign('impl','实现','B',['b.txt'])
+        self.store.assign('verify','核验','A',['a.txt'],dependencies=['impl'],independent_of=['impl'])
+        with self.store.transaction() as db:
+            db.execute("UPDATE tasks SET assignee='A' WHERE id='impl'")
+            task=db.execute("SELECT * FROM tasks WHERE id='verify'").fetchone()
+            self.assertFalse(self.store._member_eligible(db,'A',task))
+            self.assertTrue(self.store._member_eligible(db,'B',task))
+
+    def checkpoint_path(self,member):
+        with self.store.transaction() as db:return self.store._checkpoint_path(db,member)
+
+    def test_checkpoint_mixed_newlines_keep_exact_digest_through_cleanup(self):
+        from scripts.pair_assistance import digest
+        self.prepare_checkpoints()
+        saved=self.store.save_checkpoint(*self.binding('B'),'first\r\nsecond\nthird\rfourth')
+        path=Path(saved['path']);original=path.read_bytes()
+        self.assertEqual(digest(original.decode('utf-8')),saved['digest'])
+        self.assertEqual(self.read_all('B','B'),saved['digest'])
+        self.assertEqual(path.read_bytes(),original)
+        self.store.resume_checkpoint(*self.binding('B'),'continue original window')
+        self.assertEqual(self.store.consume_checkpoint(*self.binding('B'),'B',saved['digest'],'verified exact file bytes')['cleanup'],'deleted')
+
+    def test_visible_checkpoint_names_and_same_home_sessions_are_isolated(self):
+        self.prepare_checkpoints()
+        for number,member in enumerate(('C','D'),3):
+            cwd=self.root/member;cwd.mkdir()
+            sid='00000000-0000-0000-0000-'+str(number).zfill(12)
+            invite=self.store.create_invite(*self.binding('A'),target=member)
+            self.store.accept_invite(invite,{'session_uuid':sid,'cwd':str(cwd),'codex_home':str(self.home),
+                'proof':{'id':sid,'cwd':str(cwd),'modelProvider':'openai','model':'gpt-6.1-sol'}},{})
+        paths=[self.checkpoint_path(m) for m in ('A','B','C','D')]
+        self.assertEqual([p.name for p in paths],['交接文档1.md','交接文档2.md','交接文档3.md','交接文档4.md'])
+        self.assertEqual(len(set(p.parent for p in paths)),4)
+        self.assertTrue(all(p.parent.parent.name==self.store.pair_id for p in paths))
+
+    def test_checkpoint_namespace_changes_with_pair_and_binding_generation(self):
+        self.prepare_checkpoints();first=self.checkpoint_path('B')
+        with patch.object(self.store,'pair_id','other-pair'):other=self.checkpoint_path('B')
+        self.assertNotEqual(first,other)
+        with self.store.transaction() as db:db.execute("UPDATE members SET binding_version=binding_version+1 WHERE id='B'")
+        self.assertNotEqual(first,self.checkpoint_path('B'))
+
+    def test_hidden_reviewer_keeps_separate_checkpoint_name(self):
+        from tests import test_reviewer
+        self.prepare_checkpoints()
+        helper=test_reviewer.ReviewerTests();helper.__dict__.update(self.__dict__);helper.ready()
+        with self.store.transaction() as db:
+            hidden=self.store._reviewer_checkpoint_path(db)
+            visible=self.store._checkpoint_path(db,'A')
+        self.assertTrue(hidden.name.startswith('reviewer-'))
+        self.assertNotEqual(hidden,visible)
+
+    def legacy_checkpoint(self):
+        from scripts.pair_assistance import digest
+        from scripts.pair_transport import canonical_path
+        self.prepare_checkpoints()
+        saved=self.store.save_checkpoint(*self.binding('B'),'旧格式交接内容'*200)
+        bound=self.store.member('B')
+        legacy=self.project/'.codex-pair'/'checkpoints'/(digest(canonical_path(bound['codex_home'])+'|'+bound['session_uuid'])[:24]+'.md')
+        current=Path(saved['path'])
+        if current!=legacy:current.rename(legacy)
+        with self.store.transaction() as db:db.execute("UPDATE checkpoints SET path=? WHERE member='B'",(str(legacy),))
+        return legacy,saved
+
+    def test_legacy_registered_checkpoint_reads_consumes_then_uses_new_name(self):
+        legacy,saved=self.legacy_checkpoint()
+        self.assertEqual(Path(self.store.check_checkpoint(*self.binding('B'))['checkpoints'][0]['path']),legacy)
+        self.store.resume_checkpoint(*self.binding('B'),'继续原窗口')
+        fingerprint=self.read_all('B','B')
+        self.assertEqual(self.store.consume_checkpoint(*self.binding('B'),'B',fingerprint,'完整核对旧文档后继续')['cleanup'],'deleted')
+        current=self.store.save_checkpoint(*self.binding('B'),'下一次交接')
+        self.assertEqual(Path(current['path']).name,'交接文档2.md')
+        self.assertNotEqual(current['path'],str(legacy))
+
+    def test_legacy_orphan_recovers_without_moving_or_overwriting(self):
+        legacy,saved=self.legacy_checkpoint()
+        with self.store.transaction() as db:db.execute("DELETE FROM checkpoints WHERE member='B'")
+        before=legacy.read_bytes()
+        with self.assertRaisesRegex(PairError,'Unregistered'):self.store.check_checkpoint(*self.binding('B'))
+        self.assertTrue(self.store.recover_checkpoint(*self.binding('B'))['recovered'])
+        self.assertEqual(legacy.read_bytes(),before)
+        self.assertEqual(self.checkpoint_path('B'),legacy)
+
+    def test_registered_checkpoint_outside_directory_is_rejected(self):
+        self.prepare_checkpoints();self.store.save_checkpoint(*self.binding('B'),'现场')
+        outside=self.root/'private.md';outside.write_text('保留',encoding='utf-8')
+        with self.store.transaction() as db:db.execute("UPDATE checkpoints SET path=? WHERE member='B'",(str(outside),))
+        with self.assertRaisesRegex(PairError,'checkpoint path'):self.store.check_checkpoint(*self.binding('B'))
+        self.assertEqual(outside.read_text(encoding='utf-8'),'保留')
+
+    def test_checkpoint_redirect_is_rejected_before_write(self):
+        self.prepare_checkpoints();target=self.checkpoint_path('B');resolve=Path.resolve
+        def redirected(path,*args,**kwargs):
+            return self.root/'outside.md' if path==target else resolve(path,*args,**kwargs)
+        with patch.object(Path,'resolve',autospec=True,side_effect=redirected):
+            with self.assertRaisesRegex(PairError,'Redirected checkpoint path'):
+                self.store.save_checkpoint(*self.binding('B'),'不得越界')
+        self.assertFalse(target.exists())
+
+    def test_old_record_from_other_binding_is_preserved_not_consumed(self):
+        self.prepare_checkpoints();saved=self.store.save_checkpoint(*self.binding('B'),'旧代次交接')
+        with self.store.transaction() as db:db.execute("UPDATE members SET binding_version=binding_version+1 WHERE id='B'")
+        with self.assertRaisesRegex(PairError,'binding mismatch'):self.store.check_checkpoint(*self.binding('B'))
+        self.assertTrue(Path(saved['path']).is_file())
+
+    def test_foreign_pair_legacy_orphan_is_not_recovered(self):
+        legacy,_=self.legacy_checkpoint()
+        with self.store.transaction() as db:db.execute("DELETE FROM checkpoints WHERE member='B'")
+        with patch.object(self.store,'pair_id','other-pair'):
+            with self.assertRaisesRegex(PairError,'identity mismatch'):self.store.recover_checkpoint(*self.binding('B'))
+        self.assertTrue(legacy.is_file())
+
+    def test_second_save_reuses_path_and_crash_recovery_preserves_new_content(self):
+        self.prepare_checkpoints();first=self.store.save_checkpoint(*self.binding('B'),'首次')
+        self.store.resume_checkpoint(*self.binding('B'),'继续')
+        self.store.consume_checkpoint(*self.binding('B'),'B',self.read_all('B','B'),'核对后继续')
+        event=self.store.event
+        def crash(db,kind,**kwargs):
+            if kind=='checkpoint_saved':raise RuntimeError('simulated crash')
+            return event(db,kind,**kwargs)
+        with patch.object(self.store,'event',side_effect=crash):
+            with self.assertRaises(RuntimeError):self.store.save_checkpoint(*self.binding('B'),'第二次新内容')
+        self.assertTrue(Path(first['path']).is_file())
+        with self.assertRaisesRegex(PairError,'Unregistered'):self.store.check_checkpoint(*self.binding('B'))
+        self.assertTrue(self.store.recover_checkpoint(*self.binding('B'))['recovered'])
+        self.assertIn('第二次新内容',self.store.read_checkpoint(*self.binding('B'),'B')['text'])
 
     def test_low_quota_takeover_persists_before_cleanup_and_no_replay(self):
         self.prepare_checkpoints();self.separate_pools()
@@ -168,7 +448,8 @@ class AssistanceTests(unittest.TestCase):
 
     def test_shared_pool_and_unknown_do_not_offer_false_capacity(self):
         self.prepare_checkpoints()
-        self.store.save_quota('A',quota(8,pool='shared'));self.store.save_quota('B',quota(80,pool='shared'))
+        now=time.time()
+        self.store.save_quota('A',quota(8,pool='shared',now=now));self.store.save_quota('B',quota(80,pool='shared',now=now))
         self.store.schedule()
         self.assertEqual(self.store.status()['assistance']['members']['B']['state'],'saving')
         with self.store.transaction() as db:self.store._put(db,'quota_state:B','ready')
@@ -213,7 +494,7 @@ class AssistanceTests(unittest.TestCase):
         with patch('scripts.pair_assistance.os.replace',side_effect=OSError('write failed')):
             with self.assertRaises(OSError):self.store.save_checkpoint(*self.binding('B'),'当前现场')
         self.assertEqual(self.store.task('work')['status'],'active')
-        self.assertFalse(list((self.project/'.codex-pair'/'checkpoints').glob('*')))
+        self.assertFalse([p for p in (self.project/'.codex-pair'/'checkpoints').rglob('*') if p.is_file()])
 
     def test_crash_after_file_write_can_be_reconciled_without_reexecution(self):
         self.prepare_checkpoints();self.task()
@@ -229,11 +510,14 @@ class AssistanceTests(unittest.TestCase):
             self.store.check_checkpoint(*self.binding('B'))
         self.assertTrue(self.store.recover_checkpoint(*self.binding('B'))['recovered'])
         self.assertEqual(self.store.task('work')['status'],'quota_wait')
-        self.assertEqual(len(list((self.project/'.codex-pair'/'checkpoints').glob('*.md'))),1)
+        self.assertEqual(len(list((self.project/'.codex-pair'/'checkpoints').rglob('*.md'))),1)
         self.assertTrue(all(m['process_status']=='completed' for m in self.store.status()['messages'] if m['kind']=='checkpoint' and m['recipient']=='B'))
 
-    def test_takeover_transfers_coordinator_and_keeps_dependency_unfinished(self):
+    def takeover_preserves_mode(self,new_context):
         self.prepare_checkpoints();self.separate_pools()
+        self.store.setting('member_context_required',new_context)
+        self.store.delegation_policy(*self.binding('A'),'当前任务内普通问题由A决定',enabled=True)
+        question=self.store.send('B','A','后续实现需要决定',kind='question')
         self.store.assign('first','统筹剩余工作','A',['result.txt'])
         self.store.assign('second','依赖','A',['next.txt'],dependencies=['first'])
         first=next(m for m in self.store.status()['messages'] if m['task_id']=='first')
@@ -243,10 +527,22 @@ class AssistanceTests(unittest.TestCase):
         self.store.schedule()
         fingerprint=self.read_all('B','A')
         self.store.consume_checkpoint(*self.binding('B'),'A',fingerprint,'只做剩余写入与验证')
-        self.assertEqual(self.store.status()['assistance']['coordinator'],'B')
+        coordinator='A' if new_context else 'B'
+        self.assertEqual(self.store.status()['assistance']['coordinator'],coordinator)
         self.assertEqual(self.store.task('second')['status'],'pending')
         self.assertEqual(self.store.task('second')['assignee'],'B')
-        self.assertEqual(self.store.assign('third','后续任务','B',['third.txt'])['report_to'],'B')
+        self.assertEqual(self.store.task('first')['report_to'],coordinator)
+        self.assertEqual(self.store.task('second')['report_to'],coordinator)
+        decision=next(q for q in self.store.status()['assistance']['questions'] if q['id']==question['id'])
+        self.assertEqual(decision['owner'],coordinator)
+        self.assertEqual(self.store.assign('third','后续任务','B',['third.txt'])['report_to'],coordinator)
+        with self.store.transaction() as db:self.assertEqual(self.store._option(db,'approval_authority','A'),'A')
+
+    def test_takeover_transfers_coordinator_and_keeps_dependency_unfinished(self):
+        self.takeover_preserves_mode(False)
+
+    def test_new_mode_takeover_keeps_a_coordinator_and_approval_authority(self):
+        self.takeover_preserves_mode(True)
 
     def test_manual_resume_unknown_quota_and_no_override_of_known_low(self):
         self.prepare_checkpoints()
@@ -291,14 +587,32 @@ class AssistanceTests(unittest.TestCase):
         self.acknowledge('A','delivery:work')
         with self.store.transaction() as db:
             db.execute('DROP TABLE execution_requests');db.execute('DROP TABLE checkpoints');db.execute('DROP TABLE approval_requests');db.execute('DROP TABLE delegation_questions')
+            remove_team_extensions(db)
+            db.execute('DROP TABLE reviewer_runtime');db.execute('DROP TABLE reviewer_history')
             db.execute('PRAGMA user_version=5')
         upgraded=Store('test',home=self.home)
         self.assertEqual(upgraded.message(message['id'])['claim_token'],claim['claim_token'])
         with upgraded.transaction() as db:
             self.assertEqual(db.execute('PRAGMA foreign_key_check').fetchall(),[])
-            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],8)
+            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],13)
             upgraded._require_ack(db,'A','delivery:work')
         self.assertTrue(list(upgraded.directory.glob('schema-v5-*.backup.sqlite3')))
+
+    @unittest.skipUnless(os.name=='nt','Windows SQLite 长路径回归')
+    def test_v5_backup_long_path_preserves_delivery_and_claim(self):
+        original=tempfile.TemporaryDirectory
+        # 固定临时根长，使原备份名超过普通 SQLite 辅助文件路径限制。
+        prefix_size=182-len(str(self.root))-1-8
+        if prefix_size<1:self.skipTest('父测试目录过深，无法构造固定182字符对照根')
+        def directory(*args,**kwargs):
+            return original(prefix='p'*prefix_size,dir=self.root)
+        fixture=AssistanceTests('test_v5_upgrade_preserves_delivery_ack_and_original_claim')
+        with patch.object(tempfile,'TemporaryDirectory',side_effect=directory):
+            fixture.setUp()
+        try:
+            self.assertEqual(len(str(fixture.root)),182)
+            fixture.test_v5_upgrade_preserves_delivery_ack_and_original_claim()
+        finally:fixture.tearDown()
 
     def test_decline_cannot_be_retried_using_another_request_id(self):
         message,claim,request=self.request()
@@ -312,12 +626,22 @@ class AssistanceTests(unittest.TestCase):
 
     def test_observed_handoff_cost_raises_reserve_without_token_conversion(self):
         self.prepare_checkpoints();self.separate_pools()
+        # 独立临时库只模拟B的交接消耗，没有同池并行业务。
+        self.store.setting('calibration_isolated:B',True)
         before=quota(9,pool='b')
         self.store.save_quota('B',before);self.store.schedule()
         after=dict(before,remaining=3)
         self.store.save_quota('B',after)
         self.store.save_checkpoint(*self.binding('B'),'保存完整现场')
         self.assertEqual(self.store.status()['assistance']['members']['B']['reserve_percent'],14)
+
+    def test_mixed_account_usage_does_not_calibrate_handoff_cost(self):
+        self.prepare_checkpoints();self.separate_pools()
+        before=quota(9,pool='b')
+        self.store.save_quota('B',before);self.store.schedule()
+        self.store.save_quota('B',dict(before,remaining=3))
+        self.store.save_checkpoint(*self.binding('B'),'期间还有其他业务用量，没有隔离证据')
+        self.assertEqual(self.store.status()['assistance']['members']['B']['reserve_percent'],9)
 
     def test_followup_planning_uses_transferred_coordinator(self):
         self.store.setting('coordinator','B')

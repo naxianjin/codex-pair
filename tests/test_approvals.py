@@ -137,9 +137,49 @@ class ApprovalTests(unittest.TestCase):
         report=self.store.install_approval_hook(*self.binding('A'),python=sys.executable,script=str(script))
         self.assertTrue(report['trust_required']);self.assertFalse(report['sandbox_changed']);self.assertFalse(report['active_verified'])
         installed=json.loads(path.read_text(encoding='utf-8'))
+        self.assertTrue(path.read_bytes().endswith(b'\n'))
         self.assertEqual(installed['hooks']['SessionStart'],original['hooks']['SessionStart'])
         self.store.install_approval_hook(*self.binding('A'),python=sys.executable,script=str(script))
         self.assertEqual(len(json.loads(path.read_text(encoding='utf-8'))['hooks']['PermissionRequest']),1)
+        self.assertEqual(len(list(b_home.glob('hooks.codex-pair-backup-*.json'))),1)
+
+    def test_install_keeps_invalid_original_without_replacement(self):
+        self.prepare()
+        b_home=self.root/'invalid-hook-home';b_home.mkdir()
+        with self.store.transaction() as db:db.execute("UPDATE members SET codex_home=? WHERE id='B'",(str(b_home),))
+        path=b_home/'hooks.json';original=b'{invalid json'
+        path.write_bytes(original)
+        script=Path(__file__).resolve().parents[1]/'scripts'/'pair_permission_hook.py'
+        import sys
+        with patch('os.replace') as replace:
+            with self.assertRaises(json.JSONDecodeError):
+                self.store.install_approval_hook(*self.binding('A'),python=sys.executable,script=str(script))
+            replace.assert_not_called()
+        self.assertEqual(path.read_bytes(),original)
+
+    def test_concurrent_install_validates_temporary_json_and_preserves_neighbor(self):
+        import concurrent.futures
+        import os
+        import sys
+        self.prepare()
+        b_home=self.root/'concurrent-hook-home';b_home.mkdir()
+        with self.store.transaction() as db:db.execute("UPDATE members SET codex_home=? WHERE id='B'",(str(b_home),))
+        path=b_home/'hooks.json'
+        neighbor={'matcher':'*','hooks':[{'type':'command','command':'echo neighbor'}]}
+        path.write_text(json.dumps({'hooks':{'PermissionRequest':[neighbor]}}),encoding='utf-8')
+        script=Path(__file__).resolve().parents[1]/'scripts'/'pair_permission_hook.py'
+        replace=os.replace;validated=[]
+        def checked_replace(source,target):
+            json.loads(Path(source).read_text(encoding='utf-8'));validated.append(True)
+            return replace(source,target)
+        def install(_):return self.store.install_approval_hook(*self.binding('A'),python=sys.executable,script=str(script))
+        with patch('os.replace',side_effect=checked_replace),concurrent.futures.ThreadPoolExecutor(2) as pool:
+            reports=list(pool.map(install,range(2)))
+        self.assertTrue(all(r['trust_required'] for r in reports))
+        self.assertEqual(validated,[True])
+        groups=json.loads(path.read_text(encoding='utf-8'))['hooks']['PermissionRequest']
+        self.assertEqual(groups[0],neighbor)
+        self.assertEqual(len(groups),2)
         self.assertEqual(len(list(b_home.glob('hooks.codex-pair-backup-*.json'))),1)
 
     def test_schema_seven_migration_rolls_back_on_interruption(self):

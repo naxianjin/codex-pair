@@ -1,0 +1,192 @@
+"""当前执行的只读回执入口及精确shell格式回归。"""
+import json
+from pathlib import Path
+import shlex
+import tempfile
+import unittest
+import sqlite3
+from contextlib import closing
+
+from scripts.pair_review_runtime import ReviewerController
+from scripts import pair_review_receipts as access
+
+
+class ReviewReceiptAccessTests(unittest.TestCase):
+    def test_explicit_conflict_wins_in_both_orders(self):
+        success = {'id': 'same-item', 'type': 'commandExecution', 'status': 'completed',
+                   'exitCode': 0, 'command': 'python -m unittest', 'cwd': str(self.root)}
+        conflict = {'id': 'same-item', 'type': 'conflictingReceipt'}
+        for items in ([success, conflict], [conflict, success], [success, conflict, success], [conflict, success, conflict]):
+            with self.subTest(items=items):
+                self.assertEqual(access.receipt_items(items, '0.163.0'), [])
+
+    def rollout(self, items):
+        sessions = self.root / 'sessions'
+        sessions.mkdir(exist_ok=True)
+        path = sessions / 'current.jsonl'
+        self.proof['path'] = str(path)
+        events = [
+            {'type': 'session_meta', 'payload': {'id': self.binding['session'], 'cwd': str(self.root)}},
+            {'type': 'event_msg', 'payload': {'type': 'task_started', 'turn_id': 'turn-one'}},
+        ]
+        for item in items:
+            events.append({'type': 'event_msg', 'payload': {'type': 'item_completed',
+                'thread_id': self.binding['session'], 'turn_id': 'turn-one', 'item': item}})
+        path.write_text(''.join(json.dumps(event) + '\n' for event in events), encoding='utf-8')
+        return access.rollout_command_items({'codex_home': str(self.root), 'cwd': str(self.root),
+            'session_uuid': self.binding['session']}, self.proof, 'turn-one',
+            producer_version='0.163.0', require_terminal=False)
+
+    def final_verdict(self):
+        official, version = access.verified_turn(self.directory, self.binding, observer_factory=self.observer)
+        controller = ReviewerController(None)
+        controller.state = {'cwd': str(self.root), 'producer_version': version}
+        stage = {'payload': json.dumps({'coordinator_required_checks': [{'name': 'unit', 'command': self.item['command']}]})}
+        report = {'verdict': 'passed', 'checks': [{'name': 'unit', 'status': 'passed', 'receipt_id': self.item['id']}]}
+        return controller._report(dict(official, status='completed', items=official['items'] + [
+            {'type': 'agentMessage', 'text': json.dumps(report)}]), stage)['verdict']
+
+    def test_real_rollout_conflict_overrides_api_success_for_query_and_final_gate(self):
+        fallback = self.rollout([self.item, dict(self.item, exitCode=1)])
+        self.assertEqual(fallback, [{'id': self.item['id'], 'type': 'conflictingReceipt'}])
+        for items in ([self.item] + fallback, fallback + [self.item]):
+            self.assertEqual(access.receipt_items(items, '0.163.0'), [])
+        self.assertEqual(self.read()['receipts'], [])
+        self.assertEqual(self.final_verdict(), 'needs_validation')
+
+    def test_api_conflict_overrides_normal_rollout_for_query_and_final_gate(self):
+        self.assertEqual(len(self.rollout([self.item])), 1)
+        self.turn['items'] = [{'id': self.item['id'], 'type': 'conflictingReceipt'}]
+        self.assertEqual(self.read()['receipts'], [])
+        self.assertEqual(self.final_verdict(), 'needs_validation')
+
+    def test_consistent_api_and_real_rollout_still_pass_both_paths(self):
+        self.rollout([self.item, dict(self.item)])
+        self.assertEqual([item['id'] for item in self.read()['receipts']], [self.item['id']])
+        self.assertEqual(self.final_verdict(), 'passed')
+
+    def test_missing_id_repeated_conflict_unfinished_and_nonzero_cannot_pass(self):
+        for malformed in (dict(self.item, id=''), dict(self.item, id=None), {'type': 'conflictingReceipt'}):
+            self.turn['items'] = [self.item, malformed]
+            self.assertEqual(self.read()['receipts'], [])
+            self.assertEqual(self.final_verdict(), 'needs_validation')
+        for change in ({'status': 'inProgress'}, {'exitCode': 1}, {'command': 'different'}):
+            self.turn['items'] = [self.item, dict(self.item, **change)]
+            self.assertEqual(self.read()['receipts'], [])
+            self.assertEqual(self.final_verdict(), 'needs_validation')
+        self.turn['items'] = [dict(self.item, exitCode=1)]
+        self.assertEqual(self.final_verdict(), 'needs_validation')
+
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.root = Path(self.temp.name)
+        self.directory = self.root / '.codex-pair/state/pair-test'
+        self.directory.mkdir(parents=True)
+        self.path = self.directory / 'state.sqlite3'
+        self.binding = {'pair': 'pair-test', 'stage': 'stage-one', 'digest': 'a'*64, 'epoch': 1,
+                        'session': '00000000-0000-0000-0000-000000000099', 'execution': 'exec-one'}
+        self.proof = {'id': self.binding['session'], 'cwd': str(self.root), 'modelProvider': 'openai', 'model': 'gpt-6.1-sol', 'ephemeral': False}
+        self.item = {'type': 'commandExecution', 'id': 'item-one', 'command': 'python -m unittest', 'cwd': str(self.root), 'status': 'completed', 'exitCode': 0}
+        self.turn = {'id': 'turn-one', 'status': 'inProgress', 'items': [self.item]}
+        with closing(sqlite3.connect(self.path)) as db:
+            db.executescript('''
+                CREATE TABLE pair_settings(key TEXT PRIMARY KEY,value);
+                CREATE TABLE collaborations(id,project,status);
+                CREATE TABLE review_stages(id,digest,status,turn_id,reviewer_epoch,reviewer_session,execution_id,requirements_version,payload);
+                CREATE TABLE reviewer_runtime(state,epoch,session_uuid,execution_id,turn_id,cwd,codex_home,parent_session,owner,model);
+                CREATE TABLE members(id,session_uuid,binding_version,proof,lifecycle,verified,online,cwd,codex_home);
+            ''')
+            db.execute('INSERT INTO collaborations VALUES(?,?,?)', ('pair-test', str(self.root), 'running'))
+            db.execute('INSERT INTO review_stages VALUES(?,?,?,?,?,?,?,?,?)', ('stage-one', 'a'*64, 'running', 'turn-one', 1, self.binding['session'], 'exec-one', 1, '{}'))
+            db.execute('INSERT INTO reviewer_runtime VALUES(?,?,?,?,?,?,?,?,?,?)', ('running', 1, self.binding['session'], 'exec-one', None, str(self.root), str(self.root), 'parent', 'owner', 'gpt-6.1-sol'))
+            parent = {'modelProvider': 'openai', 'model': 'gpt-6.1-sol', 'cliVersion': '0.163.0'}
+            db.execute('INSERT INTO members VALUES(?,?,?,?,?,?,?,?,?)', ('A', 'parent', 1, json.dumps(parent), 'active', 1, 1, str(self.root), str(self.root)))
+            db.commit()
+        from tests.producer_fixture import install
+        install(self,self.path)
+
+    def observer(self, **kwargs):
+        owner = self
+        class Observer:
+            def __enter__(self): return self
+            def __exit__(self, *args): pass
+            def read_thread(self, session): return owner.proof
+            def turns(self, session, *, items_view):
+                owner.assertEqual(items_view, 'full')
+                return iter([owner.turn])
+        return Observer()
+
+    def read(self, **kwargs):
+        return access.read_receipts(self.directory, dict(self.binding, **kwargs), observer_factory=self.observer)
+
+    def test_current_completed_receipt_is_visible_and_database_unchanged(self):
+        before = self.path.read_bytes()
+        result = self.read()
+        self.assertEqual(result['turn'], 'turn-one')
+        self.assertEqual(result['receipts'][0]['id'], 'item-one')
+        self.assertEqual(self.path.read_bytes(), before)
+
+    def test_wrong_identity_execution_digest_epoch_or_inactive_binding_rejected(self):
+        for key, value in [('session', 'other'), ('execution', 'old'), ('digest', 'old'), ('epoch', 2), ('pair', 'other')]:
+            with self.subTest(key=key), self.assertRaises(ValueError):
+                self.read(**{key: value})
+        self.update("UPDATE reviewer_runtime SET state='idle'")
+        with self.assertRaises(ValueError): self.read()
+
+    def update(self, sql):
+        with closing(sqlite3.connect(self.path)) as db:
+            db.execute(sql)
+            db.commit()
+
+    def test_conflicting_unfinished_missing_and_secret_receipts_not_exposed(self):
+        self.turn['items'] = [self.item, dict(self.item, exitCode=1), dict(self.item, id='pending', status='inProgress'), dict(self.item, id='secret', command='echo sk-private-key')]
+        self.assertEqual(self.read()['receipts'], [])
+        self.turn['items'] = []
+        self.assertEqual(self.read()['receipts'], [])
+
+    def test_wrong_official_thread_turn_and_late_result_rejected(self):
+        self.proof['id'] = '00000000-0000-0000-0000-000000000098'
+        with self.assertRaises(ValueError): self.read()
+        self.proof['id'] = self.binding['session']
+        self.turn['id'] = 'old-turn'
+        with self.assertRaises(ValueError): self.read()
+
+    def test_binding_change_during_official_read_rejected(self):
+        original = self.observer
+        def observer(**kwargs):
+            instance = original(**kwargs)
+            turns = instance.turns
+            def changed(*args, **options):
+                self.update('UPDATE members SET binding_version=2')
+                return turns(*args, **options)
+            instance.turns = changed
+            return instance
+        with self.assertRaises(ValueError):
+            access.read_receipts(self.directory, self.binding, observer_factory=observer)
+
+    def test_state_file_escape_rejected(self):
+        moved = self.root / 'state.sqlite3'
+        moved.write_bytes(self.path.read_bytes())
+        with self.assertRaises(ValueError):
+            access.read_receipts(self.root, self.binding, observer_factory=self.observer)
+
+    def test_registered_exact_shell_argv_passes_without_unwrapping(self):
+        with tempfile.TemporaryDirectory() as folder:
+            controller = ReviewerController(None)
+            controller.state = {'cwd': folder, 'producer_version': '0.163.0'}
+            argv = ['C:/Program Files/PowerShell/7/pwsh.exe', '-Command', 'D:/Anaconda3/python.exe -B -m unittest -q']
+            stage = {'payload': json.dumps({'coordinator_required_checks': [{'name': 'unit', 'command': shlex.join(argv)}]})}
+            item = {'id': 'exec-one', 'type': 'CommandExecution', 'command': argv, 'cwd': folder, 'status': 'completed', 'exit_code': 0}
+            report = {'verdict': 'passed', 'checks': [{'name': 'unit', 'status': 'passed', 'receipt_id': 'exec-one'}]}
+            turn = {'status': 'completed', 'items': [item, {'type': 'agentMessage', 'text': json.dumps(report)}]}
+            self.assertEqual(controller._report(turn, stage)['verdict'], 'passed')
+            stage['payload'] = json.dumps({'coordinator_required_checks': [{'name': 'unit', 'command': argv[-1]}]})
+            self.assertEqual(controller._report(turn, stage)['verdict'], 'needs_validation')
+            stage['payload'] = json.dumps({'coordinator_required_checks': [{'name': 'unit', 'command': shlex.join(argv)}]})
+            controller.state['producer_version'] = 'unknown'
+            self.assertEqual(controller._report(turn, stage)['verdict'], 'needs_validation')
+
+
+if __name__ == '__main__':
+    unittest.main()

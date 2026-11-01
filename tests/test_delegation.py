@@ -1,3 +1,4 @@
+from tests.schema_fixture import remove_team_extensions
 """委托决策、过期恢复和授权竞争；合成事件不等于真实双 CLI 验收。"""
 import json
 import sqlite3
@@ -274,6 +275,8 @@ class DelegationTests(unittest.TestCase):
         claim=self.store.claim(*self.binding('A'),message_id=request['message_id'])
         # 从现有表构造真实 v7 形状，验证已有领取凭据不变。
         with self.store.transaction() as db:
+            remove_team_extensions(db)
+            db.execute('DROP TABLE reviewer_runtime');db.execute('DROP TABLE reviewer_history')
             db.execute('ALTER TABLE approval_requests RENAME TO saved_approvals')
             db.execute('DROP TABLE delegation_questions')
             db.execute('''CREATE TABLE approval_requests AS SELECT id,member,task_id,source_message,review_message,event,digest,status,expires,reason,capability_evidence,created,updated FROM saved_approvals''')
@@ -281,7 +284,7 @@ class DelegationTests(unittest.TestCase):
         upgraded=Store('test',home=self.home)
         self.assertEqual(upgraded.message(request['message_id'])['claim_token'],claim['claim_token'])
         with upgraded.transaction() as db:
-            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],8)
+            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],13)
             self.assertFalse(db.execute('PRAGMA foreign_key_check').fetchall())
         class Interrupted(sqlite3.Connection):
             def execute(self,sql,*args):

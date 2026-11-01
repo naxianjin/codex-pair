@@ -7,9 +7,11 @@ import sys
 import time
 
 try:
+    from .pair_json import read_json
     from .pair_core import Store
     from .pair_approvals import hook_response,approval_package_digest
 except ImportError:
+    from pair_json import read_json
     from pair_core import Store
     from pair_approvals import hook_response,approval_package_digest
 
@@ -34,13 +36,14 @@ def main(argv=None):
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--pair',required=True)
     parser.add_argument('--state-root',required=True)
-    parser.add_argument('--member',choices=['B'],required=True)
+    parser.add_argument('--member',choices=['B','C','D'],required=True)
     parser.add_argument('--timeout',type=int,default=180)
     parser.add_argument('--package-digest')
     parser.add_argument('--session')
+    parser.add_argument('--binding-version',type=int)
     try:
         args=parser.parse_args(argv)
-        event=json.load(sys.stdin)
+        event=read_json()
         if args.session and isinstance(event,dict) and event.get('session_id')!=args.session:
             print('{}')
             return 0
@@ -48,6 +51,10 @@ def main(argv=None):
         if not args.package_digest or args.package_digest!=approval_package_digest(Path(__file__).parent):
             raise ValueError('Hook package changed / 审批代码已变化，重新安装并核验信任后再使用')
         store=Store(args.pair,state_root=args.state_root)
+        current=store.member(args.member)
+        if args.binding_version is not None and current['binding_version']!=args.binding_version:
+            print(json.dumps(hook_response('deny','Stale binding / 旧成员回调已失效')))
+            return 0
         output=run_hook(store,args.member,event,timeout=args.timeout)
     except Exception:
         # 不回落为 allow，也不因回调异常继续弹出用户审批；不输出可能带密钥的异常正文。

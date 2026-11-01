@@ -12,10 +12,12 @@ import time
 import uuid
 
 try:
+    from .pair_json import read_json
     from .pair_core import Daemon, FileLock, PairError, Store, dumps, effective_home, member_workspace
     from .pair_transport import AppServer, QueueTransport, TransportError, TransportPool, canonical_path, binding_proof
     from . import pair_git
 except ImportError:
+    from pair_json import read_json
     from pair_core import Daemon, FileLock, PairError, Store, dumps, effective_home, member_workspace
     from pair_transport import AppServer, QueueTransport, TransportError, TransportPool, canonical_path, binding_proof
     import pair_git
@@ -34,7 +36,7 @@ def build_parser():
     common.add_argument('--state-root',default=argparse.SUPPRESS,help='共享状态根目录，协作目录为该路径/<ID>；与账号目录独立')
     common.add_argument('--member-codex-home',default=argparse.SUPPRESS,help='成员实际账号目录，默认当前 CODEX_HOME')
     common.add_argument('--codex',default=argparse.SUPPRESS,help='Codex 可执行文件路径')
-    parser=Parser(description='两个本机 Codex CLI 的持久化协作',parents=[common])
+    parser=Parser(description='最多四个可见Codex CLI及一个独立隐藏审核者',parents=[common])
     commands=parser.add_subparsers(dest='command',required=True)
     def command(name,help_text):
         return commands.add_parser(name,help=help_text,parents=[common])
@@ -43,13 +45,14 @@ def build_parser():
         group.add_argument('--body',help='消息或结果正文')
         group.add_argument('--body-file',help='UTF-8 正文文件，保留原有换行')
     def actor(cmd):
-        cmd.add_argument('--member',choices=['A','B'],required=True)
+        cmd.add_argument('--member',choices=['A','B','C','D'],required=True)
         cmd.add_argument('--session',default=os.environ.get('CODEX_THREAD_ID'),help='成员绑定的完整会话 UUID')
         cmd.add_argument('--worktree',default=str(Path.cwd()),help='必须与当前实际工作目录一致')
     cmd=command('start','由当前已打开窗口发起，生成给另一窗口的邀请并启动本地桥')
     cmd.add_argument('--project',help='目标仓库；默认当前目录所在仓库')
     cmd.add_argument('--delivery-mode',choices=['auto','manual'],default='auto')
     cmd.add_argument('--resume-pair',help='明确恢复旧协作并保留原数据库角色')
+    cmd.add_argument('--baseline-plan-file',help='新轮次存在未提交改动时，提供用户确认的基线归属 JSON')
     cmd.add_argument('--execution-assistance',choices=['task-scoped'],help='显式开启 B 请求 A 在当前任务授权内承接执行')
     cmd.add_argument('--quota-checkpoints',action='store_true',help='开启低额度项目内交接与自动恢复')
     group=cmd.add_mutually_exclusive_group(required=True)
@@ -64,7 +67,7 @@ def build_parser():
     cmd.add_argument('--base-ref',default='HEAD')
     cmd.add_argument('--worktree-root',help='默认项目 .codex-pair/worktrees，创建或验证 <ID>-a、<ID>-b')
     cmd=command('join','绑定已有 CLI 会话，或创建独占托管会话')
-    cmd.add_argument('--member',choices=['A','B'],required=True)
+    cmd.add_argument('--member',choices=['A','B','C','D'],required=True)
     cmd.add_argument('--worktree',required=True)
     group=cmd.add_mutually_exclusive_group(required=True)
     group.add_argument('--session',help='已有 CLI 的完整会话 UUID')
@@ -76,16 +79,24 @@ def build_parser():
     cmd=command('assign','分配任务；依赖和范围检查通过后才激活')
     cmd.add_argument('--task',required=True)
     cmd.add_argument('--title',required=True)
-    cmd.add_argument('--to',choices=['A','B','auto'],required=True)
-    cmd.add_argument('--report-to',choices=['A','B'],help='默认当前统筹方，初始为 A')
+    cmd.add_argument('--to',choices=['A','B','C','D','auto'],required=True)
+    cmd.add_argument('--report-to',choices=['A','B','C','D'],help='默认当前统筹方，初始为 A')
     cmd.add_argument('--effort',type=int,choices=[1,2,3,5,8],default=3)
+    cmd.add_argument('--task-kind',choices=['implementation','repair','integration','environment','verification','coordination'],default='implementation')
+    cmd.add_argument('--capability',action='append',default=[])
+    cmd.add_argument('--resource',action='append',default=[])
+    cmd.add_argument('--priority',type=int,default=0)
+    cmd.add_argument('--acceptance',action='append',default=[])
+    cmd.add_argument('--required-check',action='append',default=[],help='A定义的NAME=准确检查命令，可重复')
+    cmd.add_argument('--pin-member',action='store_true',help='固定原成员及绑定代次，交接不可转移')
+    cmd.add_argument('--independent-of',action='append',default=[],help='不得由被引用任务的执行者核验，可重复')
     cmd.add_argument('--allow',action='append',required=True,help='仓库相对修改范围，可重复')
     cmd.add_argument('--depends-on',action='append',default=[])
     cmd.add_argument('--base-ref',help='任务提交基准；默认使用协作基准')
     body(cmd)
     cmd=command('send','先持久化，再由 daemon 投递')
-    cmd.add_argument('--from',dest='sender',choices=['A','B'],required=True)
-    cmd.add_argument('--to',choices=['A','B'],required=True)
+    cmd.add_argument('--from',dest='sender',choices=['A','B','C','D'],required=True)
+    cmd.add_argument('--to',choices=['A','B','C','D'],required=True)
     cmd.add_argument('--task')
     cmd.add_argument('--kind',choices=['note','question','reply'],default='note')
     cmd.add_argument('--reply-to')
@@ -107,6 +118,10 @@ def build_parser():
     cmd.add_argument('--limit',type=int,default=2000)
     cmd=command('recover-delivery','显式恢复确定在发送前被长度检查拒绝的消息，保留原 ID 与历史')
     cmd.add_argument('--message',required=True)
+    cmd=command('recover-unsent-delivery','A结算旧发送前核验超时且已消费的结果，不重发、不伪造远端完成')
+    actor(cmd)
+    cmd.add_argument('--message',required=True)
+    body(cmd,True)
     cmd=command('complete','使用领取令牌提交实质结果')
     actor(cmd)
     cmd.add_argument('--message',required=True)
@@ -117,7 +132,7 @@ def build_parser():
     body(cmd,True)
     cmd=command('handoff','幂等补发已有交付，不重做任务')
     cmd.add_argument('--task',required=True)
-    cmd.add_argument('--to',choices=['A','B'],required=True)
+    cmd.add_argument('--to',choices=['A','B','C','D'],required=True)
     for name in ('read-delivery','ack-delivery'):
         cmd=command(name,'分页读取交付记录' if name=='read-delivery' else '确认已完整读取指定版本交付')
         actor(cmd)
@@ -134,9 +149,11 @@ def build_parser():
     cmd.add_argument('--checkpoints',choices=['on','off'])
     cmd=command('install-approval-hook','为已绑定 B 配置官方逐请求审批 Hook，不绕过 Hook 信任')
     actor(cmd)
+    cmd.add_argument('--target',choices=['B','C','D'],default='B')
     cmd.add_argument('--timeout',type=int,default=180)
     cmd=command('check-approval-hook','只读核验本轮 B 的 Hook 支持与信任状态')
     actor(cmd)
+    cmd.add_argument('--target',choices=['B','C','D'],default='B')
     cmd=command('delegation-policy','登记用户委托开启、撤销或授权范围变更，并使旧批准失效')
     actor(cmd)
     cmd.add_argument('--enabled',choices=['on','off'])
@@ -208,12 +225,12 @@ def build_parser():
     body(cmd,True)
     cmd=command('read-checkpoint','分页完整读取交接文档')
     actor(cmd)
-    cmd.add_argument('--source',choices=['A','B'],required=True)
+    cmd.add_argument('--source',choices=['A','B','C','D'],required=True)
     cmd.add_argument('--offset',type=int,default=0)
     cmd.add_argument('--limit',type=int,default=2000)
     cmd=command('consume-checkpoint','持久化恢复计划及接管，再清理文档')
     actor(cmd)
-    cmd.add_argument('--source',choices=['A','B'],required=True)
+    cmd.add_argument('--source',choices=['A','B','C','D'],required=True)
     cmd.add_argument('--digest',required=True)
     body(cmd,True)
     cmd=command('integrate','检查交付范围并按 SHA 整合；自动暂停新投递并保留冲突')
@@ -230,11 +247,14 @@ def build_parser():
         cmd.add_argument('--max-attempts',type=int,default=3)
         cmd.add_argument('--poll-interval',type=float,default=.25)
         cmd.add_argument('--rpc-timeout',type=float,default=15,help='投递回执超时，不是任务耗时限制')
-        if name=='relay':cmd.add_argument('--member',choices=['A','B'],required=True)
+        if name=='relay':cmd.add_argument('--member',choices=['A','B','C','D'],required=True)
     cmd=command('relay-stop','停止指定成员 relay，保留其他 relay 与状态')
-    cmd.add_argument('--member',choices=['A','B'],required=True)
+    cmd.add_argument('--member',choices=['A','B','C','D'],required=True)
     for name,label in [('pause','暂停新投递，保留已开始的回合'),('resume','恢复调度与投递'),('stop','停止守护程序，保留状态及代码')]:
         command(name,label)
+    try:from . import pair_commands
+    except ImportError:import pair_commands
+    pair_commands.register(command,actor,body)
     return parser
 
 
@@ -245,9 +265,12 @@ def read_body(args):
     return args.body or ''
 
 
-def validate_actor(store,args):
+def validate_actor(store,args,*,allow_configuration_change=False):
     if not args.session:
         raise PairError('Session UUID required / 必须提供会话 UUID 或 CODEX_THREAD_ID')
+    current_session=os.environ.get('CODEX_THREAD_ID')
+    if not current_session or current_session.lower()!=args.session.lower():
+        raise PairError('Current original CLI required / 不能填写其他窗口会话借用身份；须从本原CLI执行')
     if canonical_path(args.worktree)!=canonical_path(Path.cwd()):
         raise PairError('Actual cwd mismatch / 当前实际工作目录与 --worktree 不符')
     member=store.member(args.member)
@@ -256,8 +279,10 @@ def validate_actor(store,args):
         raise PairError('Member account mismatch / 当前账号目录与成员绑定不符，禁止回退另一账号')
     if member['session_uuid']!=args.session.lower() or member['cwd']!=canonical_path(args.worktree):
         raise PairError('Member binding mismatch / 成员的会话或工作目录不符')
-    with AppServer(codex_home=member['codex_home'], executable=getattr(args,'codex',None),cwd=member['cwd'],metadata_only=True) as observer:
-        observer.validate(member)
+    with AppServer(codex_home=member['codex_home'], executable=getattr(args,'codex',None),cwd=member['cwd'],metadata_only=True,account_metadata=True) as observer:
+        target=dict(member)
+        if allow_configuration_change:target.pop('proof',None)
+        observer.validate(target)
 
 
 def git_run(cwd,*args,input=None):
@@ -393,6 +418,11 @@ def apply_plan(store,plan,*,continuing=False):
 
 
 def integrate(store,args):
+    if store.setting('review_required'):
+        try:from .pair_windows import current_window
+        except ImportError:from pair_windows import current_window
+        window=current_window(getattr(args,'codex',None))
+        with store.transaction() as db:store._a_actor(db,'A',window['session_uuid'],window['cwd'])
     with FileLock(store.directory/'integration.lock',timeout=30),FileLock(store.control_lock,timeout=30):
         with store.transaction() as db:
             db.execute("UPDATE collaborations SET status='paused',revision=revision+1")
@@ -417,6 +447,7 @@ def integrate(store,args):
             return apply_plan(store,plan,continuing=True)
         if not args.task:raise PairError('--task is required / 必须选择交付任务')
         task=store.task(args.task)
+        if store.setting('review_required'):store.require_reviewed(task['id'])
         if task['status'] not in ('delivered','integrated'):
             raise PairError('Task has no accepted commit delivery / 任务尚未交付可验收的提交')
         commits=json.loads(task['commits_json'] or '[]')
@@ -493,7 +524,12 @@ def execute(args):
         raise PairError('--pair is required / 必须指定协作 ID')
     store=Store(pair_id,home=home,state_root=resolve_state_root(args,home,pair_id))
     executable=getattr(args,'codex',None)
+    try:from . import pair_commands
+    except ImportError:import pair_commands
+    if args.command in pair_commands.COMMANDS:return pair_commands.execute(store,args,sys.modules[__name__])
     if args.command=='join':
+        if not os.environ.get('CODEX_THREAD_ID') or not args.current_session and str(args.session).lower()!=os.environ['CODEX_THREAD_ID'].lower():
+            raise PairError('Original visible CLI required / 可见成员只能绑定本原窗口')
         home=Path(canonical_path(getattr(args,'member_codex_home',None) or home))
         cwd=canonical_path(args.worktree)
         if args.current_session:
@@ -503,6 +539,7 @@ def execute(args):
         git_proof=worktree_proof(store,args.member,cwd,args.branch)
         backend=args.backend or ('managed' if args.new_session else 'queue')
         if args.new_session:
+            raise PairError('Visible sessions must already exist / 可见成员只能使用原窗口；隐藏审核会话由独立控制器创建')
             if backend!='managed':
                 raise PairError('--new-session requires managed backend / 新会话必须使用 managed 后端')
             try:existing=store.member(args.member)
@@ -529,7 +566,11 @@ def execute(args):
             proof['git']=git_proof
             return store.join(args.member,args.session,cwd,backend=backend,owned=False,proof=proof,member_codex_home=home,delivery_mode=args.delivery_mode)
     if args.command=='assign':
-        members=[store.member(m) for m in ('A','B')] if args.to=='auto' else [store.member(args.to)]
+        if any('=' not in c or not all(c.split('=',1)) for c in args.required_check):raise PairError('Invalid required check / 使用NAME=准确命令定义必要检查')
+        if store.setting('review_required'):
+            window=__import__('importlib').import_module('scripts.pair_windows' if __package__ else 'pair_windows').current_window(executable)
+            with store.transaction() as db:store._a_actor(db,'A',window['session_uuid'],window['cwd'])
+        members=store.visible_members() if args.to=='auto' else [store.member(args.to)]
         for member in members:worktree_proof(store,member['id'],member_workspace(member))
         member=members[0]
         base=git_run(member_workspace(member),'rev-parse','--verify','--end-of-options',args.base_ref+'^{commit}') if args.base_ref else None
@@ -537,7 +578,9 @@ def execute(args):
             try:from .pair_quota import refresh
             except ImportError:from pair_quota import refresh
             refresh(store,executable=executable,max_age=30)
-        return store.assign(args.task,args.title,args.to,args.allow,body=read_body(args),dependencies=args.depends_on,base_commit=base,report_to=args.report_to,effort=args.effort)
+        return store.assign(args.task,args.title,args.to,args.allow,body=read_body(args),dependencies=args.depends_on,base_commit=base,report_to=args.report_to,effort=args.effort,
+            task_kind=args.task_kind,capabilities=args.capability,resources=args.resource,priority=args.priority,acceptance=args.acceptance,pin_member=args.pin_member,independent_of=args.independent_of,
+            required_checks=[{'name':c.split('=',1)[0],'command':c.split('=',1)[1],'required':True} for c in args.required_check if '=' in c])
     if args.command=='handoff':return store.handoff(args.task,args.to)
     if args.command=='quota':
         if args.refresh:
@@ -546,41 +589,48 @@ def execute(args):
             refresh(store,executable=executable,max_age=0)
         return store.quota()
     if args.command=='send':
+        if store.setting('review_required'):
+            try:from .pair_windows import current_window
+            except ImportError:from pair_windows import current_window
+            window=current_window(executable)
+            with store.transaction() as db:store._binding(db,args.sender,window['session_uuid'],window['cwd'])
         return store.send(args.sender,args.to,read_body(args),kind=args.kind,task_id=args.task,
                           dedupe_key=args.dedupe_key,reply_to=args.reply_to,progress_note=args.progress_note)
     if args.command=='recover-delivery':
         return store.recover_delivery(args.message)
+    if args.command=='recover-unsent-delivery':
+        validate_actor(store,args)
+        return store.recover_unsent_delivery(args.member,args.session,args.worktree,args.message,read_body(args))
     if args.command in ('assistance-policy','install-approval-hook','check-approval-hook','delegation-policy','ask-question','question-state','prepare-approval-retry','report-approval','review-approval','request-execution','begin-execution','finish-execution','resolve-execution',
                         'save-checkpoint','check-checkpoint','recover-checkpoint','resume-checkpoint','read-checkpoint','consume-checkpoint'):
         validate_actor(store,args)
         binding=(args.member,args.session,args.worktree)
         if args.command=='delegation-policy':return store.delegation_policy(*binding,read_body(args),enabled=None if args.enabled is None else args.enabled=='on')
         if args.command=='ask-question':
-            if args.member!='B':raise PairError('B required / 委托提问由 B 发起')
+            if args.member=='A':raise PairError('Executor required / 普通执行者向A提问')
             if not store.setting('delegation_enabled'):raise PairError('Delegation disabled / 未开启问题委托')
             if args.task:
                 task=store.task(args.task)
-                if task['assignee']!='B' or task['status']!='active':raise PairError('Active owned task required / 提问关联任务必须是 B 当前负责的活动任务')
-            return store.send('B','A',read_body(args),kind='question',task_id=args.task,dedupe_key='delegated-question:'+args.question_key,progress_note=args.progress_note)
+                if task['assignee']!=args.member or task['status']!='active':raise PairError('Active owned task required / 提问关联任务必须是 B 当前负责的活动任务')
+            return store.send(args.member,'A',read_body(args),kind='question',task_id=args.task,dedupe_key='delegated-question:'+args.question_key,progress_note=args.progress_note)
         if args.command=='question-state':return store.question_state(*binding,args.question,args.state,read_body(args))
         if args.command=='prepare-approval-retry':return store.prepare_approval_retry(*binding,args.approval,read_body(args))
         if args.command=='report-approval':return store.report_approval(*binding,args.approval,args.outcome,read_body(args))
         if args.command=='check-approval-hook':
-            b=store.member('B')
+            b=store.member(args.target)
             with AppServer(codex_home=b['codex_home'],executable=executable,cwd=b['cwd'],metadata_only=True,hook_metadata=True) as observer:
-                return store.record_hook_status(observer.rpc('hooks/list',{}))
+                return store.record_hook_status(observer.rpc('hooks/list',{}),target=args.target)
         if args.command=='install-approval-hook':
-            return store.install_approval_hook(*binding,python=sys.executable,script=str(Path(__file__).with_name('pair_permission_hook.py')),timeout=args.timeout)
+            return store.install_approval_hook(*binding,python=sys.executable,script=str(Path(__file__).with_name('pair_permission_hook.py')),timeout=args.timeout,target=args.target)
         if args.command=='review-approval':
             return store.review_approval(*binding,args.approval,args.token,args.digest,args.decision,read_body(args),
                 within_permissions=args.within_a_permissions,capability_evidence=args.capability_evidence)
         if args.command=='assistance-policy':
             return store.configure_assistance(*binding,execution=None if args.execution is None else args.execution=='on',checkpoints=None if args.checkpoints is None else args.checkpoints=='on')
         if args.command=='request-execution':
-            content=(sys.stdin.buffer.read().decode('utf-8-sig') if hasattr(sys.stdin,'buffer') else sys.stdin.read()) if args.request_stdin else Path(args.request_file).read_text(encoding='utf-8-sig')
-            return store.request_execution(*binding,args.message,args.token,args.request,json.loads(content.lstrip('\ufeff')))
+            return store.request_execution(*binding,args.message,args.token,args.request,read_json(None if args.request_stdin else args.request_file))
         if args.command=='begin-execution':return store.begin_execution(*binding,args.request,args.token,args.digest,read_body(args))
-        if args.command=='finish-execution':return store.finish_execution(*binding,args.request,args.token,args.outcome,json.loads(Path(args.result_file).read_text(encoding='utf-8-sig')))
+        if args.command=='finish-execution':return store.finish_execution(*binding,args.request,args.token,args.outcome,read_json(args.result_file))
         if args.command=='resolve-execution':return store.resolve_execution(*binding,args.request,read_body(args))
         if args.command=='save-checkpoint':return store.save_checkpoint(*binding,read_body(args),message_id=args.message,token=args.token)
         if args.command=='check-checkpoint':return store.check_checkpoint(*binding)

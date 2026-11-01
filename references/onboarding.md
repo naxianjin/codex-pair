@@ -1,5 +1,8 @@
 # 当前两个窗口的发起与加入
 
+> 开发候选说明：本页保留v1.2.1的双窗口基础/历史限制。新候选采用最多四个可见原CLI、一个受管隐藏审核者及新轮次6%保留线；新规则与入口见 [team-commands.md](team-commands.md)，未验证项及复测步骤见 [validation-handoff-four-cli.md](validation-handoff-four-cli.md)。旧文中的“只能两个”“不新增任何会话”、不同home限制和9%新轮次默认值不覆盖本轮规格。当前禁止安装或推送待验证候选。
+
+
 当前仅支持两个用户已打开的官方 CLI 原窗口 A/B，不支持多人扩容。最新结论及历史测试边界见 [测试汇总](validation-summary-20261019.md)；下文历史版本号不代表当前包版本。
 
 当前两窗口源码包含任务内 A 协助执行及低额度交接，详见 [assistance.md](assistance.md)。新 start 默认开启额度交接、A 代答及原生权限审批委托；较低权限的 B 首次在 Hook 安装后输入 /hooks 并审阅、信任对应项，详见 [approval-review.md](approval-review.md)。任务内代执行仍需显式 --execution-assistance task-scoped。每次继续项目工作先检查返回的 checkpoint_check 或信封 checkpoint_check_argv，有交接才分页读取并核实接管；没有则不读取历史。旧轮次迁移保留关闭策略。以下 v1.1.3 原窗口验收不覆盖新增流程。

@@ -2,15 +2,24 @@
 from __future__ import annotations
 
 import json
+import math
 import os
 from pathlib import Path
 import queue
 import re
 import shutil
+import shlex
+import stat
 import subprocess
 import threading
 import time
 import uuid
+from urllib.parse import urlsplit, unquote
+
+try:
+    from .pair_producer import strict_version, strict_display, prepare_launch, attach_process
+except ImportError:
+    from pair_producer import strict_version, strict_display, prepare_launch, attach_process
 
 
 class TransportError(RuntimeError):
@@ -39,7 +48,8 @@ def redact_diagnostic(value):
     """诊断中的 API 令牌和认证字段不写入证据或共享状态。"""
     if isinstance(value,str):
         value=re.sub(r'\bsk-[A-Za-z0-9_-]+','[REDACTED]',value)
-        return re.sub(r'(?i)(\bBearer\s+)[A-Za-z0-9._~+/=\-]+',r'\1[REDACTED]',value)
+        value=re.sub(r'(?i)(\bBearer\s+)[A-Za-z0-9._~+/=\-]+',r'\1[REDACTED]',value)
+        return re.sub(r'''(?i)((?:access_token|refresh_token|api_key|authorization|password|secret)["']?\s*[:=]\s*["']?)[^\s,"';}]+''',r'\1[REDACTED]',value)
     if isinstance(value,dict):
         sensitive={'api_key','apikey','authorization','access_token','refresh_token','bearer_token',
                    'experimental_bearer_token','password','secret'}
@@ -50,6 +60,175 @@ def redact_diagnostic(value):
 
 def canonical_path(path):
     return os.path.normcase(str(Path(path).expanduser().resolve(strict=True)))
+
+
+def same_review_directory(left,right):
+    """仅比较已有真实目录；拒绝相对路径、上级转义和链接重定向。"""
+    try:
+        paths=(Path(left),Path(right))
+        for path in paths:
+            if not path.is_absolute() or '..' in path.parts or not path.is_dir():return False
+            for entry in (path,*path.parents):
+                if (entry.is_symlink() or getattr(entry.lstat(),'st_file_attributes',0)
+                        & getattr(stat,'FILE_ATTRIBUTE_REPARSE_POINT',0)):
+                    return False
+        return canonical_path(paths[0])==canonical_path(paths[1]) and paths[0].samefile(paths[1])
+    except (OSError,ValueError,TypeError,RuntimeError):return False
+
+
+def receipt_cwd(value):
+    """只接受本地绝对目录或无主机/查询的file URI，不猜测远程及相对路径。"""
+    if not isinstance(value,str) or not value:return None
+    if value.startswith('file:'):
+        uri=urlsplit(value)
+        if uri.scheme!='file' or uri.netloc or uri.query or uri.fragment:return None
+        value=unquote(uri.path)
+        if os.name=='nt' and re.match(r'^/[A-Za-z]:/',value):value=value[1:]
+    try:
+        path=Path(value)
+        return canonical_path(path) if path.is_absolute() and path.is_dir() else None
+    except (OSError,ValueError,RuntimeError):return None
+
+
+def command_receipt(item):
+    """白名单适配API与持久事件；不使用输出或模型文字推导执行结果。"""
+    if not isinstance(item,dict) or item.get('type') not in ('commandExecution','CommandExecution'):return None
+    code=item.get('exitCode',item.get('exit_code'))
+    if type(code) is not int or ('exitCode' in item and 'exit_code' in item and
+            (type(item['exit_code']) is not int or item['exit_code']!=code)):return None
+    status=item.get('status')
+    if status not in ('completed','failed') or status=='failed' and code==0:return None
+    command=item.get('command')
+    argv=item.get('command_argv')
+    if argv is not None and (not isinstance(argv,list) or not argv or any(not isinstance(x,str) or '\0' in x for x in argv) or not argv[0]):return None
+    if isinstance(command,list):
+        if not command or any(not isinstance(part,str) or '\0' in part for part in command) or not command[0]:return None
+        if argv is not None and argv!=command:return None
+        argv=list(command)
+        command=subprocess.list2cmdline(command) if os.name=='nt' else (command[0] if len(command)==1 else None)
+    if argv is not None and isinstance(item.get('command'),str) and item['command']!=subprocess.list2cmdline(argv):return None
+    cwd=receipt_cwd(item.get('cwd'))
+    if not isinstance(command,str) or not command or not cwd or not isinstance(item.get('id'),str) or not item['id']:return None
+    result={'id':item['id'],'type':'commandExecution','status':status,'exitCode':code,'command':command,'cwd':cwd}
+    if argv is not None:result['command_argv']=argv
+    if 'source' in item:
+        if not isinstance(item['source'],str):return None
+        result['source']={'unifiedExecStartup':'unified_exec_startup'}.get(item['source'],item['source'])
+    return result
+
+
+def command_matches(request,item,*,producer_version=None):
+    if not isinstance(request,str) or not request or '\0' in request:return False
+    if strict_version(producer_version):
+        return (item.get('source')=='unified_exec_startup' and item.get('command_argv') is not None
+                and strict_display(item['command_argv'])==request)
+    if producer_version not in (None,'0.163.0'):return False
+    if request==item['command']:return True
+    argv=item.get('command_argv')
+    # 官方0.163.0审批采用shlex_join；未知格式不猜测，脚本只逐字比较。
+    if not argv or producer_version!='0.163.0':return False
+    try:return shlex.split(request,posix=True)==argv
+    except ValueError:return False
+
+
+def merge_command_receipts(left,right,*,producer_version=None):
+    """不同展示仅凭已核实版本的原argv合并；矛盾项不能被后续成功覆盖。"""
+    if strict_version(producer_version):
+        if any(left.get(k)!=right.get(k) for k in ('id','type','status','exitCode','cwd','source')):return None
+        if left.get('source')!='unified_exec_startup':return None
+        if left==right:return left
+        raw,display=(left,right) if left.get('command_argv') is not None else (right,left)
+        argv=raw.get('command_argv')
+        if argv is None or display.get('command_argv') is not None:return None
+        return raw if strict_display(argv)==display['command'] else None
+    if producer_version not in (None,'0.163.0'):return None
+    if left==right:return left
+    if any(left[k]!=right[k] for k in ('id','type','status','exitCode','cwd')):return None
+    if producer_version!='0.163.0':return None
+    raw,display=(left,right) if left.get('command_argv') else (right,left)
+    argv=raw.get('command_argv')
+    if not argv or display.get('command_argv') or any('\0' in arg for arg in argv) or '\0' in display['command']:return None
+    try:
+        if shlex.split(display['command'],posix=True)==argv:return raw
+    except ValueError:pass
+    return None
+
+
+def owned_rollout_path(member,thread):
+    """沿用官方会话目录的实体归属检查，额外拒绝home外sessions重定向。"""
+    home=Path(member['codex_home']).resolve(strict=True)
+    sessions=(home/'sessions').resolve(strict=True)
+    original=Path(thread['path'])
+    if not original.is_absolute() or original.is_symlink():raise ValueError('Ambiguous rollout path')
+    path=original.resolve(strict=True)
+    if not sessions.is_relative_to(home) or path.suffix!='.jsonl' or not (path.is_relative_to(sessions)
+            or any(parent.samefile(sessions) for parent in path.parents)):
+        raise ValueError('Rollout ownership mismatch')
+    return path
+
+
+def rollout_command_items(member,thread,turn_id,*,producer_version=None,require_terminal=True,terminal_turn=None):
+    """有界读取精确官方工具事件；仅显式选项允许回合进行中的工具终态。"""
+    try:
+        if thread.get('id')!=member['session_uuid'] or receipt_cwd(thread.get('cwd'))!=receipt_cwd(member['cwd']):return None
+        if terminal_turn is not None and (not require_terminal or not isinstance(terminal_turn,dict)
+                or terminal_turn.get('id')!=turn_id or terminal_turn.get('threadId')!=member['session_uuid']):return None
+        path=owned_rollout_path(member,thread);size=path.stat().st_size
+        if size>32*1024*1024:return None
+        with path.open('rb') as stream:data=stream.read(size)
+        if len(data)!=size or not data.endswith(b'\n'):return None
+        meta=None;started=False;terminal=False;items={};conflicts=set()
+        def unique_object(pairs):
+            result={}
+            for key,value in pairs:
+                if key in result:raise ValueError('Duplicate rollout JSON key')
+                result[key]=value
+            return result
+        for line in data.splitlines():
+            # 仅compacted可使用较大行预算；普通工具事件仍限制为1 MiB。
+            if len(line)>4*1024*1024:return None
+            record=json.loads(line,object_pairs_hook=unique_object)
+            if not isinstance(record,dict):return None
+            if len(line)>1024*1024 and record.get('type')!='compacted':return None
+            payload=record.get('payload')
+            if not isinstance(payload,dict):return None
+            if record.get('type')=='session_meta':
+                if meta is not None and meta!=payload:return None
+                meta=payload
+            if (not require_terminal and started and not terminal and record.get('type')=='event_msg'
+                    and payload.get('type')=='task_started' and payload.get('turn_id')!=turn_id):return None
+            if record.get('type')!='event_msg' or payload.get('turn_id')!=turn_id:continue
+            kind=payload.get('type')
+            if kind=='task_started':
+                if terminal:return None
+                started=True
+            stamp=payload.get('completed_at')
+            if kind=='turn_aborted' and terminal_turn is not None:
+                # 仅公开对账传入的官方终态与持久日志完全一致时接受中断；不把工具或业务判为成功。
+                api_stamp=terminal_turn.get('completedAt')
+                if (not started or terminal or payload.get('reason')!='interrupted'
+                        or terminal_turn.get('status')!='interrupted'
+                        or type(stamp) not in (int,float) or type(api_stamp) not in (int,float)
+                        or not math.isfinite(stamp) or not math.isfinite(api_stamp)
+                        or stamp<=0 or api_stamp!=stamp):return None
+                terminal=True
+            if kind=='task_complete' and terminal_turn is not None:
+                if terminal or terminal_turn.get('status')=='interrupted':return None
+            if kind=='task_complete' and started and type(stamp) in (str,int,float) and stamp:terminal=True
+            if kind!='item_completed':continue
+            if not started or terminal:return None
+            if payload.get('thread_id')!=member['session_uuid']:return None
+            item=payload.get('item');key=item.get('id') if isinstance(item,dict) else None
+            if not isinstance(key,str):return None
+            normalized=command_receipt(item)
+            merged=(merge_command_receipts(items[key],normalized,producer_version=producer_version)
+                    if normalized and key in items else normalized)
+            if not merged:conflicts.add(key)
+            else:items[key]=merged
+        if not meta or meta.get('id')!=member['session_uuid'] or receipt_cwd(meta.get('cwd'))!=receipt_cwd(member['cwd']):return None
+        if not started or require_terminal and not terminal:return None
+        return [item for key,item in items.items() if key not in conflicts]+[{'id':key,'type':'conflictingReceipt'} for key in conflicts]
+    except (OSError,KeyError,TypeError,ValueError,RuntimeError,OverflowError):return None
 
 
 def session_uuid(value):
@@ -85,6 +264,8 @@ def binding_proof(thread, *, require_provider=False):
            'ephemeral':bool(thread.get('ephemeral'))}
     if identity['provider'] is not None:proof['modelProvider']=identity['provider']
     if identity['model'] is not None:proof['model']=identity['model']
+    account=thread.get('accountFingerprint')
+    if isinstance(account,str) and re.fullmatch(r'[0-9a-f]{64}',account):proof['accountFingerprint']=account
     version=thread.get('cliVersion')
     if isinstance(version,str) and re.fullmatch(r'[0-9][A-Za-z0-9.+\-]{0,63}',version):
         proof['cliVersion']=version
@@ -171,7 +352,7 @@ class AppServer:
     """一条长连接。managed 拥有独立进程；shared 仅代理现有守护进程。"""
 
     def __init__(self, *, backend='managed', executable=None, codex_home=None,
-                 cwd=None, timeout=15, evidence=None, process_factory=subprocess.Popen, metadata_only=False, account_metadata=False, hook_metadata=False):
+                 cwd=None, timeout=15, evidence=None, process_factory=subprocess.Popen, metadata_only=False, account_metadata=False, hook_metadata=False, track_producer=False):
         if backend not in ('managed', 'shared'):
             raise TransportError('Invalid backend / 无效传输后端')
         self.backend, self.timeout = backend, timeout
@@ -185,22 +366,30 @@ class AppServer:
         self._write_lock = threading.Lock()
         self._dead = False
         self.notifications = queue.Queue(maxsize=2048)
+        self.progress_events = queue.Queue(maxsize=2048)
         self.server_requests = queue.Queue()
         self._evidence = evidence
-        argv = codex_command(executable) + ['app-server']
+        executable_argv = codex_command(executable)
+        if track_producer and (backend!='managed' or metadata_only):raise TransportError('Producer tracking requires owned reviewer')
+        launch = prepare_launch(executable_argv) if track_producer else None
+        argv = executable_argv + ['app-server']
         argv += ['proxy'] if backend == 'shared' else ['--listen', 'stdio://']
         env = control_environment(codex_home) if metadata_only else os.environ.copy()
         if codex_home is not None:
             env['CODEX_HOME'] = str(codex_home)
         self._stderr = []
+        self._diagnostic_stage='process_start'
+        self._last_success_rpc=None
         try:
             self.process = process_factory(argv, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                                            stderr=subprocess.PIPE, cwd=cwd, env=env,
                                            creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
         except OSError as exc:
-            raise TransportError(str(exc), retryable=True) from exc
+            self._stderr.append(redact_diagnostic(str(exc))[:512])
+            raise TransportError('App-server startup failed / 辅助进程启动失败: '+self._disconnect_diagnostic(), retryable=True) from exc
         try:
             self._job=ProcessJob(self.process)
+            self.producer_launch=attach_process(launch,self.process) if launch else None
         except BaseException:
             self.process.kill();self.process.wait(timeout=5)
             for stream in (self.process.stdin,self.process.stdout,self.process.stderr):stream.close()
@@ -236,6 +425,11 @@ class AppServer:
                         # 维持原权限配置，不擅自批准服务端请求。
                         self.server_requests.put(obj)
                     else:
+                        if obj.get('method')=='item/completed':
+                            params=obj.get('params',{});item=params.get('item',{})
+                            if item.get('type') in ('commandExecution','fileChange'):
+                                try:self.progress_events.put_nowait({'thread':params.get('threadId'),'turn':params.get('turnId'),'item':item.get('id'),'type':item.get('type'),'status':item.get('status')})
+                                except queue.Full:pass
                         if obj.get('method') in ('account/rateLimits/updated','account/updated','thread/tokenUsage/updated'):
                             try:self.signal_events.put_nowait(obj)
                             except queue.Full:pass
@@ -247,15 +441,25 @@ class AppServer:
                             self.notifications.put_nowait(obj)
         except (OSError, ValueError) as exc:
             self._stderr.append(str(exc))
+            self._diagnostic_stage='read_parse_error'
         finally:
+            if getattr(self,'_diagnostic_stage',None)!='read_parse_error':self._diagnostic_stage='stdout_eof'
             with self._condition:
                 self._dead = True
                 self._condition.notify_all()
 
     def _read_errors(self):
         for line in self.process.stderr:
-            self._stderr.append(line.decode('utf-8', errors='replace').rstrip())
-            self._stderr[:] = self._stderr[-100:]
+            self._stderr.append(redact_diagnostic(line.decode('utf-8', errors='replace').rstrip())[:512])
+            self._stderr[:] = self._stderr[-16:]
+
+    def _disconnect_diagnostic(self):
+        process=getattr(self,'process',None)
+        try:code=process.poll() if process else None
+        except (OSError,AttributeError):code=None
+        return json.dumps({'stage':getattr(self,'_diagnostic_stage','unknown'),
+            'exit_code':code if type(code) is int else None,'last_success_rpc':getattr(self,'_last_success_rpc',None),
+            'stderr':redact_diagnostic('\n'.join(getattr(self,'_stderr',[])[-4:]))[:2048]},ensure_ascii=True)
 
     def _write(self, obj):
         self._record('send', obj)
@@ -273,10 +477,16 @@ class AppServer:
         if getattr(self,'account_metadata',False):allowed+=('account/read','account/rateLimits/read')
         if getattr(self,'hook_metadata',False):allowed+=('hooks/list',)
         if getattr(self,'metadata_only',False) and method not in allowed:
-            raise TransportError('Metadata-only observer / 只读观察进程拒绝非元数据 RPC')
+            grant=getattr(self,'_quota_interrupt',None)
+            if method!='turn/interrupt' or grant is None or params!=grant:
+                raise TransportError('Metadata-only observer / 只读观察进程拒绝非元数据 RPC')
+            with self._condition:
+                if self._quota_interrupt!=grant:
+                    raise TransportError('Quota interrupt consumed / 准确中断凭据已消费')
+                self._quota_interrupt=None
         with self._condition:
             if self._dead:
-                raise TransportError('App-server disconnected / app-server 已断开: ' + '\n'.join(self._stderr), retryable=True)
+                raise TransportError('App-server disconnected / app-server 已断开: ' + self._disconnect_diagnostic(), retryable=True)
             self._next_id += 1
             request_id = self._next_id
         try:
@@ -288,15 +498,56 @@ class AppServer:
             while request_id not in self._pending:
                 remaining = deadline - time.monotonic()
                 if remaining <= 0 or self._dead:
-                    raise DeliveryUnknown('RPC result unknown / RPC 结果不明: ' + method + ' ' + '\n'.join(self._stderr))
+                    raise DeliveryUnknown('RPC result unknown / RPC 结果不明: ' + method + ' ' + self._disconnect_diagnostic())
                 self._condition.wait(remaining)
             obj = self._pending.pop(request_id)
         if 'error' in obj:
             raise RpcError(obj['error'])
+        self._last_success_rpc=method
         return obj['result']
 
     def read_thread(self, thread_id):
         return self.rpc('thread/read', {'threadId': session_uuid(thread_id)})['thread']
+
+    def interrupt_for_quota(self,member):
+        """仅原账号已核验的唯一活动回合可获一次中断，不开放通用写RPC。"""
+        member=dict(member)
+        try:
+            proof=member.get('proof')
+            proof=json.loads(proof) if isinstance(proof,str) else dict(proof or {})
+            member['proof']=proof
+            valid=(getattr(self,'metadata_only',False) and getattr(self,'account_metadata',False)
+                and member.get('backend')=='queue' and not member.get('owned')
+                and type(member.get('binding_version')) is int and member['binding_version']>=1
+                and proof.get('id')==session_uuid(member['session_uuid'])
+                and canonical_path(proof['cwd'])==canonical_path(member['cwd'])
+                and proof.get('modelProvider') in ('openai','deepseek') and bool(proof.get('model'))
+                and bool(proof.get('accountFingerprint'))
+                and canonical_path(self.identity['codexHome'])==canonical_path(member['codex_home']))
+        except (KeyError,TypeError,ValueError,OSError) as exc:
+            raise TransportError('Quota binding unverified / 原账号或会话绑定未核验') from exc
+        if not valid:raise TransportError('Quota binding unverified / 原账号或会话绑定未核验')
+        thread=self.validate(member)
+        if thread.get('status',{}).get('type')=='idle':return {'state':'idle'}
+        if thread.get('status',{}).get('type')!='active':
+            raise TransportError('Session unavailable / 原CLI活动状态未核实，不恢复会话')
+        turns=[t for t in self.turns(member['session_uuid']) if t.get('status')=='inProgress']
+        if len(turns)!=1 or not isinstance(turns[0].get('id'),str) or not turns[0]['id']:
+            raise TransportError('Active turn unresolved / 无法唯一确认原活动回合，不猜测中断')
+        turn=turns[0]['id'];params={'threadId':member['session_uuid'],'turnId':turn}
+        # 同一原回合不因本地绑定版本改变而再次发送未知中断。
+        key=(member['session_uuid'],turn)
+        with self._condition:
+            attempts=getattr(self,'_quota_interrupt_attempts',set())
+            if key in attempts or getattr(self,'_quota_interrupt',None) is not None:
+                raise TransportError('Quota interrupt already attempted / 原准确回合已请求中断，不重试')
+            attempts.add(key);self._quota_interrupt_attempts=attempts
+            self._quota_interrupt=params
+        try:
+            self.rpc('turn/interrupt',params)
+        finally:
+            with self._condition:self._quota_interrupt=None
+        return {'state':'interrupt_requested','turn_id':turn}
 
     def validate(self, member):
         thread = self.read_thread(member['session_uuid'])
@@ -311,6 +562,14 @@ class AppServer:
         proof=member.get('proof')
         proof=json.loads(proof) if isinstance(proof,str) else proof
         actual=binding_proof(thread)
+        if proof and proof.get('accountFingerprint') and getattr(self,'account_metadata',False):
+            try:from .pair_balance import pool_key
+            except ImportError:from pair_balance import pool_key
+            identity=self.rpc('account/read',{'refreshToken':False})
+            if pool_key(identity,canonical_path(member['codex_home']))!=proof['accountFingerprint']:
+                raise TransportError('Account changed / 原会话实际账号已变化，先暂停并重新核验')
+        if proof and proof.get('model') and proof['model']!=actual.get('model'):
+                raise TransportError('Model changed / 会话模型已变化，必须暂停并重新核验')
         if proof and proof.get('modelProvider') and proof['modelProvider']!=actual.get('modelProvider'):
             raise TransportError('Model provider changed / 会话提供方与绑定记录不符，不静默换用配置')
         if proof and proof.get('git'):
@@ -351,10 +610,12 @@ class AppServer:
             'input': [{'type': 'text', 'text': message['envelope']}]})
         return {'turn_id': result['turn']['id'], 'remote_status': result['turn']['status']}
 
-    def turns(self, thread_id):
+    def turns(self, thread_id, *, items_view='summary'):
+        if items_view not in ('summary','full'):raise TransportError('Unsupported item view')
         cursor = None
+        seen=set()
         while True:
-            params = {'threadId': thread_id, 'limit': 100, 'itemsView': 'summary'}
+            params = {'threadId': thread_id, 'limit': 100, 'itemsView': items_view}
             if cursor:
                 params['cursor'] = cursor
             page = self.rpc('thread/turns/list', params)
@@ -362,16 +623,15 @@ class AppServer:
             cursor = page.get('nextCursor')
             if not cursor:
                 return
+            if cursor in seen:raise TransportError('Repeated turn cursor / 回合分页游标循环')
+            seen.add(cursor)
 
-    def rollout_completion(self, member, thread, message, turn_id):
+    def rollout_completion(self, member, thread, message, turn_id, *, workspace_only=False, api_turns=()):
         """只认本账号、同一会话的持久化回合事件，增量读取以免阻塞消息桥。"""
         if not getattr(self,'metadata_only',False) or not isinstance(thread,dict):return None
         try:
-            path=Path(thread['path']).resolve(strict=True)
-            sessions=(Path(member['codex_home'])/'sessions').resolve(strict=True)
+            path=owned_rollout_path(member,thread)
             # Windows 官方返回的路径可能带 \\?\ 前缀，按目录实体核对归属。
-            if path.suffix!='.jsonl' or not (path.is_relative_to(sessions)
-                    or any(parent.samefile(sessions) for parent in path.parents)):return None
             stat=path.stat();identity=(stat.st_dev,stat.st_ino)
             cache=getattr(self,'_rollouts',{})
             self._rollouts=cache
@@ -384,7 +644,7 @@ class AppServer:
                 file.seek(state['offset'])
                 while file.tell()<stat.st_size:
                     line=file.readline()
-                    if not line or not line.endswith(b'\n'):break
+                    if not line or not line.endswith(b'\n'):return None
                     state['offset']=file.tell()
                     try:record=json.loads(line)
                     except (ValueError,UnicodeError):
@@ -405,6 +665,16 @@ class AppServer:
             if not state['valid'] or not isinstance(meta,dict) or meta.get('id')!=member['session_uuid']:return None
             if canonical_path(meta['cwd'])!=canonical_path(member['cwd']):return None
             latest=state['latest']
+            if workspace_only:
+                if latest not in state['completed']:return True
+                for turn in api_turns:
+                    if self._turn_state(turn) in ('completed','failed','interrupted'):continue
+                    current=turn['id']
+                    if current in state['completed']:continue
+                    # 同会话后续回合的落盘完成可消解已开始的旧回合，不能消解尚未入日志的新回合。
+                    if turn['status']!='queued' and current in state['started'] and current!=latest:continue
+                    return True
+                return False
             # 新回合尚在执行时继续保留共享工作区的阻塞，不被旧完成事件放行。
             if latest not in state['completed']:return None
             if turn_id in state['completed']:
@@ -418,7 +688,8 @@ class AppServer:
 
     def observe(self, member, message):
         thread = self.validate(member)
-        for turn in self.turns(member['session_uuid']):
+        turns = list(self.turns(member['session_uuid']))
+        for turn in turns:
             matched = turn['id'] == message.get('turn_id') if message.get('turn_id') else any(
                 item.get('type') == 'userMessage' and (item.get('clientId') == message['id'] or any(
                     entry.get('type')=='text' and entry.get('text')==message.get('envelope')
@@ -427,9 +698,7 @@ class AppServer:
             if matched:
                 # 非拥有者读取尚在运行的历史时，0.162.1 会合成 interrupted，
                 # 但 completedAt 仍为空。只有持久化完成时间才能证明回合已结束。
-                state=turn['status']
-                if state in ('completed','failed','interrupted') and turn.get('completedAt') is None:
-                    state='inProgress'
+                state=self._turn_state(turn)
                 receipt={'turn_id': turn['id'], 'remote_status': state,
                         'reported_status':turn['status'],'completed_at':turn.get('completedAt'),
                         'result': [item.get('text', '') for item in turn.get('items', [])
@@ -437,8 +706,18 @@ class AppServer:
                 if state=='inProgress' or state=='interrupted' and message.get('process_status')=='completed':
                     proof=self.rollout_completion(member,thread,message,turn['id'])
                     if proof:receipt.update(proof)
+                if getattr(self,'metadata_only',False):
+                    receipt['workspace_busy']=self.rollout_completion(
+                        member,thread,message,turn['id'],workspace_only=True,api_turns=turns) is not False
                 return receipt
         return None  # 查不到不是“未投递”的证明。
+
+    @staticmethod
+    def _turn_state(turn):
+        state=turn['status']
+        if state in ('completed','failed','interrupted') and turn.get('completedAt') is None:
+            return 'inProgress'
+        return state
 
     def wait_turn(self, thread_id, turn_id, *, timeout=120):
         deadline = time.monotonic() + timeout
@@ -506,10 +785,24 @@ class TransportPool:
         return self.clients[key]
 
     def start(self, member, message):
-        return self.client(member).start(member, message)
+        try:
+            client = self.client(member)
+        except DeliveryUnknown as exc:
+            if member['backend'] != 'queue': raise
+            # queue客户端的创建/身份核验尚未提交消息；不把这个异常扩散为发送不明。
+            raise TransportError('Queue preflight not submitted / 队列发送前核验失败: ' + str(exc), retryable=True) from exc
+        return client.start(member, message)
 
     def observe(self, member, message):
         return self.client(member).observe(member, message)
+
+    def stop_for_quota(self, member):
+        if member.get('backend')!='queue':
+            raise TransportError('Quota stop unsupported / 不接续托管模型会话')
+        client=self.client(member)
+        if not isinstance(client,QueueTransport):
+            raise TransportError('Quota stop unsupported / 仅处理已绑定原CLI，不恢复模型')
+        return client.observer.interrupt_for_quota(member)
 
     def close(self):
         for client in self.clients.values():
@@ -544,7 +837,7 @@ class QueueTransport:
         self.timeout=timeout
         self.cwd=cwd
         self.environment=control_environment(codex_home)
-        self.observer=AppServer(codex_home=codex_home, executable=executable,cwd=cwd,timeout=timeout,metadata_only=True)
+        self.observer=AppServer(codex_home=codex_home, executable=executable,cwd=cwd,timeout=timeout,metadata_only=True,account_metadata=True)
 
     @property
     def _dead(self):
@@ -554,7 +847,10 @@ class QueueTransport:
         return self.observer.validate(member)
 
     def start(self,member,message):
-        self.validate(member)
+        try:
+            self.validate(member)
+        except DeliveryUnknown as exc:
+            raise TransportError('Queue preflight not submitted / 队列发送前核验失败: ' + str(exc), retryable=True) from exc
         # 即使直接调用本 API，也只传 ASCII JSON，避免 Windows CLI 代码页破坏正文。
         envelope=json.dumps(json.loads(message['envelope']),ensure_ascii=True)
         if envelope!=message['envelope']:

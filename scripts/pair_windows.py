@@ -1,4 +1,4 @@
-"""只接入用户当前打开的两个会话；账号与窗口标题不参与角色选择。"""
+"""邀请接入最多四个原可见会话；隐藏审核由独立控制器管理。"""
 from __future__ import annotations
 
 from contextlib import closing
@@ -13,10 +13,12 @@ import time
 import uuid
 
 try:
+    from .pair_json import read_json
     from .pair_core import FileLock, PairError, Store, dumps, effective_home, member_workspace
     from .pair_transport import AppServer, canonical_path, session_uuid, binding_proof
     from . import pair_git
 except ImportError:
+    from pair_json import read_json
     from pair_core import FileLock, PairError, Store, dumps, effective_home, member_workspace
     from pair_transport import AppServer, canonical_path, session_uuid, binding_proof
     import pair_git
@@ -32,12 +34,17 @@ def current_window(executable=None):
         raise PairError('Current CLI required / 请在要参与协作的 Codex 窗口内调用技能，无法从普通终端猜测窗口')
     current={'session_uuid':session_uuid(value),'cwd':canonical_path(Path.cwd()),
              'codex_home':canonical_path(effective_home())}
-    with AppServer(codex_home=current['codex_home'],cwd=current['cwd'],executable=executable,metadata_only=True) as observer:
+    with AppServer(codex_home=current['codex_home'],cwd=current['cwd'],executable=executable,metadata_only=True,account_metadata=True) as observer:
         # 工具可能临时设置了 workdir；会话根目录从当前 UUID 的元数据读取。
         # 这既不挑选其他历史会话，也不把临时工具目录误登记成 CLI 根目录。
         thread=observer.read_thread(current['session_uuid'])
         current['cwd']=canonical_path(thread['cwd'])
         current['proof']=binding_proof(observer.validate(current),require_provider=True)
+        if current['proof'].get('modelProvider')=='openai':
+            try:from .pair_balance import pool_key
+            except ImportError:from pair_balance import pool_key
+            account=observer.rpc('account/read',{'refreshToken':False})
+            if account.get('account'):current['proof']['accountFingerprint']=pool_key(account,current['codex_home'])
     return current
 
 
@@ -56,8 +63,9 @@ def find_binding(state_root, window):
         with closing(sqlite3.connect('file:'+path.as_posix()+'?mode=ro',uri=True)) as db:
             columns={r[1] for r in db.execute('PRAGMA table_info(members)')}
             if 'codex_home' not in columns:continue
+            active=" AND m.lifecycle<>'retired'" if 'lifecycle' in columns else ''
             row=db.execute('''SELECT c.id,m.id,m.codex_home,m.cwd FROM collaborations c
-                JOIN members m ON m.session_uuid=? WHERE c.status<>'stopped' ''',(window['session_uuid'],)).fetchone()
+                JOIN members m ON m.session_uuid=? WHERE c.status<>'stopped' '''+active,(window['session_uuid'],)).fetchone()
         if row and canonical_path(row[2])==window['codex_home'] and canonical_path(row[3])==window['cwd']:
             found.append((row[0],row[1]))
     if len(found)>1:
@@ -85,7 +93,7 @@ def bridge(store, cli, executable=None):
             return {'running':True,'pid':status['runtime']['pid'],'reused':True}
         if any(r['lock_held'] for r in status['relays']):
             return {'running':False,'mode':'relay','detail':'已有逐成员 relay，保留现有消息桥；用 status --probe 检查各侧'}
-        if status['pair']['status']=='stopped':store.control('running')
+        if status['pair']['status']=='stopped':raise PairError('Explicit resume required / 明确停止的协作不因桥启动自动恢复')
         project=status['pair']['project']
         logs=Path(pair_git.prepare_pair_directory(project,str(Path(project)/'.codex-pair'/'logs'),'logs'))
         stdout_path=logs/(store.pair_id+'-bridge.stdout.log')
@@ -122,9 +130,13 @@ def invitation(store, cli, goal):
         payload={'protocol':'codex-pair/windows/1','pair':store.pair_id,'state_root':str(store.state_root),
             'project':project,'base_commit':status['pair']['base_commit'],'goal':goal,
             'inviter_session':store.member('A')['session_uuid'],'nonce':uuid.uuid4().hex}
+        if store.setting('review_required'):
+            a=store.member('A')
+            payload=store.create_invite('A',a['session_uuid'],a['cwd'],target='B')
         content=json.dumps(payload,ensure_ascii=False,sort_keys=True,indent=2)+'\n'
         with path.open('x',encoding='utf-8',newline='\n') as file:file.write(content)
-        flow={'goal':goal,'invitation':str(path),'sha256':hashlib.sha256(content.encode('utf-8')).hexdigest()}
+        flow={'goal':goal,'invitation':str(path),'sha256':hashlib.sha256(content.encode('utf-8')).hexdigest(),
+              'invitation_id':payload.get('invitation')}
         store.setting('window_flow',flow)
     script=str(Path(cli.__file__).resolve())
     argv=[sys.executable,script,'accept','--invite',str(path),'--json']
@@ -158,9 +170,26 @@ def start(args, cli):
             if len(members)!=1:raise PairError('Original binding required / 仅原绑定窗口可以恢复本轮角色')
             role=members[0]['id']
             with AppServer(codex_home=window['codex_home'],cwd=window['cwd'],executable=getattr(args,'codex',None),metadata_only=True) as observer:observer.validate(members[0])
-            if status['pair']['status']=='stopped':store.control('running')
+            if status['pair']['status']=='stopped':raise PairError('Explicit resume required / 明确停止的协作不因桥启动自动恢复')
             pair_id=resume_id
         else:
+            baseline_plan=None
+            if repo['dirty']:
+                plan_file=getattr(args,'baseline_plan_file',None)
+                if not plan_file:raise PairError('Baseline confirmation required / 仓库有未提交改动，先确认纳入及排除范围，不自动提交')
+                baseline_plan=read_json(plan_file)
+                try:from .pair_review_runtime import tree_stamp
+                except ImportError:from pair_review_runtime import tree_stamp
+                stamp=tree_stamp(project)
+                if baseline_plan.get('stamp')!=stamp or not str(baseline_plan.get('user_instruction','')).strip():
+                    raise PairError('Baseline changed / 基线确认必须对应当前 HEAD、状态及内容摘要，并附用户指示')
+                included=baseline_plan.get('include');excluded=baseline_plan.get('exclude')
+                if not isinstance(included,list) or not isinstance(excluded,list) or not all(isinstance(p,str) for p in included+excluded):
+                    raise PairError('Baseline paths required / 必须逐路径列出 include 和 exclude')
+                changed=set(cli.git_run(project,'diff','--name-only','HEAD','-z').split('\0'))|set(cli.git_run(project,'ls-files','--others','--exclude-standard','-z').split('\0'))
+                changed.discard('')
+                if set(included)&set(excluded) or set(included)|set(excluded)!=changed:
+                    raise PairError('Baseline ownership incomplete / 纳入和排除清单须互斥且覆盖全部改动路径')
             previous=[]
             for path in sorted(root.glob('*/state.sqlite3')):
                 old=Store(path.parent.name,state_root=root,home=window['codex_home'])
@@ -184,8 +213,16 @@ def start(args, cli):
             pair_id='windows-'+uuid.uuid4().hex[:12]
             store=Store.initialize(pair_id,project,repo['head'],home=window['codex_home'],state_root=root)
             store.configure_git(repo)
+            if baseline_plan:store.setting('existing_baseline_plan',baseline_plan)
             role='A'
             bind_window(store,'A',window,workspace_for(window,project),cli,args.delivery_mode)
+            store.setting('member_context_required',True)
+            store.setting('review_required',True)
+            store.setting('reviewer_auto',True)
+            store.setting('reserve_floor',6)
+            store.setting('requirements_version',1)
+            store.setting('publish_enabled',False)
+            store.setting('automatic_recovery',True)
             store.configure_assistance('A',window['session_uuid'],window['cwd'],checkpoints=True)
             store.setting('delegation_enabled',True)
             store.setting('approval_assistance',True)
@@ -219,6 +256,7 @@ def accept(args, cli):
 def _accept(args, cli):
     path=Path(args.invite).resolve(strict=True)
     payload=json.loads(path.read_text(encoding='utf-8'))
+    if payload.get('protocol')=='codex-pair/windows/2':return accept_team(payload,args,cli)
     if payload.get('protocol')!='codex-pair/windows/1':raise PairError('Invalid invitation / 不支持的窗口邀请格式')
     store=Store(payload['pair'],state_root=payload['state_root'])
     flow=store.setting('window_flow')
@@ -251,17 +289,45 @@ def _accept(args, cli):
             ' 如果窗口 B 使用较低权限，请在审批 Hook 安装完成后，在 B 输入 /hooks，审阅并信任本次 codex-pair 的 Hook。输入命令本身不等于完成信任；通信成功不代表审批就绪。'}
 
 
-def setup_approval(store,cli,executable=None):
+def accept_team(payload,args,cli):
+    store=Store(payload['pair'],state_root=payload['state_root'])
+    path=Path(args.invite).resolve(strict=True)
+    flow=store.setting('window_flow')
+    if flow and (flow.get('invitation_id')==payload.get('invitation') or Path(flow['invitation']).resolve()==path) and (
+            Path(flow['invitation']).resolve()!=path or hashlib.sha256(path.read_bytes()).hexdigest()!=flow['sha256']):
+        raise PairError('Invitation proof mismatch / 邀请文件与发起记录不符')
+    with store.transaction() as db:store._validate_invite(db,payload)
+    window=current_window(getattr(args,'codex',None))
+    a=store.member('A')
+    workspace=workspace_for(window,payload['project'])
+    context=store.git_context();repo=pair_git.inspect_repo(workspace)
+    if not repo['branch']:raise PairError('Detached visible worktree / 可见业务树要求明确分支')
+    proof=pair_git.validate_worktree(workspace,context['repo']['common_dir'],repo['branch'])
+    if not proof['valid']:raise PairError(dumps(proof))
+    cli.git_run(workspace,'merge-base','--is-ancestor',store.status()['pair']['base_commit'],'HEAD')
+    member=store.accept_invite(payload,window,proof,mode=a['delivery_mode'])
+    target=member['id']
+    setup=setup_approval(store,cli,getattr(args,'codex',None),target=target)
+    hello=store.send(target,'A','新成员通信验证：A领取、关联reply并完成本问题；原成员读完回复后complete，再执行confirm-member确认需求、工作树、能力及上下文摘要。不要把队列回执当作通信通过。',kind='question',dedupe_key='window-handshake:'+target+':'+str(member['binding_version']))
+    return {'role':target,'pair':store.pair_id,'current_window':member,'bridge':bridge(store,cli,getattr(args,'codex',None)),
+        'handshake_message':hello['id'],'checkpoint_check':store.check_checkpoint(target,window['session_uuid'],window['cwd']),
+        'approval_setup':setup,'goal':store.setting('window_flow')['goal'],
+        'after_join':('本窗口已绑定手动交接模式，需要用户转交领取指令；不会自动唤醒，不报告自动通信通过。' if a['delivery_mode']=='manual' else
+            '结束当前回合，让桥继续原窗口通信。')+
+            '完成关联问答并核实模型终态后，用read-member-context完整分页读取，再用confirm-member确认摘要；较低权限成员须在/hooks中审阅并信任本轮准确处理器。确认上下文前不接业务任务。'}
+
+
+def setup_approval(store,cli,executable=None,target='B'):
     if not store.setting('delegation_enabled'):return {'status':'disabled'}
     try:
-        b=store.member('B');a=store.member('A')
+        b=store.member(target);a=store.member('A')
         with AppServer(codex_home=b['codex_home'],cwd=b['cwd'],executable=executable,metadata_only=True,hook_metadata=True) as observer:
             observer.rpc('hooks/list',{})
             setup=store.install_approval_hook('A',a['session_uuid'],a['cwd'],python=sys.executable,
-                script=str(Path(cli.__file__).with_name('pair_permission_hook.py')))
+                script=str(Path(cli.__file__).with_name('pair_permission_hook.py')),target=target)
         # 使用新观察进程重新读取配置，避免把安装前的列表作为信任证据。
         with AppServer(codex_home=b['codex_home'],cwd=b['cwd'],executable=executable,metadata_only=True,hook_metadata=True) as observer:
-            setup.update(store.record_hook_status(observer.rpc('hooks/list',{})))
+            setup.update(store.record_hook_status(observer.rpc('hooks/list',{}),target=target))
         return setup
     except Exception:
         return {'status':'setup_unverified','active_verified':False,

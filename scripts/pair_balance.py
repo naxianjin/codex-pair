@@ -58,7 +58,8 @@ def choose(candidates, effort, quotas, loads):
     eligible=[m for m in candidates if not (quotas[m].get('reliability')=='fresh' and quotas[m].get('remaining')==0)]
     if not eligible:return None,'quota_exhausted'
     if len(eligible)==1:return eligible[0],'only_safe_member'
-    a,b=eligible[:2];qa,qb=quotas[a],quotas[b]
+    a,b=max(((x,y) for x in eligible for y in eligible if x<y),key=lambda p:abs((quotas[p[0]].get('remaining') or 0)-(quotas[p[1]].get('remaining') or 0)))
+    qa,qb=quotas[a],quotas[b]
     comparable=(qa.get('reliability')==qb.get('reliability')=='fresh'
         and qa.get('pool')!=qb.get('pool') and qa.get('limit_id')==qb.get('limit_id')
         and sorted(w['duration_mins'] for w in qa['windows'])==sorted(w['duration_mins'] for w in qb['windows']))
@@ -74,7 +75,7 @@ def loads(db):
     measured={task:tokens for _,task,tokens in rows}
     efforts={r['id']:r['effort'] for r in db.execute('SELECT id,effort FROM tasks')}
     units=sum(measured.values())/sum(efforts[t] for t in measured) if measured and sum(measured.values()) else None
-    result={'A':0.0,'B':0.0}
+    result={r[0]:0.0 for r in db.execute('SELECT id FROM members')}
     for task in db.execute("SELECT id,assignee,effort FROM tasks WHERE status<>'pending' OR assignment_mode='fixed'"):
         result[task['assignee']]+=measured[task['id']]/units if units and task['id'] in measured else task['effort']
     return result

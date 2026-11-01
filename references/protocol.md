@@ -1,8 +1,11 @@
 # codex-pair 协作协议
 
-当前仅支持两个用户已打开的官方 CLI 原窗口 A/B，不支持多人扩容。最新结论及历史测试边界见 [测试汇总](validation-summary-20261019.md)；下文历史版本号不代表当前包版本。
+> 开发候选说明：本页保留v1.2.1的双窗口基础/历史限制。新候选采用最多四个可见原CLI、一个受管隐藏审核者及新轮次6%保留线；新规则与入口见 [team-commands.md](team-commands.md)，未验证项及复测步骤见 [validation-handoff-four-cli.md](validation-handoff-four-cli.md)。旧文中的“只能两个”“不新增任何会话”、不同home限制和9%新轮次默认值不覆盖本轮规格。安装和发布遵循当前SKILL.md及用户明确授权；待验证候选不得作为已审版本发布。
 
-源码新增的 A 协助执行、低额度检查点、接管和恢复遵守 [assistance.md](assistance.md)。新增状态包括 waiting_execution、quota_wait；执行请求和交接通知使用专用完成接口。额度接管后由 status.assistance.coordinator 指定统筹方，原数据库 A/B 与账号权限不变。以下 v1.1.3 验收是历史记录，不覆盖新增流程。当前两窗口库为 schema 8；升级前安全停止桥并备份，保留领取令牌、业务交付和读取确认，旧轮次不自动开启新策略。禁止降级打开 schema 9 多人库。
+
+以下双窗口细节是v1.2.1历史说明；当前可由A邀请已有C/D，最多四个可见成员。最新结论及历史测试边界见 [测试汇总](validation-summary-20261019.md)；下文历史版本号不代表当前包版本。
+
+源码新增的 A 协助执行、低额度检查点、接管和恢复遵守 [assistance.md](assistance.md)。新增状态包括 waiting_execution、quota_wait；执行请求和交接通知使用专用完成接口。额度接管后由 status.assistance.coordinator 指定统筹方，原数据库 A/B 与账号权限不变。以下 v1.1.3 验收是历史记录，不覆盖新增流程。历史两窗口库为 schema 8；升级前安全停止桥并备份，保留领取令牌、业务交付和读取确认，旧轮次不自动开启新策略。禁止降级打开 schema 9 多人库。
 
 以下介绍中 v1.1.3 是历史验收版本。保留此前两个 OpenAI 原窗口的自动接续与安装版验证；2026-10-16 另完成 OpenAI A × DeepSeek B 原窗口的基础握手、工具执行、技能 CLI、15 项单元测试和交付读取确认。DeepSeek 测试后半程使用用户授权的 Full access / never；不涵盖受限沙箱、反向组合、DeepSeek 双窗口或完整 Git 提交整合，完整边界见 [验收记录](verification.md)。
 
@@ -42,7 +45,7 @@ accept 发出 window-handshake 问题，A 领取、发送关联 reply 并完成�
 
 - 已有 CLI 默认 queue 后端，完整 UUID 与实际 cwd 从官方 API 验证。用参数数组调用 `codex queue`，正文封装为 ASCII JSON 避开 Windows 中文参数代码页损坏。已实测空闲自动启动、繁忙后排队；回执 Queued 仅说明入队。
 - 旁路 app-server 只读目标元数据和回合，绝不 resume 已有 CLI。目标未加载时队列仍可持久化，不能声称已处理。历史 API 可能暂报 interrupted 且 completedAt 为空；只有持久化完成时间才能证明终态。
-- 遗留 managed/shared 后端仅为历史兼容和隔离测试保留，不属于当前支持入口；普通协作只使用两个已有原窗口的 start/accept。shared proxy 历史 socket 曾报 os error 10050，不记为通过。
+- 遗留 managed/shared 后端仅为历史兼容和隔离测试保留，不属于当前支持入口；普通协作从两个已有原窗口的 start/accept开始，扩展成员使用invite-member。shared proxy 历史 socket 曾报 os error 10050，不记为通过。
 - delivery_status 是 pending/retry/delivering/accepted/unknown/failed；remote_status 是 queued/inProgress/有完成时间的 completed、failed、interrupted；process_status 是 unclaimed/claimed/completed。三者独立，模型结束不自动完成任务。
 - 消息、信封与尝试先写入 SQLite，再调用传输。确定尚未发送的临时错误最多重试三次（可设 1–10）；发送后超时或崩溃进入 unknown，绝不自动重发。用消息 ID、原始信封和回合记录对账；查不到记录不是未投递证明。仍不明时保留记录，由操作者核实，禁止重派执行中的任务。
 - 业务 complete 不释放尚在运行的模型回合；后续消息等待该回合结束。预检确认繁忙时尚未提交消息，记录 deferred 并等待，不消耗实际投递重试额度，不据此判断失联。

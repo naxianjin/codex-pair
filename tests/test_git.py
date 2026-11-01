@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import shutil
 import subprocess
 import tempfile
 import unittest
@@ -50,6 +51,26 @@ class GitModuleTests(unittest.TestCase):
 
     def tearDown(self) -> None:
         self.temp.cleanup()
+
+    @unittest.skipUnless(os.name == 'nt', 'Windows Git 深路径回归')
+    def test_deep_worktrees_preserve_real_location_and_dirty_source(self):
+        length = 185 - len(str(self.root)) - 1
+        if length < 1:
+            self.skipTest('父夹具过深，无法构造固定185字符仓库根')
+        deep = self.root / ('深 空格' + 'x' * (length - 4))
+        shutil.copytree(self.repo, deep)
+        (deep / 'shared.txt').write_text('用户未提交内容\n', encoding='utf-8')
+        before = git(deep, 'status', '--porcelain').stdout
+        result = create_worktrees(str(deep), 'deepcheck', 'HEAD')
+        common = inspect_repo(str(deep))['common_dir']
+        for role in ('a', 'b'):
+            expected = deep / '.codex-pair' / 'worktrees' / ('deepcheck-' + role)
+            self.assertGreater(len(str(expected / '.git')), 220)
+            self.assertEqual(Path(result[role]['path']).resolve(), expected.resolve())
+            self.assertTrue(validate_worktree(str(expected), common, result[role]['branch'])['valid'])
+            self.assertEqual(inspect_repo(str(expected))['head'], self.base)
+        self.assertEqual(git(deep, 'status', '--porcelain').stdout, before)
+        self.assertEqual((deep / 'shared.txt').read_text(encoding='utf-8'), '用户未提交内容\n')
 
     def _commit_file(self, worktree: Path, relative: str, content: str, message: str) -> str:
         path = worktree / relative

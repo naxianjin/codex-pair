@@ -48,6 +48,25 @@ class WindowTests(unittest.TestCase):
         accepted=self.run_cli('B','accept','--invite',started['invite_path'])
         return started,accepted,Store(started['pair'],state_root=started['state_root'])
 
+    def confirm_context(self,store,member='B'):
+        bound=store.member(member);offset=0
+        while True:
+            page=store.read_member_context(member,bound['session_uuid'],bound['cwd'],offset=offset,limit=128)
+            if page['next_offset'] is None:break
+            offset=page['next_offset']
+        return store.confirm_member(member,bound['session_uuid'],bound['cwd'],proof=json.loads(bound['proof']),context_digest=page['digest'])
+
+    def finish_handshake(self,store,member='B'):
+        question=next(m for m in store.status()['messages'] if m['kind']=='question' and m['sender']==member)
+        a=store.member('A');b=store.member(member)
+        claim=store.claim('A',a['session_uuid'],a['cwd'],message_id=question['id'])
+        reply=store.send('A',member,'确认原窗口',kind='reply',reply_to=question['id'])
+        store.complete('A',a['session_uuid'],a['cwd'],question['id'],claim['claim_token'],'已回复')
+        claim=store.claim(member,b['session_uuid'],b['cwd'],message_id=reply['id'])
+        store.complete(member,b['session_uuid'],b['cwd'],reply['id'],claim['claim_token'],'已收到')
+        with store.transaction() as db:db.execute("UPDATE messages SET remote_status='completed',delivery_status='accepted'")
+        self.confirm_context(store,member)
+
     def test_current_window_requires_its_own_environment_and_validates_no_create(self):
         with patch.dict(os.environ,{},clear=True),patch('scripts.pair_windows.AppServer') as observer:
             with self.assertRaisesRegex(PairError,'Current CLI required'):pair_windows.current_window()
@@ -142,8 +161,90 @@ class WindowTests(unittest.TestCase):
                 pair.execute(pair.build_parser().parse_args(['accept','--invite',str(path)]))
             current.assert_not_called()
 
+    def test_repeated_accept_rejects_goal_completion_before_contact(self):
+        started,_,store=self.joined()
+        store.setting('goal_completed',True)
+        with patch('scripts.pair_windows.current_window') as current:
+            with self.assertRaisesRegex(PairError,'Goal completed'):
+                pair.execute(pair.build_parser().parse_args(['accept','--invite',started['invite_path']]))
+            current.assert_not_called()
+
+    def test_repeated_accept_rejects_changed_requirements_before_contact(self):
+        started,_,store=self.joined()
+        store.setting('requirements_version',2)
+        with patch('scripts.pair_windows.current_window') as current:
+            with self.assertRaisesRegex(PairError,'Requirements changed'):
+                pair.execute(pair.build_parser().parse_args(['accept','--invite',started['invite_path']]))
+            current.assert_not_called()
+
+    def test_repeated_accept_rejects_changed_inviter_before_contact(self):
+        started,_,store=self.joined()
+        with store.transaction() as db:db.execute("UPDATE members SET binding_version=binding_version+1 WHERE id='A'")
+        with patch('scripts.pair_windows.current_window') as current:
+            with self.assertRaisesRegex(PairError,'Inviter mismatch'):
+                pair.execute(pair.build_parser().parse_args(['accept','--invite',started['invite_path']]))
+            current.assert_not_called()
+
+    def test_stopped_invitation_is_rejected_before_contact(self):
+        started,_,store=self.joined();store.control('stopped')
+        with patch('scripts.pair_windows.current_window') as current:
+            with self.assertRaisesRegex(PairError,'Invitation stopped'):
+                pair.execute(pair.build_parser().parse_args(['accept','--invite',started['invite_path']]))
+            current.assert_not_called()
+
+    def test_copied_initial_invitation_is_rejected_before_contact(self):
+        started=self.start();path=Path(started['invite_path']);copy=path.with_name('copy.json')
+        copy.write_bytes(path.read_bytes())
+        with patch('scripts.pair_windows.current_window') as current:
+            with self.assertRaisesRegex(PairError,'Invitation proof mismatch'):
+                pair.execute(pair.build_parser().parse_args(['accept','--invite',str(copy)]))
+            current.assert_not_called()
+
+    def test_repeated_accept_rejects_different_home(self):
+        started,_,store=self.joined()
+        self.windows['B']['codex_home']=self.windows['A']['codex_home']
+        with self.assertRaisesRegex(PairError,'Invitation consumed'):
+            self.run_cli('B','accept','--invite',started['invite_path'])
+        self.assertNotEqual(store.member('B')['codex_home'],self.windows['B']['codex_home'])
+
+    def test_context_confirmation_requires_complete_page_coverage(self):
+        _,_,store=self.joined();self.finish_handshake(store)
+        b=store.member('B')
+        with store.transaction() as db:db.execute("DELETE FROM member_context_reads WHERE member='B'")
+        page=store.read_member_context('B',b['session_uuid'],b['cwd'],limit=1)
+        with self.assertRaisesRegex(PairError,'Context not read'):
+            store.confirm_member('B',b['session_uuid'],b['cwd'],proof=json.loads(b['proof']),context_digest=page['digest'])
+
+    def test_additional_member_confirmation_uses_distinct_ready_notification(self):
+        _,_,store=self.joined();self.finish_handshake(store)
+        a=store.member('A')
+        payload=store.create_invite('A',a['session_uuid'],a['cwd'],target='C')
+        path=self.project/'.codex-pair'/'handoffs'/'extra-invite.json'
+        path.write_text(json.dumps(payload),encoding='utf-8')
+        window=dict(self.windows['B']);window['session_uuid']='00000000-0000-0000-0000-000000000003'
+        window['proof']=dict(window['proof'],id=window['session_uuid']);self.windows['C']=window
+        self.run_cli('C','accept','--invite',str(path))
+        self.finish_handshake(store,'C')
+        self.assertTrue(store.member('C')['verified'])
+        ready=[m for m in store.status()['messages'] if m['kind']=='note']
+        self.assertEqual({m['sender'] for m in ready},{'B','C'})
+
+    def test_queued_handshake_cannot_confirm_context(self):
+        _,_,store=self.joined()
+        question=store.status()['messages'][0];a=store.member('A');b=store.member('B')
+        owned=store.claim('A',a['session_uuid'],a['cwd'],message_id=question['id'])
+        reply=store.send('A','B','已收到',kind='reply',reply_to=question['id'])
+        store.complete('A',a['session_uuid'],a['cwd'],question['id'],owned['claim_token'],'已答复')
+        owned=store.claim('B',b['session_uuid'],b['cwd'],message_id=reply['id'])
+        store.complete('B',b['session_uuid'],b['cwd'],reply['id'],owned['claim_token'],'已阅读')
+        with store.transaction() as db:db.execute("UPDATE messages SET delivery_status='accepted',remote_status='queued'")
+        with self.assertRaisesRegex(PairError,'Communication unverified'):self.confirm_context(store)
+        self.assertFalse(store.member('B')['verified'])
+
     def test_shared_workspace_serializes_tasks_and_remote_turns(self):
         _,_,store=self.joined()
+        self.finish_handshake(store)
+        store.setting('review_required',False)
         with store.transaction() as db:db.execute('DELETE FROM messages')
         store.assign('one','A 修改','A',['one.py'])
         store.assign('two','B 修改','B',['two.py'])
@@ -176,6 +277,8 @@ class WindowTests(unittest.TestCase):
         store.complete('B',b['session_uuid'],b['cwd'],reply['id'],claim['claim_token'],'已收到 A 回复')
         self.assertEqual(store.status()['window_flow']['communication'],'awaiting_handshake')
         with store.transaction() as db:db.execute("UPDATE messages SET remote_status='completed',delivery_status='accepted'")
+        self.assertEqual(store.status()['window_flow']['communication'],'awaiting_handshake')
+        self.confirm_context(store)
         self.assertEqual(store.status()['window_flow']['communication'],'verified')
 
     def test_envelope_separates_actor_directory_and_project(self):
@@ -201,6 +304,7 @@ class WindowTests(unittest.TestCase):
         fake=FakeTransport(store)
         fake.observation={'turn_id':'old','remote_status':'interrupted','completion_source':'rollout_superseded','evidence_turn_id':'resumed'}
         Daemon(store,fake).reconcile()
+        self.confirm_context(store)
         self.assertEqual(store.status()['window_flow']['communication'],'verified')
         self.assertEqual(store.message(reply['id'])['attempts'],0)
 
@@ -215,9 +319,11 @@ class WindowTests(unittest.TestCase):
         with store.transaction() as db:
             db.execute("UPDATE messages SET delivery_status='accepted',remote_status='inProgress' WHERE kind IN ('question','reply')")
         daemon=Daemon(store,FakeTransport(store))
+        with self.assertRaisesRegex(PairError,'Communication unverified'):self.confirm_context(store)
         self.assertFalse(daemon.dispatch_one())
         with store.transaction() as db:
             db.execute("UPDATE messages SET remote_status='completed' WHERE kind IN ('question','reply')")
+        self.confirm_context(store)
         self.assertTrue(daemon.dispatch_one())
         ready=next(m for m in store.status()['messages'] if m['kind']=='note')
         self.assertEqual(ready['recipient'],'A')
@@ -233,6 +339,7 @@ class WindowTests(unittest.TestCase):
         store.complete('A',a['session_uuid'],a['cwd'],question['id'],claim['claim_token'],'人工答复')
         claim=store.claim('B',b['session_uuid'],b['cwd'],message_id=reply['id'])
         store.complete('B',b['session_uuid'],b['cwd'],reply['id'],claim['claim_token'],'人工完成')
+        self.confirm_context(store)
         self.assertEqual(store.status()['window_flow']['communication'],'manual')
         self.assertEqual(len(store.status()['messages']),2)
 
@@ -243,6 +350,7 @@ class WindowTests(unittest.TestCase):
             self.windows[m]['proof']['cwd']=self.windows[m]['cwd']
         _,_,store=self.joined()
         self.assertNotEqual(member_workspace(store.member('A')),member_workspace(store.member('B')))
+        self.finish_handshake(store)
         store.assign('a','独立任务 A','A',['a.py'])
         store.assign('b','独立任务 B','B',['b.py'])
         self.assertEqual([t['status'] for t in store.status()['tasks']],['active','active'])
@@ -263,7 +371,7 @@ class WindowTests(unittest.TestCase):
         b=self.windows['B'];proof={'id':b['session_uuid'],'cwd':a['cwd']}
         store.join('B',b['session_uuid'],a['cwd'],backend='queue',owned=False,proof=proof,member_codex_home=home)
         with store.transaction() as db:
-            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],8)
+            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],13)
             self.assertFalse(db.execute('PRAGMA foreign_key_check').fetchall())
             self.assertEqual(db.execute("SELECT count(*) FROM events WHERE kind='old_history'").fetchone()[0],1)
         self.assertEqual(len(list(directory.glob('schema-v3-*.backup.sqlite3'))),1)
