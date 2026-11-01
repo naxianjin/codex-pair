@@ -341,7 +341,9 @@ class StageMixin:
         old=db.execute('SELECT * FROM review_issues WHERE id=?',(stable,)).fetchone()
         if reliable and not old:
             related=[r for r in db.execute('SELECT * FROM review_issues')
-                     if r['root_task']==root or json.loads(r['body']).get('anchor',{}).get('path')==anchor['path']]
+                     if r['root_task']==root or (
+                         isinstance(old_anchor:=json.loads(r['body']).get('anchor'),dict)
+                         and old_anchor.get('path')==anchor['path'])]
             if related:
                 # 复现标签变化不能证明是新问题，先协调，避免用新ID重开自动轮次。
                 reliable=False
