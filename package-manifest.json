@@ -1,8 +1,8 @@
 {
   "files": {
-    "CHANGELOG.md": "42921ec39a9b6fda6ce2ce9fd87770baed37322932b70444c93a4e735bc38f09",
+    "CHANGELOG.md": "07af04e7f57a8cba73baacaba8ef2c9b6f6d8c22dcb13ae2f02fe19a50ad627a",
     "POST_RELEASE_TESTS.md": "1089103fefab19434950a269bf9317e9bc667047aebe2fd39c1446e08ba0e613",
-    "README.md": "fe74b87985e7e1e373375abc1a93ec0f65e913779a2ef6d81788a88d49bdf5e6",
+    "README.md": "df7d890ff2a73da2cd2066b439b96d5ea5b07189b2ec655e1666ad9e1b45e466",
     "SKILL.md": "c4849de58e04683c409b77c6174bcf3175504f1e41160744a44647882724775b",
     "agents/openai.yaml": "54e3c0a2e1e0a570e432023137f7747067ed22ac7220c87ab579b85c2a3deb4c",
     "assets/audit/WindowsSafeInput.cs": "cd98023a8a1d832bc947d5a9d12cea93e999e71c52918a468f330e512ec096df",

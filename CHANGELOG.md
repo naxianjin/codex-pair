@@ -1,5 +1,13 @@
 # 更新说明
 
+## 2026-11-04 — 补测独立安装及交接边界，修正发行清单
+
+在断网 Hyper-V 受限客体复测 package、install、windows、multi_account、handoff_balance、compatibility_v14、cli166_producer_compat：7 个模块、120 项通过、无失败或跳过。隔离探针确认当前输入可读、历史输入读拒及受限进程终态。测试快照为 `1d96bdd991dd3a277e32f1ab0cef1bb570765c2f52e8984e8da04f5cf6d9757f`；没有沿用旧批次作为本轮通过数。
+
+随后在快照 `fecfec5efd927a262ba123aaeda5cf46be10edf8fac462811f230dc91d4269c9` 运行 native_control_v14、recovery_v14、recovery_boundaries、quota_and_hook_v14、quota_stop、role_handoff，140 次调用均通过。两批主回归合计 13 个模块、260 次调用，235 个唯一测试 ID 全部通过，无失败或跳过；额外的打包复核单独计入本地回执。逐文件对照确认两批之间只变更日志及清单，运行实现和测试代码未变。
+
+修正 README 更新后 package-manifest.json 摘要未同步的问题，并重新生成清单。重新下载 v1.3.1，核对 SHA-256、ZIP CRC、116 个清单文件及禁止携带的本地数据路径；两份安装副本和现有下载 ZIP 各自清单一致，与首批测试快照的差异仅为 README。本轮不替换安装或发行附件。官方只读账号查询及本地账号标识比对确认：用户选定的两个配置目录目前属于同一账号。按用户要求只做不依赖窗口的检查；真实双窗口、不同账号额度分配、原生全工具暂停及正式宿主校验接线仍未验收，不记为通过。
+
 ## 2026-11-02 — 隔离回归验收与问题修复
 
 在专用 Windows 客体执行新增规格及旧回归，针对实际失败修改 Windows 校验输入、兼容性预检、手动交接、暂停领取、范围收尾及测试夹具；修正虚拟机共锁与历史输入访问隔离。未替换现有安装或启动真实账号业务。各批次结果、独立静态复核和未完成的正式回执接线见[本轮验收记录](https://github.com/naxianjin/codex-pair/blob/main/references/acceptance-repairs-20261102.md)。
