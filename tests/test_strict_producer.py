@@ -15,6 +15,7 @@ from scripts import pair_transport as t
 from scripts import pair_review_receipts as access
 from scripts import pair_review_runtime as runtime
 from tests import test_final_receipt_settlement as final_tests
+from tests.compatibility_fixture import register_cli_fixture
 
 
 class FormatTests(unittest.TestCase):
@@ -175,12 +176,14 @@ class ProducerLifecycleTests(unittest.TestCase):
         with self.assertRaises(ValueError):p.record_producer(self.f.store,self.f.stage['id'],self.f.controller.state,self.launch)
 
     def test_controller_records_before_turn_start_then_binds_returned_turn(self):
+        register_cli_fixture(self.f.store,executable=self.file,version=self.launch['version'])
         with self.f.store.transaction() as db:
             db.execute('DELETE FROM pair_settings WHERE key=?',(p.KEY+self.f.lease['execution_id'],))
             db.execute('UPDATE review_stages SET turn_id=NULL')
         controller=self.f.controller
         client=controller.client
         client.read_thread.return_value=self.f.proof
+        client.turns.side_effect=self.f.observer().turns
         client.server_requests=queue.Queue();client.progress_events=queue.Queue();client._dead=False
         client.wait_turn.return_value=self.f.notification
         def rpc(method,params):
@@ -188,11 +191,16 @@ class ProducerLifecycleTests(unittest.TestCase):
             record=self.f.store.setting(p.KEY+self.f.lease['execution_id'])
             self.assertIsNone(record['binding']['turn'])
             self.assertFalse(record['finished'])
+            pin=self.f.store.setting('cli_execution:'+self.f.lease['execution_id'])
+            self.assertEqual(pin['task_id'],self.f.stage['task_id'])
+            self.assertEqual(pin['executable'],self.launch['file'])
+            self.assertIsNone(pin['turn_id'])
             return {'turn':{'id':'turn-one'}}
         client.rpc.side_effect=rpc
         def finish(*args,**kwargs):
             record=self.f.store.setting(p.KEY+self.f.lease['execution_id'])
             self.assertEqual(record['binding']['turn'],'turn-one')
+            self.assertEqual(self.f.store.setting('cli_execution:'+self.f.lease['execution_id'])['turn_id'],'turn-one')
             return {'verdict':'needs_validation'}
         with patch.object(controller,'_parent'),patch.object(controller,'_prompt',return_value='isolated'), \
              patch.object(self.f.store,'acquire_reviewer',return_value=self.f.lease), \
@@ -200,6 +208,7 @@ class ProducerLifecycleTests(unittest.TestCase):
              patch.object(runtime,'tree_stamp',return_value={'changes':'','head':'fixed','diff':''}):
             controller._execute(self.f.stage)
         self.assertEqual(client.rpc.call_count,1)
+        client.turns.assert_called_once_with(self.f.proof['id'],items_view='full')
 
     def test_wrong_binding_fields_fail_closed(self):
         expected=self.record['binding']

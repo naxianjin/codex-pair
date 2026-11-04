@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$comment": "codex-pair-audit/1, OCR delegate JSON schema 1 at 216dcf513593055a70165f793e96b52589d71b1b. This schema describes data, not authorization or coverage proof.",
+  "type": "object",
+  "required": ["schema_version", "mode", "repository", "total_files", "reviewable_count", "excluded_count", "reviewable_files", "excluded_files"],
+  "properties": {
+    "schema_version": {"const": "1"},
+    "mode": {"enum": ["workspace", "range", "commit"]},
+    "repository": {"type": "string", "minLength": 1},
+    "total_files": {"type": "integer", "minimum": 0},
+    "reviewable_count": {"type": "integer", "minimum": 0},
+    "excluded_count": {"type": "integer", "minimum": 0},
+    "reviewable_files": {"type": "array", "items": {"$ref": "#/$defs/file"}},
+    "excluded_files": {"type": "array", "items": {"allOf": [{"$ref": "#/$defs/file"}, {"required": ["exclude_reason"]}]}},
+    "from": {"type": "string"}, "to": {"type": "string"}, "commit": {"type": "string"},
+    "merge_base": {"type": "string"}, "background": {"type": "string"},
+    "total_insertions": {"type": "integer", "minimum": 0},
+    "total_deletions": {"type": "integer", "minimum": 0}
+  },
+  "$defs": {
+    "file": {
+      "type": "object",
+      "required": ["path", "status", "insertions", "deletions"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1}, "status": {"type": "string", "minLength": 1},
+        "insertions": {"type": "integer", "minimum": 0}, "deletions": {"type": "integer", "minimum": 0},
+        "exclude_reason": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

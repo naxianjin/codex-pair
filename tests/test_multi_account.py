@@ -17,6 +17,7 @@ from scripts.pair_core import Daemon, FileLock, PairError, SCHEMA, Store
 from scripts.pair_transport import DeliveryUnknown, TransportError, TransportPool, canonical_path
 from tests.test_core import FakeTransport
 from tests.test_integration import seed
+from tests.compatibility_fixture import MetadataObserver, register_cli_fixture
 
 
 def shared_claim(root, home, session, cwd, message):
@@ -127,18 +128,45 @@ class MultiAccountTests(unittest.TestCase):
         self.assertEqual(transport.calls,[])
 
     def test_relays_filter_account_and_dispatcher_cannot_overlap(self):
-        to_a=self.store.send('B','A','A');to_b=self.store.send('A','B','B')
-        fake=FakeTransport(self.store)
-        Daemon(self.store,fake,member_id='B').run(max_ticks=1)
-        self.assertEqual([m['id'] for m,_ in fake.calls],['B'])
-        self.assertEqual(self.store.message(to_a['id'])['attempts'],0)
-        self.assertEqual(self.store.message(to_b['id'])['attempts'],1)
-        with FileLock(self.store.directory/'relay-A.lock'):
-            with self.assertRaises(PairError):Daemon(self.store,FakeTransport()).run(max_ticks=1)
-            with self.assertRaises(PairError):Daemon(self.store,FakeTransport(),member_id='A').run(max_ticks=1)
-            Daemon(self.store,FakeTransport(),member_id='B').run(max_ticks=1)
-        with FileLock(self.store.daemon_lock):
-            with self.assertRaises(PairError):Daemon(self.store,FakeTransport(),member_id='B').run(max_ticks=1)
+        executable, cli = register_cli_fixture(self.store)
+
+        def metadata(**options):
+            actor=next(self.store.member(member) for member in ('A','B')
+                       if canonical_path(options['codex_home'])==canonical_path(self.homes[member])
+                       and canonical_path(options['cwd'])==canonical_path(self.store.member(member)['cwd']))
+            proof=json.loads(actor['proof'])
+            binding=dict(actor,model=proof['model'],modelProvider=proof['modelProvider'])
+            observer=MetadataObserver(binding,self.store.setting('cli_trusted_executable:'+actor['id'])['file'])
+            directory=Path(actor['codex_home'])/'sessions';directory.mkdir(exist_ok=True)
+            path=directory/('fixture-'+actor['session_uuid']+'.jsonl')
+            if not path.exists():
+                path.write_text(json.dumps({'type':'session_meta','payload':{'id':actor['session_uuid'],'cwd':actor['cwd']}})+'\n',encoding='utf-8')
+            observer.thread['path']=str(path)
+            return observer
+
+        def transport():
+            fake=FakeTransport(self.store)
+            fake.options={'executable':str(executable)}
+            return fake
+
+        # 只替代外部 CLI 元数据；真实 monitor、safe_preflight 和控制日志读取仍执行。
+        with (patch('scripts.pair_compatibility.AppServer',side_effect=metadata) as metadata_server,
+              patch('scripts.pair_control_events.AppServer',side_effect=metadata),
+              patch('scripts.pair_compatibility.verify_launch'),
+              patch('scripts.pair_compatibility.subprocess.run',side_effect=cli)):
+            to_a=self.store.send('B','A','A');to_b=self.store.send('A','B','B')
+            fake=transport()
+            Daemon(self.store,fake,member_id='B').run(max_ticks=1)
+            self.assertEqual([m['id'] for m,_ in fake.calls],['B'])
+            self.assertEqual(self.store.message(to_a['id'])['attempts'],0)
+            self.assertEqual(self.store.message(to_b['id'])['attempts'],1)
+            metadata_server.assert_called()
+            with FileLock(self.store.directory/'relay-A.lock'):
+                with self.assertRaises(PairError):Daemon(self.store,transport()).run(max_ticks=1)
+                with self.assertRaises(PairError):Daemon(self.store,transport(),member_id='A').run(max_ticks=1)
+                Daemon(self.store,transport(),member_id='B').run(max_ticks=1)
+            with FileLock(self.store.daemon_lock):
+                with self.assertRaises(PairError):Daemon(self.store,transport(),member_id='B').run(max_ticks=1)
 
     def test_real_relay_processes_probe_stop_one_and_restart(self):
         script=str(Path(pair.__file__).resolve())
@@ -196,6 +224,21 @@ class MultiAccountTests(unittest.TestCase):
         self.store.control('stopped')
         self.assertFalse(self.store.claim('B',b['session_uuid'],b['cwd'],message_id=pending['id'])['claimed'])
 
+    def test_manual_task_uses_file_handoff_without_cli_preflight(self):
+        self.store.setting('member_context_required',True)
+        with self.store.transaction() as db:
+            db.execute("UPDATE members SET delivery_mode='manual' WHERE id='B'")
+        task=self.store.assign('manual-work','人工接续','B',['manual.py'])
+        self.assertEqual(task['status'],'active')
+        fake=FakeTransport(self.store)
+        self.assertTrue(Daemon(self.store,fake).dispatch_one())
+        message=next(m for m in self.store.status()['messages'] if m['task_id']=='manual-work')
+        self.assertEqual(message['delivery_status'],'manual_handoff')
+        self.assertEqual(fake.calls,[])
+        self.store.control('paused')
+        b=self.store.member('B')
+        self.assertFalse(self.store.claim('B',b['session_uuid'],b['cwd'],message_id=message['id'])['claimed'])
+
     def test_manual_receipt_crash_is_closed_only_by_explicit_user_completion(self):
         with self.store.transaction() as db:db.execute("UPDATE members SET delivery_mode='manual' WHERE id='B'")
         message=self.store.send('A','B','手动文件落盘后模拟崩溃')
@@ -241,7 +284,7 @@ class MultiAccountTests(unittest.TestCase):
         with closing(sqlite3.connect(backups[0])) as db:
             self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],1)
         with store.transaction() as db:
-            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],13)
+            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],14)
             self.assertEqual(db.execute("SELECT count(*) FROM events WHERE kind='user_history'").fetchone()[0],1)
         Store('legacy',home=self.homes['A'])
         self.assertEqual(len(list(directory.glob('*.backup.sqlite3'))),1)

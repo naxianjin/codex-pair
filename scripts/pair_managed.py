@@ -64,6 +64,7 @@ class ManagedApprovalMixin:
         with self.transaction() as db:
             row=self._reviewer_row(db)
             if not row or row['epoch']!=epoch or row['session_uuid']!=session or row['execution_id']!=execution_id or row['state']!='running':fail('Stale reviewer / 旧审核会话不能请求审批')
+            self._require_recovery_open(db,member='A',task_id=self._managed_execution_task(db,execution_id,epoch,session),action='approval')
             if db.execute('SELECT status FROM collaborations').fetchone()[0]!='running' or not self._option(db,'approval_assistance',False):fail('Approval disabled / 当前不允许转交审批')
             a=self._option(db,'approval_authority','A')
             if not self._managed_approver_available(db):fail('A unavailable / 原审批者不可用')
@@ -82,15 +83,23 @@ class ManagedApprovalMixin:
                 VALUES(?,?,?,?,?,?,?,?,'pending',?,?,?,?)''',(key,epoch,session,execution_id,encoded(request),fingerprint,operation,self._authorization_version(db),now+180,message['id'],old['attempt']+1 if old else 1,now))
             return {'id':key,'digest':fingerprint}
 
+    def _managed_execution_task(self,db,execution_id,epoch,session):
+        tasks={stage[0] for stage in db.execute('SELECT task_id FROM review_stages WHERE execution_id=? AND reviewer_epoch=? AND reviewer_session=?',
+            (execution_id,epoch,session))}
+        return next(iter(tasks)) if len(tasks)==1 else None
+
     def managed_approval_result(self,key):
         with self.transaction() as db:
             row=db.execute('SELECT * FROM managed_permissions WHERE id=?',(key,)).fetchone()
             if not row:fail('Unknown permission / 原生审批不存在')
             current=self._reviewer_row(db)
+            task_id=self._managed_execution_task(db,row['execution_id'],row['epoch'],row['session'])
             valid=bool(current and current['epoch']==row['epoch'] and current['session_uuid']==row['session'] and current['execution_id']==row['execution_id'] and current['state']=='running'
                 and row['authorization_version']==self._authorization_version(db) and self._option(db,'approval_assistance',False)
                 and self._managed_approver_available(db)
-                and db.execute('SELECT status FROM collaborations').fetchone()[0]=='running')
+                and db.execute('SELECT status FROM collaborations').fetchone()[0]=='running'
+                and not self._recovery_gate(db,member='A',task_id=task_id,action='approval'))
+            valid=valid and not self._cli_compatibility_gate(db,'A','approval_execution')
             if row['status'] in ('pending','allowed') and (not valid or row['expires']<=time.time()):
                 retry='waiting' if valid and row['attempt']<2 else ('needs_user' if valid else 'cancelled')
                 self._expire_managed(db,row,retry)
@@ -107,6 +116,8 @@ class ManagedApprovalMixin:
                 self._owned_message(db,member,managed['review_message'],token)
                 safe_evidence(reason)
                 if decision not in ('allow','deny') or managed['digest']!=summary or managed['status']!='pending' or managed['expires']<=time.time():fail('Managed approval changed / 原生审批已处理、过期或摘要不符')
+                if decision=='allow':
+                    self._require_recovery_open(db,member='A',task_id=self._managed_execution_task(db,managed['execution_id'],managed['epoch'],managed['session']),action='approval')
                 if managed['authorization_version']!=self._authorization_version(db) or not self._option(db,'approval_assistance',False):fail('Authorization changed / 用户授权已失效')
                 if db.execute('SELECT status FROM collaborations').fetchone()[0]!='running' or not self._managed_approver_available(db):fail('Approver unavailable / 当前不可批准')
                 current=self._reviewer_row(db)

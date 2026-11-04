@@ -1,5 +1,6 @@
 """G13新隔离fixture：实际长路径、Unicode发布、失败保全与安装回滚。"""
 import hashlib
+import json
 import os
 from pathlib import Path
 import shutil
@@ -14,8 +15,8 @@ from scripts import install_skill as install, package_skill as package
 
 class PackagePathTests(unittest.TestCase):
     def setUp(self):
-        # 全部现场保留在本轮证据目录；不递归删除Windows长路径或junction。
-        fixtures=Path(__file__).resolve().parents[2]/'fixtures'
+        # 现场留在执行器提供的临时盘；不递归删除Windows长路径或junction。
+        fixtures=Path(tempfile.gettempdir())/'codex-pair-fixtures'
         fixtures.mkdir(parents=True,exist_ok=True)
         self.root=install.native_path(tempfile.mkdtemp(prefix='g13-',dir=fixtures))
         self.source=self.root/'source';self.source.mkdir()
@@ -23,6 +24,10 @@ class PackagePathTests(unittest.TestCase):
             path=self.source/name;path.parent.mkdir(parents=True,exist_ok=True)
             path.write_text('synthetic '+name,encoding='utf-8')
         (self.source/'scripts'/'中文😀.py').write_text('中文内容😀',encoding='utf-8')
+        names=package.REQUIRED | {package.HANDOFF_RUNTIME,'scripts/中文😀.py'}
+        (self.source/'package-manifest.json').write_text(json.dumps({'schema_version':1,
+            'files':{name:hashlib.sha256((self.source/name).read_bytes()).hexdigest()
+                     for name in names}},ensure_ascii=False),encoding='utf-8')
         self.expected=install.package_manifest(self.source)
 
     def home(self,name='home'):
@@ -219,6 +224,9 @@ class PackagePathTests(unittest.TestCase):
             self.assertEqual(result.returncode,0,result.stderr)
         source=self.root/'redirect-source';source.mkdir();(source/'SKILL.md').write_bytes(b'skill')
         junction(source/'references')
+        (source/'package-manifest.json').write_text(json.dumps({'schema_version':1,
+            'files':{'SKILL.md':hashlib.sha256(b'skill').hexdigest(),
+                     'references/marker.md':hashlib.sha256(b'untouched').hexdigest()}}),encoding='utf-8')
         with self.assertRaises(ValueError):install.package_manifest(source)
         root_link=self.root/'source-root-link';junction(root_link)
         with self.assertRaises(ValueError):install.package_manifest(root_link)

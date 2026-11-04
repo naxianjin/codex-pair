@@ -352,13 +352,16 @@ class AppServer:
     """一条长连接。managed 拥有独立进程；shared 仅代理现有守护进程。"""
 
     def __init__(self, *, backend='managed', executable=None, codex_home=None,
-                 cwd=None, timeout=15, evidence=None, process_factory=subprocess.Popen, metadata_only=False, account_metadata=False, hook_metadata=False, track_producer=False):
+                 cwd=None, timeout=15, evidence=None, process_factory=subprocess.Popen, metadata_only=False, account_metadata=False, hook_metadata=False, track_producer=False,
+                 config_overrides=None, experimental_api=False, runtime_metadata=False):
         if backend not in ('managed', 'shared'):
             raise TransportError('Invalid backend / 无效传输后端')
         self.backend, self.timeout = backend, timeout
         self.metadata_only=metadata_only
         self.account_metadata=account_metadata
         self.hook_metadata=hook_metadata
+        if runtime_metadata and (backend!='shared' or not metadata_only):raise TransportError('Original runtime metadata requires shared read-only connection')
+        self.runtime_metadata=runtime_metadata
         self.signal_events=queue.Queue(maxsize=2048)
         self._next_id = 0
         self._pending = {}
@@ -370,9 +373,17 @@ class AppServer:
         self.server_requests = queue.Queue()
         self._evidence = evidence
         executable_argv = codex_command(executable)
-        if track_producer and (backend!='managed' or metadata_only):raise TransportError('Producer tracking requires owned reviewer')
+        if track_producer and backend!='managed':raise TransportError('Producer tracking requires owned process / 仅跟踪本控制器拥有的进程')
         launch = prepare_launch(executable_argv) if track_producer else None
         argv = executable_argv + ['app-server']
+        if config_overrides:
+            if backend != 'managed' or not isinstance(config_overrides, dict):
+                raise TransportError('Owned config override required / 仅独立受管进程可覆盖其配置')
+            for key, value in config_overrides.items():
+                if (not isinstance(key, str) or not re.fullmatch(r'[A-Za-z0-9_-]+(?:\.[A-Za-z0-9_-]+)*', key)
+                        or type(value) not in (bool, int, str)):
+                    raise TransportError('Invalid config override / 只接受明确配置键及布尔、整数、字符串值')
+                argv += ['-c', key + '=' + json.dumps(value, ensure_ascii=False)]
         argv += ['proxy'] if backend == 'shared' else ['--listen', 'stdio://']
         env = control_environment(codex_home) if metadata_only else os.environ.copy()
         if codex_home is not None:
@@ -399,8 +410,10 @@ class AppServer:
         self._reader.start()
         self._errors.start()
         try:
-            self.identity = self.rpc('initialize', {'clientInfo': {
-                'name': 'codex_pair', 'title': 'codex-pair', 'version': '0.1.0'}})
+            initialize = {'clientInfo': {'name': 'codex_pair', 'title': 'codex-pair', 'version': '0.1.0'}}
+            if experimental_api:
+                initialize['capabilities'] = {'experimentalApi': True}
+            self.identity = self.rpc('initialize', initialize)
             self.notify('initialized', {})
             if codex_home and canonical_path(self.identity['codexHome']) != canonical_path(codex_home):
                 raise TransportError('CODEX_HOME mismatch / app-server 使用了不同的 Codex 目录')
@@ -476,6 +489,7 @@ class AppServer:
         allowed=('initialize','thread/read','thread/turns/list')
         if getattr(self,'account_metadata',False):allowed+=('account/read','account/rateLimits/read')
         if getattr(self,'hook_metadata',False):allowed+=('hooks/list',)
+        if getattr(self,'runtime_metadata',False):allowed+=('thread/backgroundTerminals/list',)
         if getattr(self,'metadata_only',False) and method not in allowed:
             grant=getattr(self,'_quota_interrupt',None)
             if method!='turn/interrupt' or grant is None or params!=grant:

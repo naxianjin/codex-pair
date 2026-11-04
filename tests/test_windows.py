@@ -16,6 +16,7 @@ from scripts.pair_core import Daemon, MIGRATION_2, SCHEMA, PairError, Store, mem
 from scripts.pair_transport import canonical_path
 from tests.test_core import FakeTransport
 from tests.test_integration import seed
+from tests.compatibility_fixture import register_cli_fixture
 
 
 class WindowTests(unittest.TestCase):
@@ -41,7 +42,8 @@ class WindowTests(unittest.TestCase):
             return pair.execute(pair.build_parser().parse_args(list(argv)))
 
     def start(self):
-        return self.run_cli('A','start','--project',str(self.project),'--goal','修复目标项目')
+        return self.run_cli('A','start','--project',str(self.project),'--goal','修复目标项目',
+                            '--workspace-mode','shared','--workspace-reason','旧共享目录回归夹具')
 
     def joined(self):
         started=self.start()
@@ -49,6 +51,7 @@ class WindowTests(unittest.TestCase):
         return started,accepted,Store(started['pair'],state_root=started['state_root'])
 
     def confirm_context(self,store,member='B'):
+        register_cli_fixture(store, tuple(row['id'] for row in store.visible_members()))
         bound=store.member(member);offset=0
         while True:
             page=store.read_member_context(member,bound['session_uuid'],bound['cwd'],offset=offset,limit=128)
@@ -82,7 +85,7 @@ class WindowTests(unittest.TestCase):
             observer.return_value.__enter__.return_value.create_session.assert_not_called()
             observer.return_value.__enter__.return_value.resume.assert_not_called()
 
-    def test_invite_uses_current_windows_arbitrary_homes_and_no_worktrees(self):
+    def test_explicit_shared_mode_uses_current_windows_and_preserves_serial_workspace(self):
         started,accepted,store=self.joined()
         self.assertEqual(accepted['role'],'B')
         self.assertEqual(store.member('A')['session_uuid'],self.windows['A']['session_uuid'])
@@ -96,6 +99,92 @@ class WindowTests(unittest.TestCase):
         self.assertIn('accept',started['join_argv'])
         self.assertFalse(started['automatic_peer_discovery'])
         self.assertEqual(store.status()['window_flow']['communication'],'awaiting_handshake')
+
+    def test_default_start_accept_create_independent_trees_and_allow_parallel_dispatch(self):
+        started=self.run_cli('A','start','--project',str(self.project),'--goal','默认隔离')
+        accepted=self.run_cli('B','accept','--invite',started['invite_path'])
+        store=Store(started['pair'],state_root=started['state_root'])
+        a,b=store.member('A'),store.member('B')
+        for member,returned in ((a,started),(b,accepted)):
+            workspace=member_workspace(member)
+            self.assertEqual(returned['workspace'],workspace)
+            self.assertTrue(Path(workspace).is_relative_to(self.project/'.codex-pair/worktrees'))
+            self.assertEqual(member['cwd'],self.windows[member['id']]['cwd'])
+            self.assertEqual(pair_git.inspect_repo(workspace)['head'],store.status()['pair']['base_commit'])
+        self.assertNotEqual(member_workspace(a),member_workspace(b))
+        self.finish_handshake(store);store.setting('review_required',False)
+        with store.transaction() as db:db.execute('DELETE FROM messages')
+        store.assign('first','A开发','A',['same.py']);store.assign('second','B开发','B',['same.py'])
+        self.assertEqual([store.task(t)['status'] for t in ('first','second')],['active','active'])
+        fake=FakeTransport(store);daemon=Daemon(store,fake)
+        self.assertTrue(daemon.dispatch_one());self.assertTrue(daemon.dispatch_one())
+        self.assertEqual({call[0]['id'] for call in fake.calls},{'A','B'})
+
+    def test_default_additional_seats_get_separate_trees_without_replacing_existing_plans(self):
+        started=self.run_cli('A','start','--project',str(self.project),'--goal','四席位')
+        self.run_cli('B','accept','--invite',started['invite_path'])
+        store=Store(started['pair'],state_root=started['state_root']);self.finish_handshake(store)
+        previous=dict(store.git_context()['worktrees'])
+        for index,member in enumerate(('C','D'),3):
+            window=dict(self.windows['B'],session_uuid='00000000-0000-0000-0000-'+str(index).zfill(12))
+            window['proof']=dict(window['proof'],id=window['session_uuid']);self.windows[member]=window
+            a=store.member('A');payload=store.create_invite('A',a['session_uuid'],a['cwd'])
+            path=self.root/(member+'-invite.json');path.write_text(json.dumps(payload),encoding='utf-8')
+            result=self.run_cli(member,'accept','--invite',str(path))
+            self.assertEqual(result['role'],member)
+        plans=store.git_context()['worktrees']
+        self.assertEqual({key:plans[key] for key in previous},previous)
+        self.assertEqual(len({member_workspace(store.member(member)) for member in 'ABCD'}),4)
+
+    def test_shared_mode_requires_reason_before_creating_state(self):
+        with self.assertRaisesRegex(PairError,'Shared workspace reason required'):
+            self.run_cli('A','start','--project',str(self.project),'--goal','共享','--workspace-mode','shared')
+        self.assertFalse((self.project/'.codex-pair/state').exists())
+
+    def test_default_keeps_existing_project_local_tree_and_original_actor_cwd(self):
+        trees=pair_git.create_worktrees(str(self.project),'existing-default','HEAD')
+        path=canonical_path(trees['a']['path'])
+        self.windows['A']['cwd']=path;self.windows['A']['proof']['cwd']=path
+        started=self.run_cli('A','start','--project',str(self.project),'--goal','沿用原工作树')
+        self.assertEqual(started['workspace'],path)
+        self.assertEqual(started['current_window']['cwd'],path)
+        self.assertEqual(pair_git.inspect_repo(path)['branch'],trees['a']['branch'])
+
+    def test_worktree_creation_failure_keeps_intent_and_does_not_start_bridge(self):
+        with patch('scripts.pair_windows.pair_git.create_worktrees',side_effect=pair_git.GitError('fixture creation failure')):
+            with self.assertRaisesRegex(pair_git.GitError,'fixture creation failure'):
+                self.run_cli('A','start','--project',str(self.project),'--goal','隔离失败')
+        self.fake_bridge.assert_not_called()
+        path=next((self.project/'.codex-pair/state').glob('*/state.sqlite3'))
+        store=Store(path.parent.name,state_root=path.parent.parent)
+        self.assertEqual(store.visible_members(),[])
+        with store.transaction() as db:
+            intent=json.loads(db.execute("SELECT value FROM pair_settings WHERE key LIKE 'managed_tree:%'").fetchone()[0])
+            self.assertEqual(intent['state'],'creating')
+
+    def test_isolated_start_does_not_silently_omit_requested_dirty_baseline(self):
+        from scripts.pair_review_runtime import tree_stamp
+        dirty=self.project/'user-change.txt';dirty.write_text('保留用户内容',encoding='utf-8')
+        plan=self.root/'baseline.json'
+        plan.write_text(json.dumps({'stamp':tree_stamp(self.project),'include':['user-change.txt'],
+            'exclude':[],'user_instruction':'本轮需要该文件'}),encoding='utf-8')
+        with self.assertRaisesRegex(PairError,'Committed baseline required'):
+            self.run_cli('A','start','--project',str(self.project),'--goal','保留基准','--baseline-plan-file',str(plan))
+        self.assertEqual(dirty.read_text(encoding='utf-8'),'保留用户内容')
+        self.fake_bridge.assert_not_called()
+        self.assertFalse((self.project/'.codex-pair/worktrees').exists())
+
+    def test_unaccepted_invite_cannot_silently_replace_new_goal(self):
+        started=self.start();original=Path(started['invite_path']).read_bytes()
+        for member in ('A','B'):
+            with self.subTest(member=member),self.assertRaisesRegex(PairError,'Existing goal differs'):
+                self.run_cli(member,'start','--project',str(self.project),'--goal','另一个目标')
+        self.assertEqual(Path(started['invite_path']).read_bytes(),original)
+        self.assertEqual(len(list((self.project/'.codex-pair/state').glob('*/state.sqlite3'))),1)
+
+    def test_repeated_same_goal_before_accept_keeps_invite_and_a(self):
+        started=self.start();again=self.start()
+        self.assertEqual((again['pair'],again['role'],again['invite_path']),(started['pair'],'A',started['invite_path']))
 
     def test_same_home_and_same_cwd_are_valid_but_same_session_is_not(self):
         self.windows['B']['codex_home']=self.windows['A']['codex_home']
@@ -351,8 +440,8 @@ class WindowTests(unittest.TestCase):
         _,_,store=self.joined()
         self.assertNotEqual(member_workspace(store.member('A')),member_workspace(store.member('B')))
         self.finish_handshake(store)
-        store.assign('a','独立任务 A','A',['a.py'])
-        store.assign('b','独立任务 B','B',['b.py'])
+        store.assign('a','独立任务 A','A',['a.py'],required_checks=[{'name':'business','command':'python -B -m unittest'}])
+        store.assign('b','独立任务 B','B',['b.py'],required_checks=[{'name':'business','command':'python -B -m unittest'}])
         self.assertEqual([t['status'] for t in store.status()['tasks']],['active','active'])
 
     def test_schema_three_upgrade_keeps_history_and_allows_same_directory(self):
@@ -371,7 +460,7 @@ class WindowTests(unittest.TestCase):
         b=self.windows['B'];proof={'id':b['session_uuid'],'cwd':a['cwd']}
         store.join('B',b['session_uuid'],a['cwd'],backend='queue',owned=False,proof=proof,member_codex_home=home)
         with store.transaction() as db:
-            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],13)
+            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],14)
             self.assertFalse(db.execute('PRAGMA foreign_key_check').fetchall())
             self.assertEqual(db.execute("SELECT count(*) FROM events WHERE kind='old_history'").fetchone()[0],1)
         self.assertEqual(len(list(directory.glob('schema-v3-*.backup.sqlite3'))),1)

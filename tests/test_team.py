@@ -6,6 +6,7 @@ import unittest
 
 from scripts.pair_core import PairError
 from tests import test_core
+from tests.compatibility_fixture import register_cli_fixture
 
 
 class TeamTests(unittest.TestCase):
@@ -157,6 +158,7 @@ class TeamTests(unittest.TestCase):
 
     def test_shared_resource_serializes_separate_workspaces(self):
         self.store.setting('member_context_required',True)
+        register_cli_fixture(self.store)
         self.store.assign('schema-a','结构A','A',['a.py'],resources=['database:schema'])
         self.store.assign('schema-b','结构B','B',['b.py'],resources=['database:schema'])
         self.assertEqual(self.store.task('schema-a')['status'],'active')
@@ -170,14 +172,17 @@ class TeamTests(unittest.TestCase):
 
     def test_new_mode_separate_workspaces_can_edit_same_relative_path(self):
         self.store.setting('member_context_required',True)
+        register_cli_fixture(self.store)
         self.store.assign('first','独立树A','A',['src/shared.py'])
         self.assertEqual(self.store.assign('second','独立树B','B',['src/shared.py'])['status'],'active')
 
     def test_new_mode_same_workspace_serializes_disjoint_paths(self):
         self.store.setting('member_context_required',True)
+        register_cli_fixture(self.store)
         with self.store.transaction() as db:
             for member in ('A','B'):
-                proof={'git':{'path':str(self.project)}}
+                proof=json.loads(db.execute('SELECT proof FROM members WHERE id=?',(member,)).fetchone()[0])
+                proof['git']={'path':str(self.project)}
                 db.execute('UPDATE members SET proof=? WHERE id=?',(json.dumps(proof),member))
         self.store.assign('first','同树A','A',['src/a.py'])
         self.assertEqual(self.store.assign('second','同树B','B',['src/b.py'])['status'],'pending')

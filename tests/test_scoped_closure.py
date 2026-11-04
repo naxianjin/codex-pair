@@ -1,12 +1,16 @@
 """范围收尾使用隔离状态库；历史审核结论仅作为外部输入，不调用真实模型。"""
 import copy
 import json
+import time
 import unittest
 from types import SimpleNamespace
+from unittest.mock import patch
 
 from scripts import pair_commands
 from scripts.pair_core import Daemon, PairError
-from tests import test_core, test_handoff_balance
+from tests import test_core, test_handoff_balance, test_reviewer
+from tests.compatibility_fixture import register_cli_fixture
+from tests.recovery_fixture import resume_for_test
 
 
 class ScopedClosureTests(unittest.TestCase):
@@ -198,6 +202,150 @@ class ScopedClosureTests(unittest.TestCase):
         self.assertTrue(pair_commands.execute(self.store, args, SimpleNamespace(validate_actor=validate))['closed'])
         self.assertEqual(validated, [True])
 
+    def test_new_task_review_and_cli_binding_keep_closed_history_blocked(self):
+        self.prepare()
+        self.close()
+        helper=test_reviewer.ReviewerTests();helper.__dict__.update(self.__dict__)
+        ticket,proof=helper.ready()
+        register_cli_fixture(self.store)
+        self.store.assign('new-review','用户明确的新业务','B',['new.py'],
+                          required_checks=[{'name':'business','command':'python -B -m unittest'}])
+        self.finish('new-review')
+        stage=self.store.submit_stage('B',self.sessions['B'],self.directories['B'],'new-review',
+            {'kind':'commit','head':'b'*40},[{'member':'B','provider':'openai','model':'gpt-test'}],
+            [{'name':'business','required':True,'status':'not_run'}],
+            {'objective':'新任务审核','acceptance':[],'environment':{},'lockfiles':[],'baseline':'a'*40})
+        self.assertEqual(self.store.next_review(ticket['epoch'],proof['id'],proof)['id'],stage['id'])
+        lease=self.store.acquire_reviewer(ticket['epoch'],proof['id'],proof)
+        self.store.begin_review(stage['id'],ticket['epoch'],proof['id'],proof,lease['owner'],lease['execution_id'])
+        actor=('A',self.sessions['A'],self.directories['A'])
+        bound=self.store.bind_cli_execution(*actor,lease['execution_id'],stage['digest'],
+                                           operation='review_settlement',task_id='new-review')
+        self.assertEqual(bound['task_id'],'new-review')
+        with self.assertRaisesRegex(PairError,'Recovery control gate'):
+            self.store.bind_cli_execution(*actor,'old-execution','c'*64,operation='new_delivery',task_id='old-review')
+        with self.assertRaisesRegex(PairError,'cannot be rebound'):
+            self.store.bind_cli_execution(*actor,lease['execution_id'],stage['digest'],
+                                          operation='review_settlement',task_id='old-review')
+        self.store.setting('approval_assistance',True)
+        request=self.store.capture_managed_approval(ticket['epoch'],proof['id'],lease['execution_id'],
+            {'id':'new-permission','method':'item/commandExecution/requestApproval',
+             'params':{'threadId':proof['id'],'turnId':'new-turn','itemId':'new-command',
+                       'command':'python -B -m unittest','cwd':proof['cwd']}})
+        self.assertEqual(self.store.managed_approval_result(request['id'])['status'],'pending')
+        with self.store.transaction() as db:
+            db.execute("UPDATE review_stages SET task_id='old-review' WHERE id=?",(stage['id'],))
+        self.assertEqual(self.store.managed_approval_result(request['id'])['status'],'expired')
+
+    def test_recovery_application_scope_comes_from_persisted_source_task(self):
+        from scripts.pair_runtime_apply import application_gate
+        from tests.test_recovery_v14 import EvidenceFixture
+        self.prepare()
+        self.close()
+        actor=('A',self.sessions['A'],self.directories['A'])
+        self.store.complete(*actor,self.message['id'],self.token,'原范围已安全收尾')
+        register_cli_fixture(self.store)
+        self.store.assign('new-runtime','新范围的运行修复','B',['runtime/'],
+                          required_checks=[{'name':'business','command':'python -B -m unittest'}])
+        self.finish('new-runtime')
+        self.close_result('new-runtime')
+        stage=self.store.submit_stage('B',self.sessions['B'],self.directories['B'],'new-runtime',
+            {'kind':'commit','head':'b'*40},[{'member':'B','provider':'openai','model':'gpt-test'}],[],
+            {'objective':'运行修复','acceptance':[],'environment':{},'lockfiles':[],'baseline':'a'*40,
+             'candidate_manifest_digest':'b'*64,'runtime_verification_contract':'c'*64})
+        policy=self.store.recovery_policy(*actor,'patch_application',enabled=True,
+            basis='用户明确授权新任务的已审运行修复',expected_version=1)
+        plan={'old_runtime_digest':'a'*64,'new_runtime_digest':'b'*64,'state_schema':14,
+              'backup_ref':'fixture:backup','verification_contract':'c'*64,'allowed_paths':['runtime']}
+        proposal={'candidate_manifest_digest':'b'*64,'allowed_paths':['runtime']}
+        now=time.time()
+        # 正式回执和备份完整性仅替代外部证据边界；应用状态机及范围检查使用真实实现。
+        with self.store.transaction() as db:
+            db.execute("UPDATE review_stages SET status='passed',evidence='{}' WHERE id=?",(stage['id'],))
+            db.execute("UPDATE tasks SET status='completed' WHERE id='new-runtime'")
+            db.execute('''INSERT INTO recovery_requests(id,source_task,stable_blocker,proposal,proposal_digest,
+                idempotency_key,status,reviewer,reviewer_session,binding_version,report,created,updated)
+                VALUES(?,?,?,?,?,?,'review_passed','A',?,?,?,?,?)''',
+                ('scope-runtime','new-runtime','fixture:blocker',json.dumps(proposal),'a'*64,'fixture:runtime',
+                 self.sessions['A'],1,json.dumps({'formal_stage':stage['id']}),now,now))
+        self.store._recovery_evidence_adapter=EvidenceFixture(exact_reviewed_candidate=True,compatible_migration=True,
+            backup_integrity=True,exclusive_writer_available=True)
+        with patch.object(self.store,'_formal_passed_stage',return_value={'external_fixture':True}):
+            application=self.store.prepare_recovery_application(*actor,'scope-runtime',stage['id'],plan,idempotency_key='apply-new')
+            self.assertEqual(self.store.begin_recovery_application(*actor,application['id'])['state'],'prepared')
+            with self.store.transaction() as db:
+                application_gate(self.store,db,application['id'])
+                db.execute("UPDATE recovery_requests SET source_task='old-review' WHERE id='scope-runtime'")
+            with self.store.transaction() as db,self.assertRaisesRegex(PairError,'Runtime application paused'):
+                application_gate(self.store,db,application['id'])
+            with self.store.transaction() as db:
+                db.execute("UPDATE recovery_applications SET state='waiting_terminal' WHERE id=?",(application['id'],))
+            with self.assertRaisesRegex(PairError,'SCOPE_CLOSED'):
+                self.store.begin_recovery_application(*actor,application['id'])
+            with self.assertRaisesRegex(PairError,'SCOPE_CLOSED'):
+                self.store.prepare_recovery_application(*actor,'scope-runtime',stage['id'],plan,idempotency_key='apply-old')
+
+    def test_new_task_resumes_only_by_its_exact_scope(self):
+        self.prepare()
+        self.close()
+        closed=self.store.setting('closed_scope')
+        self.store.assign('new-work','明确继续的新业务','A',['new/'],
+                          required_checks=[{'name':'business','command':'python -B -m unittest'}])
+        actor=('A',self.sessions['A'],self.directories['A'])
+        self.store.request_pause(*actor,reason='用户暂停新任务',idempotency_key='pause-new',scope={'kind':'task','id':'new-work'})
+        with self.store.transaction() as db:
+            self.assertTrue(self.store._recovery_gate(db,'A','new-work'))
+        for scope in (None,{'kind':'task','id':'old-review'},{'kind':'task','id':'unknown'}):
+            with self.subTest(scope=scope),self.assertRaisesRegex(PairError,'Explicit new scope'):
+                self.store.request_resume(*actor,instruction='继续',idempotency_key='invalid-resume',scope=scope)
+        resumed=resume_for_test(self.store,scope={'kind':'task','id':'new-work'})
+        self.assertEqual(resumed['state'],'reconciled')
+        with self.store.transaction() as db:
+            self.assertFalse(self.store._recovery_gate(db,'A','new-work'))
+            self.assertTrue(self.store._recovery_gate(db,'B','old-review'))
+        self.assertEqual(self.store.setting('closed_scope'),closed)
+
+    def test_new_scope_does_not_inherit_auxiliary_or_quota_consent(self):
+        self.prepare()
+        actor=('A',self.sessions['A'],self.directories['A'])
+        self.store.auxiliary_policy(*actor,enabled=True,reason='原范围辅助授权')
+        quota={'reliability':'fresh','observed_at':time.time(),'remaining':5,'pool':'fixture-a','limit_id':'codex',
+               'windows':[{'duration_mins':300,'resets_at':time.time()+600}]}
+        self.store.save_quota('A',quota)
+        with self.store.transaction() as db:
+            self.store._record_quota_user_event(db,'A','忽略额度',event_id='before-close',source_identity='fixture',
+                session=self.sessions['A'],binding_version=self.store._member(db,'A')['binding_version'])
+        self.close()
+        self.store.assign('new-authorized','新增工作','B',['new-authorized/'],
+                          required_checks=[{'name':'business','command':'python -B -m unittest'}])
+        with self.store.transaction() as db:
+            self.assertFalse(self.store._soft_quota_ignored(db,'A'))
+            with self.assertRaisesRegex(PairError,'scope authorization'):
+                self.store._auxiliary_dispatchable(db,task_id='new-authorized')
+        self.store.auxiliary_policy(*actor,enabled=True,reason='用户明确授权新范围辅助工作')
+        with self.store.transaction() as db:
+            self.store._record_quota_user_event(db,'A','忽略额度',event_id='after-close',source_identity='fixture',
+                session=self.sessions['A'],binding_version=self.store._member(db,'A')['binding_version'])
+            self.assertTrue(self.store._soft_quota_ignored(db,'A'))
+            self.store._auxiliary_dispatchable(db,task_id='new-authorized')
+            with self.assertRaisesRegex(PairError,'Scope closed'):
+                self.store._auxiliary_dispatchable(db,task_id='old-review')
+
+    def test_legacy_scope_allows_only_tasks_proven_registered_after_close(self):
+        self.prepare()
+        self.close()
+        legacy=dict(self.store.setting('closed_scope'))
+        legacy.pop('task_ids')
+        self.store.setting('closed_scope',legacy)
+        with patch('scripts.pair_core.time.time',return_value=legacy['closed_at']+1):
+            self.store.assign('later','明确登记的后续业务','A',['later/'],
+                              required_checks=[{'name':'business','command':'python -B -m unittest'}])
+        self.assertEqual(self.store.task('later')['status'],'active')
+        legacy.pop('closed_at')
+        self.store.setting('closed_scope',legacy)
+        with self.store.transaction() as db:
+            self.assertTrue(any(r['code']=='SCOPE_CLOSED' for r in self.store._recovery_gate(db,'A','later')))
+
     def test_closed_scope_does_not_dispatch_old_plans_or_release_unreviewed_dependencies(self):
         self.prepare()
         self.close()
@@ -207,9 +355,15 @@ class ScopedClosureTests(unittest.TestCase):
         fake = test_core.FakeTransport(self.store)
         daemon = Daemon(self.store, fake)
         self.assertFalse(daemon.dispatch_one())
-        self.store.assign('explicit', '用户后续明确业务', 'A', ['explicit/'])
+        self.store.assign('explicit', '用户后续明确业务', 'A', ['explicit/'],
+                          required_checks=[{'name': 'business', 'command': 'python -B -m unittest'}])
         self.assertEqual(self.store.task('explicit')['status'], 'active')
-        self.store.assign('blocked', '依赖未审历史', 'B', ['blocked/'], dependencies=['old-review'])
+        with self.store.transaction() as db:
+            self.assertFalse(any(r['code']=='SCOPE_CLOSED' for r in self.store._recovery_gate(db,'A','explicit')))
+            self.assertTrue(any(r['code']=='SCOPE_CLOSED' for r in self.store._recovery_gate(db,'B','old-review')))
+            self.assertTrue(any(r['code']=='SCOPE_CLOSED' for r in self.store._recovery_gate(db,'A',self.plan['id'])))
+        self.store.assign('blocked', '依赖未审历史', 'B', ['blocked/'], dependencies=['old-review'],
+                          required_checks=[{'name': 'business', 'command': 'python -B -m unittest'}])
         self.assertEqual(self.store.task('blocked')['status'], 'pending')
         self.assertFalse(self.store.status()['window_flow']['goal_completed'])
         self.assertEqual(self.store.task('old-review')['status'], 'review_wait')

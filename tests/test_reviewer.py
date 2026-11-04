@@ -8,6 +8,7 @@ import unittest
 
 from scripts.pair_core import PairError, Store
 from tests import test_core
+from tests.recovery_fixture import resume_for_test
 
 
 class ReviewerTests(unittest.TestCase):
@@ -158,14 +159,16 @@ class ReviewerTests(unittest.TestCase):
 
     def test_stop_pause_and_goal_completion_block_creation_or_acquire(self):
         self.parent()
-        for state in ('paused','stopped'):
-            self.store.control(state)
-            with self.assertRaisesRegex(PairError,'not running'): self.reserve()
-        self.store.control('running');t,p=self.ready()
+        self.store.control('paused')
+        with self.assertRaisesRegex(PairError,'not running'):self.reserve()
+        resume_for_test(self.store);t,p=self.ready()
         self.store.control('paused')
         with self.assertRaisesRegex(PairError,'not running'): self.store.acquire_reviewer(t['epoch'],p['id'],p)
-        self.store.control('running');self.store.setting('goal_completed',True)
+        resume_for_test(self.store);self.store.setting('goal_completed',True)
         with self.assertRaisesRegex(PairError,'Goal completed'): self.store.acquire_reviewer(t['epoch'],p['id'],p)
+        self.store.control('stopped')
+        with self.assertRaisesRegex(PairError,'not running'):self.reserve()
+        with self.assertRaisesRegex(PairError,'Explicit new scope'):resume_for_test(self.store)
 
     def test_late_create_after_stop_cannot_activate(self):
         self.parent();t=self.reserve();self.store.control('stopped')
@@ -243,7 +246,7 @@ class ReviewerTests(unittest.TestCase):
         self.assertEqual(upgraded.message(message['id'])['process_status'],'claimed')
         self.assertTrue(list(upgraded.directory.glob('schema-v8-*.backup.sqlite3')))
         with upgraded.transaction() as db:
-            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],13)
+            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],14)
             self.assertEqual(db.execute('PRAGMA foreign_key_check').fetchall(),[])
 
 

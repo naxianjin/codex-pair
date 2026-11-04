@@ -12,6 +12,8 @@ from unittest.mock import patch
 from scripts.pair_core import Daemon, PairError, Store
 from scripts.pair import build_parser
 from tests import test_core
+from tests.compatibility_fixture import register_cli_fixture
+from tests.recovery_fixture import resume_for_test
 from tests.test_handoff_balance import quota
 
 
@@ -112,7 +114,7 @@ class AssistanceTests(unittest.TestCase):
                 db.execute('UPDATE members SET proof=? WHERE id=?',(json.dumps(proof),member))
         self.store.configure_assistance(*self.binding('A'),checkpoints=True)
 
-    def test_saved_checkpoint_stale_queue_receipt_allows_resume_and_consume(self):
+    def test_saved_checkpoint_can_be_consumed_but_resume_requires_queue_terminal(self):
         self.prepare_checkpoints()
         self.store.control('paused')
         notice=self.store.send('B','B','保存现场',kind='checkpoint')
@@ -128,7 +130,12 @@ class AssistanceTests(unittest.TestCase):
         self.assertTrue(offered['offered'])
         result=self.store.consume_checkpoint(*self.binding('B'),'B',self.read_all('B','B'),'核对原操作已结束，继续协调')
         self.assertTrue(result['consumed'])
-        self.store.control('running')
+        with self.assertRaisesRegex(PairError,'Execution unresolved'):
+            resume_for_test(self.store)
+        transport=test_core.FakeTransport(self.store)
+        transport.observation={'turn_id':'fixture-checkpoint-turn','remote_status':'completed'}
+        Daemon(self.store,transport).reconcile()
+        resume_for_test(self.store)
         selected=Daemon(self.store,None)._begin()
         self.assertIsNotNone(selected)
         self.assertEqual(selected[1]['id'],offered['message_id'])
@@ -198,11 +205,10 @@ class AssistanceTests(unittest.TestCase):
 
     def test_pinned_pending_task_blocks_peer_takeover_and_preserves_binding(self):
         self.prepare_checkpoints();self.separate_pools()
-        self.store.control('paused')
+        self.store.save_quota('A',quota(80,pool='a'));self.store.save_quota('B',quota(9,pool='b'))
         self.store.assign('pinned','原窗口恢复','B',['b.txt'],pin_member=True)
         self.store.save_checkpoint(*self.binding('B'),'等待原B')
-        self.store.save_quota('A',quota(80,pool='a'));self.store.save_quota('B',quota(9,pool='b'))
-        self.store.control('running');self.store.schedule()
+        self.store.schedule()
         self.assertFalse(any(m['kind']=='checkpoint_resume' for m in self.store.status()['messages']))
         self.store.save_quota('B',quota(50,pool='b'));self.store.schedule()
         notice=next(m for m in self.store.status()['messages'] if m['kind']=='checkpoint_resume')
@@ -217,12 +223,11 @@ class AssistanceTests(unittest.TestCase):
 
     def test_independent_reviewer_cannot_take_over_implementation(self):
         self.prepare_checkpoints();self.separate_pools()
-        self.store.control('paused')
+        self.store.save_quota('A',quota(80,pool='a'));self.store.save_quota('B',quota(9,pool='b'))
         self.store.assign('impl','实现','B',['b.txt'])
         self.store.assign('verify','独立核验','A',['a.txt'],dependencies=['impl'],independent_of=['impl'])
         self.store.save_checkpoint(*self.binding('B'),'保留独立性')
-        self.store.save_quota('A',quota(80,pool='a'));self.store.save_quota('B',quota(9,pool='b'))
-        self.store.control('running');self.store.schedule()
+        self.store.schedule()
         self.assertFalse(any(m['kind']=='checkpoint_resume' for m in self.store.status()['messages']))
         with self.store.transaction() as db:
             task=db.execute("SELECT * FROM tasks WHERE id='verify'").fetchone()
@@ -516,6 +521,7 @@ class AssistanceTests(unittest.TestCase):
     def takeover_preserves_mode(self,new_context):
         self.prepare_checkpoints();self.separate_pools()
         self.store.setting('member_context_required',new_context)
+        if new_context:register_cli_fixture(self.store)
         self.store.delegation_policy(*self.binding('A'),'当前任务内普通问题由A决定',enabled=True)
         question=self.store.send('B','A','后续实现需要决定',kind='question')
         self.store.assign('first','统筹剩余工作','A',['result.txt'])
@@ -594,7 +600,7 @@ class AssistanceTests(unittest.TestCase):
         self.assertEqual(upgraded.message(message['id'])['claim_token'],claim['claim_token'])
         with upgraded.transaction() as db:
             self.assertEqual(db.execute('PRAGMA foreign_key_check').fetchall(),[])
-            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],13)
+            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],14)
             upgraded._require_ack(db,'A','delivery:work')
         self.assertTrue(list(upgraded.directory.glob('schema-v5-*.backup.sqlite3')))
 

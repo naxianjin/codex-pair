@@ -20,7 +20,8 @@ class StageTests(unittest.TestCase):
         self.store.setting('review_required',True)
         self.store.assign('coord','plan','B',['report.md'],task_kind='coordination')
         self.assertFalse(self.store.task('coord')['review_required'])
-        self.store.assign('business','code','B',['api.py'])
+        self.store.assign('business','code','B',['api.py'],
+                          required_checks=[{'name':'business','command':'python -B -m unittest'}])
         self.assertTrue(self.store.task('business')['review_required'])
 
     def test_settle_legacy_coordination_requires_ack_and_excludes_business(self):

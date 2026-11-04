@@ -5,6 +5,7 @@ from pathlib import Path
 
 from scripts.pair_core import PairError, Store
 from tests import test_core, test_reviewer
+from tests.recovery_fixture import resume_for_test
 
 
 class RoleHandoffTests(unittest.TestCase):
@@ -107,7 +108,7 @@ class RoleHandoffTests(unittest.TestCase):
         self.save(ticket)
         self.ack(ticket)
         self.read_all(ticket, 'A')
-        self.store.control('running')
+        resume_for_test(self.store,scope={'kind':'member','id':'A'})
         # 本用例使用同一实际工作树；会话根cwd仍各自独立。
         with self.store.transaction() as db:
             proof = json.loads(self.store._member(db,'A')['proof'])

@@ -66,12 +66,18 @@ class StageMixin:
             if task['status'] not in ('delivered','completed','review_wait','needs_fix','needs_validation'): fail('Stage not delivered / 先完成固定版本阶段交付')
             identity=json.loads(actor['proof'])
             if identity.get('modelProvider') and not any(c.get('member')==member and c.get('provider')==identity.get('modelProvider') and c.get('model')==identity.get('model') for c in contributors):fail('Actor provenance missing / 贡献来源必须包含本人实际模型和提供方')
+            contributors=[dict(c) for c in contributors]
+            actual={'member':member,'provider':identity.get('modelProvider'),'model':identity.get('model'),
+                    'session_uuid':actor['session_uuid'],'binding_version':actor['binding_version'],'role':'stage-owner'}
+            if actual['provider'] and actual['model'] and actual not in contributors:contributors.append(actual)
+            for contributor in self._continuation_contributors(db,task_id):
+                if contributor not in contributors:contributors.append(contributor)
             for previous_stage in db.execute('SELECT contributors FROM review_stages WHERE task_id=?',(task_id,)):
                 for contributor in json.loads(previous_stage[0]):
                     if contributor not in contributors:contributors.append(contributor)
-            repair=db.execute('SELECT source_stage FROM repair_links WHERE task_id=?',(task_id,)).fetchone()
+            repair=self._continuation_repair_link(db,task_id)
             if repair:
-                source=db.execute('SELECT contributors FROM review_stages WHERE id=?',(repair[0],)).fetchone()
+                source=db.execute('SELECT contributors FROM review_stages WHERE id=?',(repair['source_stage'],)).fetchone()
                 if source:
                     for contributor in json.loads(source[0]):
                         if contributor not in contributors:contributors.append(contributor)
@@ -84,9 +90,12 @@ class StageMixin:
             if old:return dict(old)
             if db.execute("SELECT 1 FROM review_stages WHERE task_id=? AND status='running'",(task_id,)).fetchone():
                 fail('Review running / 原版本正在审核，不能替换或使其失效')
-            count=db.execute("SELECT count(*) FROM review_stages s JOIN tasks t ON t.id=s.task_id WHERE t.assignee=? AND s.task_id<>? AND s.status IN ('pending','running','needs_validation')",(member,task_id)).fetchone()[0]
+            count=sum(db.execute('SELECT task_id FROM review_stages WHERE id=?',(key,)).fetchone()[0]!=task_id
+                      for key in self._stage_backlog_ids(db,member))
             previous=db.execute('SELECT max(version) FROM review_stages WHERE task_id=?',(task_id,)).fetchone()[0] or 0
-            if count>=2: fail('Review backlog full / 每位可见成员最多两个待审阶段；已保存的交付不会被丢弃')
+            try:from .pair_diagnostics import capacity
+            except ImportError:from pair_diagnostics import capacity
+            if count>=capacity(db,'stage_capacity'): fail('Review backlog full / 成员待审阶段已到当前上限；已保存交付不会丢弃')
             db.execute("UPDATE review_stages SET status='stale',updated=? WHERE task_id=? AND status<>'stale'",(time.time(),task_id))
             key=uuid.uuid4().hex;now=time.time()
             db.execute('''INSERT INTO review_stages(id,task_id,version,requirements_version,artifact,digest,contributors,checks,payload,status,priority,created,updated)
@@ -173,6 +182,8 @@ class StageMixin:
             return result
 
     def stage_delivery(self,db,task_id):
+        if db.execute('PRAGMA user_version').fetchone()[0]>=14:
+            task_id=self._effective_obligation_task(db,task_id)
         row=db.execute("SELECT id FROM review_stages WHERE task_id=? AND status='passed' ORDER BY version DESC LIMIT 1",(task_id,)).fetchone()
         if not row:
             task=db.execute('SELECT * FROM tasks WHERE id=?',(task_id,)).fetchone()
@@ -180,15 +191,38 @@ class StageMixin:
             if task and task['task_kind']=='planning':self._delivery(db,dict(task))
         return 'stage:'+row[0] if row else 'delivery:'+task_id
 
-    def _stage_passed(self,db,task_id):
+    def _stage_passed(self,db,task_id,*,allow_supersession=True):
         task=db.execute('SELECT * FROM tasks WHERE id=?',(task_id,)).fetchone()
         if not task:return False
+        modern=db.execute('PRAGMA user_version').fetchone()[0]>=14
+        if modern and allow_supersession and self._task_has_effective_supersession(db,task_id):
+            return self._stage_passed(db,self._effective_obligation_task(db,task_id),allow_supersession=False)
         if task['task_kind'] in ('planning','coordination') and (
                 json.loads(task['commits_json'] or '[]') or json.loads(task['required_checks'] or '[]') or
                 db.execute('SELECT 1 FROM review_stages WHERE task_id=?',(task_id,)).fetchone()):return False
-        if not task['review_required']:return True
         stage=db.execute('SELECT * FROM review_stages WHERE task_id=? ORDER BY version DESC LIMIT 1',(task_id,)).fetchone()
-        return bool(stage and stage['status']=='passed' and stage['requirements_version']==task['requirements_version'])
+        auxiliary_required=db.execute('''SELECT 1 FROM auxiliary_candidates c
+            JOIN review_stages s ON s.id=c.stage_id WHERE s.task_id=? LIMIT 1''',(task_id,)).fetchone() if modern else None
+        if not task['review_required'] and not auxiliary_required:return True
+        if not stage or stage['status']!='passed' or stage['requirements_version']!=task['requirements_version']:return False
+        if not auxiliary_required:return True
+        # 新候选不能借旧辅助结论放行；暂停辅助池也不撤销已登记的必需审核义务。
+        candidate=db.execute('SELECT * FROM auxiliary_candidates WHERE stage_id=?',(stage['id'],)).fetchone()
+        if (not candidate or candidate['status']!='passed' or candidate['candidate_digest']!=stage['digest']
+                or candidate['requirements_version']!=stage['requirements_version'] or not candidate['result']):return False
+        payload=json.loads(stage['payload'])
+        contract=digest({'requirements_version':stage['requirements_version'],
+            'acceptance':payload.get('coordinator_acceptance',[]),'checks':payload.get('coordinator_required_checks',[])})
+        if candidate['contract_digest']!=contract:return False
+        result=json.loads(candidate['result'])
+        if (result.get('verdict')!='passed' or result.get('candidate_id')!=candidate['id']
+                or result.get('stage_id')!=stage['id'] or result.get('reasons') or not result.get('report_digests')):return False
+        if db.execute('''SELECT 1 FROM auxiliary_tasks t LEFT JOIN auxiliary_executions e ON e.id=t.last_execution
+            LEFT JOIN auxiliary_reports r ON r.execution_id=t.last_execution WHERE t.candidate_id=?
+            AND (t.status<>'completed' OR e.state<>'completed' OR r.execution_id IS NULL) LIMIT 1''',(candidate['id'],)).fetchone():return False
+        current_reports=[r[0] for r in db.execute('''SELECT r.report_digest FROM auxiliary_tasks t
+            JOIN auxiliary_reports r ON r.execution_id=t.last_execution WHERE t.candidate_id=?''',(candidate['id'],))]
+        return sorted(result['report_digests'])==sorted(current_reports)
 
     def integration_candidate(self,member,session,cwd,sources,artifact,checks,payload):
         """整合后的HEAD独立送审，不沿用各分支通过结论。"""
@@ -225,28 +259,34 @@ class StageMixin:
     def next_review(self,epoch,session,proof):
         with self.transaction() as db:
             self._check_reviewer(db,epoch,session,proof)
+            if self._cli_compatibility_gate(db,'A','new_delivery'):return None
             if self._role_handoff_pending(db,'reviewer'):return None
             if db.execute('SELECT status FROM collaborations').fetchone()[0]!='running':return None
             if self._member_suspended(db,'A'):return None
             if db.execute("SELECT 1 FROM review_stages WHERE status='running'").fetchone():return None
             # 最多三次优先审核后，最早等待的普通阶段获得一次机会。
             count=self._option(db,'review_selection_count',0)
-            pending=db.execute("SELECT id FROM review_stages WHERE status='pending' ORDER BY created,id").fetchall()
+            pending=[stage for stage in db.execute("SELECT id,task_id FROM review_stages WHERE status='pending' ORDER BY created,id")
+                     if not self._recovery_gate(db,member='A',task_id=stage['task_id'],action='review')]
+            eligible={stage['id'] for stage in pending}
             for stage in pending:
                 if self._option(db,'review_queued_at:'+stage['id']) is None:self._put(db,'review_queued_at:'+stage['id'],count)
             aged=[stage['id'] for stage in pending if count-self._option(db,'review_queued_at:'+stage['id'],count)>=3]
             if aged:return dict(db.execute('SELECT * FROM review_stages WHERE id=?',(aged[0],)).fetchone())
-            row=db.execute('''SELECT s.* FROM review_stages s JOIN tasks t ON t.id=s.task_id
+            row=next((stage for stage in db.execute('''SELECT s.* FROM review_stages s JOIN tasks t ON t.id=s.task_id
                 WHERE s.status='pending' ORDER BY (t.task_kind='repair') DESC,
-                EXISTS(SELECT 1 FROM dependencies d WHERE d.depends_on=t.id) DESC,s.priority DESC,s.created,s.id LIMIT 1''').fetchone()
+                EXISTS(SELECT 1 FROM dependencies d WHERE d.depends_on=t.id) DESC,s.priority DESC,s.created,s.id''')
+                if stage['id'] in eligible),None)
             return dict(row) if row else None
 
     def begin_review(self,stage_id,epoch,session,proof,owner,execution_id):
         with self.transaction() as db:
+            if self._cli_compatibility_gate(db,'A','new_delivery'):fail('CLI compatibility unverified / 审核启动前核验当前CLI')
             reviewer=self._check_reviewer(db,epoch,session,proof)
             if reviewer['owner']!=owner or reviewer['execution_id']!=execution_id or reviewer['state']!='running': fail('Reviewer lease required / 只能由唯一当前审核执行持有者领取')
             row=db.execute('SELECT * FROM review_stages WHERE id=?',(stage_id,)).fetchone()
             if not row or row['status']!='pending': fail('Review unavailable / 阶段已被领取或版本失效')
+            self._require_recovery_open(db,member='A',task_id=row['task_id'],action='review')
             db.execute("UPDATE review_stages SET status='running',reviewer_epoch=?,reviewer_session=?,execution_id=?,updated=? WHERE id=?",(epoch,session,execution_id,time.time(),stage_id))
             self._put(db,'review_selection_count',self._option(db,'review_selection_count',0)+1)
             self.event(db,'review_started',stage=stage_id,epoch=epoch,execution_id=execution_id)
@@ -274,6 +314,8 @@ class StageMixin:
             if report.get('candidate_digest')!=row['digest'] or task['requirements_version']!=row['requirements_version']: fail('Candidate changed / 结论必须绑定当前准确交付摘要及需求版本')
             verdict=report['verdict']
             reasons=list(report.get('validation_reasons',[]))
+            if verdict=='passed' and self._cli_compatibility_gate(db,'A','review_settlement'):
+                verdict='needs_validation';reasons.append('cli_compatibility_unverified')
             try:from .pair_producer import final_context
             except ImportError:from pair_producer import final_context
             if final_context(self,db,reviewer,row) is None:
@@ -308,7 +350,7 @@ class StageMixin:
                 if running and item.get('blocking') and item.get('status') not in ('resolved','closed'):
                     self._register_issue(db,row,task,item)
             if verdict=='passed':
-                link=db.execute('SELECT * FROM repair_links WHERE task_id=?',(task['id'],)).fetchone()
+                link=self._continuation_repair_link(db,task['id'])
                 if link:
                     db.execute("UPDATE review_issues SET status='resolved',resolution=?,updated=? WHERE id=?",(encoded(report),time.time(),link['issue_id']))
                     issue=db.execute('SELECT root_task FROM review_issues WHERE id=?',(link['issue_id'],)).fetchone()
@@ -325,8 +367,8 @@ class StageMixin:
             return {'stage':stage_id,'verdict':verdict,'digest':row['digest']}
 
     def _register_issue(self,db,stage,task,item):
-        link=db.execute('SELECT issue_id FROM repair_links WHERE task_id=?',(task['id'],)).fetchone()
-        root=(db.execute('SELECT root_task FROM review_issues WHERE id=?',(link['issue_id'],)).fetchone()[0] if link else task['id'])
+        link=self._continuation_repair_link(db,task['id'])
+        root=(db.execute('SELECT root_task FROM review_issues WHERE id=?',(link['issue_id'],)).fetchone()[0] if link else self._continuation_root(db,task['id']))
         anchor=item.get('anchor')
         reliable=(isinstance(anchor,dict) and isinstance(anchor.get('path'),str)
                   and isinstance(anchor.get('reproduction'),str) and bool(anchor['reproduction'].strip()))
@@ -373,7 +415,7 @@ class StageMixin:
     def _repair_issue(self,db,issue_id):
         issue=db.execute('SELECT * FROM review_issues WHERE id=?',(issue_id,)).fetchone()
         task=db.execute('SELECT * FROM tasks WHERE id=?',(issue['root_task'],)).fetchone()
-        responsible=self._option(db,'issue_responsible:'+issue_id,task['assignee'])
+        responsible=self._option(db,'issue_responsible:'+issue_id,issue['author'])
         handoff_key=self._option(db,'role_handoff_current:'+responsible)
         handoff=self._role_handoff(db,handoff_key) if handoff_key else None
         awaiting_takeover=bool(handoff and handoff['state']=='accepted' and
@@ -383,7 +425,9 @@ class StageMixin:
                        kind='blocked',dedupe_key='issue-owner-handoff:'+issue_id)
             return
         if issue['repair_task']:
-            existing=db.execute('SELECT status FROM tasks WHERE id=?',(issue['repair_task'],)).fetchone()
+            repair_task=issue['repair_task']
+            while successor:=self._continuation_successor(db,repair_task):repair_task=successor
+            existing=db.execute('SELECT status FROM tasks WHERE id=?',(repair_task,)).fetchone()
             if existing and existing[0] not in ('completed','integrated','needs_fix','needs_validation','handed_back'):return
         if issue['rounds']>=2:
             db.execute("UPDATE review_issues SET status='escalated' WHERE id=?",(issue_id,))
@@ -425,6 +469,7 @@ class StageMixin:
             if any(m['task_id']==task_id and m['kind'] in ('task','execution_request','execution_result') for m in self._running(db)):fail('Turn still running / 先结束工具和原回合再切换')
             db.execute("UPDATE tasks SET status='handed_back',result=?,updated=? WHERE id=?",(evidence,time.time(),task_id))
             db.execute('DELETE FROM resource_locks WHERE task_id=?',(task_id,))
+            self._record_boundary_continuation(db,task_id,evidence)
             self.event(db,'task_boundary_saved',task=task_id,evidence=evidence)
             return {'saved':True,'task':task_id}
 

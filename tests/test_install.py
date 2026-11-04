@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from pathlib import Path
+import hashlib
+import json
 import tempfile
 import unittest
 
@@ -19,6 +21,9 @@ class InstallSkillTests(unittest.TestCase):
             (source / "scripts" / "auth.json").write_text("never copy", encoding="utf-8")
             (source / "scripts" / "state.sqlite3").write_text("never copy", encoding="utf-8")
             (source / "auth.json").write_text("never copy", encoding="utf-8")
+            (source / 'package-manifest.json').write_text(json.dumps({'schema_version': 1,
+                'files': {name: hashlib.sha256((source / name).read_bytes()).hexdigest()
+                          for name in ('SKILL.md', 'scripts/pair.py')}}), encoding='utf-8')
             homes = []
             for name in (".codex", ".codex-b", ".codex-c"):
                 home = root / name
@@ -44,6 +49,8 @@ class InstallSkillTests(unittest.TestCase):
             source = root / "skills" / "codex-pair"
             source.mkdir(parents=True)
             (source / "SKILL.md").write_text("skill", encoding="utf-8")
+            (source / 'package-manifest.json').write_text(json.dumps({'schema_version': 1,
+                'files': {'SKILL.md': hashlib.sha256(b'skill').hexdigest()}}), encoding='utf-8')
             with self.assertRaises(ValueError):
                 install_skill(str(source), [str(root)])
             with self.assertRaises(FileNotFoundError):

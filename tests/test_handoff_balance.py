@@ -10,6 +10,7 @@ from scripts.pair_core import Daemon, PairError, Store, SCHEMA, MIGRATION_2
 from scripts.pair_transport import AppServer, TransportError
 from tests import test_core
 from tests.test_core import FakeTransport
+from tests.recovery_fixture import resume_for_test
 
 
 def quota(remaining, *, pool='one', duration=300, now=None, secondary=None):
@@ -323,7 +324,7 @@ class HandoffTests(unittest.TestCase):
         with self.store.transaction() as db:db.execute("UPDATE tasks SET status='integrated' WHERE id='one'")
         self.store.schedule()
         self.assertEqual(len(self.store.status()['tasks']),1)
-        self.store.control('running')
+        resume_for_test(self.store)
         self.store.schedule()
         self.assertEqual(len(self.store.status()['tasks']),2)
 

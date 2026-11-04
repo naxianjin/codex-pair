@@ -53,6 +53,8 @@ def build_parser():
     cmd.add_argument('--delivery-mode',choices=['auto','manual'],default='auto')
     cmd.add_argument('--resume-pair',help='明确恢复旧协作并保留原数据库角色')
     cmd.add_argument('--baseline-plan-file',help='新轮次存在未提交改动时，提供用户确认的基线归属 JSON')
+    cmd.add_argument('--workspace-mode',choices=['isolated','shared'],default='isolated',help='新协作默认项目内独立工作树；共用模式须说明原因')
+    cmd.add_argument('--workspace-reason',help='选择共用工作树的具体原因，不会自动降级')
     cmd.add_argument('--execution-assistance',choices=['task-scoped'],help='显式开启 B 请求 A 在当前任务授权内承接执行')
     cmd.add_argument('--quota-checkpoints',action='store_true',help='开启低额度项目内交接与自动恢复')
     group=cmd.add_mutually_exclusive_group(required=True)
@@ -77,6 +79,7 @@ def build_parser():
     cmd.add_argument('--delivery-mode',choices=['auto','manual'],default='auto',help='manual 明确为手动交接，不声称自动唤醒')
     cmd.add_argument('--branch',help='已有 worktree 的预期分支；有 init 计划时必须与计划一致')
     cmd=command('assign','分配任务；依赖和范围检查通过后才激活')
+    cmd.add_argument('--checks-file',help='UTF-8 JSON准确检查列表，与任务在同一事务登记')
     cmd.add_argument('--task',required=True)
     cmd.add_argument('--title',required=True)
     cmd.add_argument('--to',choices=['A','B','C','D','auto'],required=True)
@@ -244,6 +247,7 @@ def build_parser():
     cmd.add_argument('--probe',type=float,default=0,help='等待指定秒数，验证 daemon 响应随机挑战')
     for name,label in [('daemon','按成员账号路由的中央 dispatcher'),('relay','仅向本账号成员投递的 relay')]:
         cmd=command(name,label)
+        cmd.add_argument('--watchdog-recovery',help='仅登记守护启动的准确恢复nonce；不会解除暂停')
         cmd.add_argument('--max-attempts',type=int,default=3)
         cmd.add_argument('--poll-interval',type=float,default=.25)
         cmd.add_argument('--rpc-timeout',type=float,default=15,help='投递回执超时，不是任务耗时限制')
@@ -255,6 +259,9 @@ def build_parser():
     try:from . import pair_commands
     except ImportError:import pair_commands
     pair_commands.register(command,actor,body)
+    try:from . import pair_next_commands
+    except ImportError:import pair_next_commands
+    pair_next_commands.register(command,actor)
     return parser
 
 
@@ -487,6 +494,12 @@ def resolve_state_root(args, home, pair_id):
 
 
 def execute(args):
+    if args.command in ('doctor','diagnose-blockers'):
+        try:from .pair_diagnostics import diagnose
+        except ImportError:from pair_diagnostics import diagnose
+        if not getattr(args,'pair',None) or not getattr(args,'state_root',None):
+            raise PairError('Explicit state required / 只读诊断须显式指定 --pair 和 --state-root')
+        return diagnose(args.state_root,args.pair,task_id=args.task)
     if args.command in ('start','accept','bridge'):
         try:from . import pair_windows
         except ImportError:import pair_windows
@@ -524,6 +537,9 @@ def execute(args):
         raise PairError('--pair is required / 必须指定协作 ID')
     store=Store(pair_id,home=home,state_root=resolve_state_root(args,home,pair_id))
     executable=getattr(args,'codex',None)
+    try:from . import pair_next_commands
+    except ImportError:import pair_next_commands
+    if args.command in pair_next_commands.COMMANDS or args.command=='watchdog':return pair_next_commands.execute(store,args,sys.modules[__name__])
     try:from . import pair_commands
     except ImportError:import pair_commands
     if args.command in pair_commands.COMMANDS:return pair_commands.execute(store,args,sys.modules[__name__])
@@ -567,6 +583,13 @@ def execute(args):
             return store.join(args.member,args.session,cwd,backend=backend,owned=False,proof=proof,member_codex_home=home,delivery_mode=args.delivery_mode)
     if args.command=='assign':
         if any('=' not in c or not all(c.split('=',1)) for c in args.required_check):raise PairError('Invalid required check / 使用NAME=准确命令定义必要检查')
+        if args.checks_file and args.required_check:
+            raise PairError('Conflicting checks / --checks-file 与 --required-check 二选一')
+        checks=read_json(args.checks_file) if args.checks_file else [{'name':c.split('=',1)[0],'command':c.split('=',1)[1],'required':True} for c in args.required_check]
+        if args.checks_file:
+            try:from .pair_next_commands import validate_checks
+            except ImportError:from pair_next_commands import validate_checks
+            validate_checks(checks)
         if store.setting('review_required'):
             window=__import__('importlib').import_module('scripts.pair_windows' if __package__ else 'pair_windows').current_window(executable)
             with store.transaction() as db:store._a_actor(db,'A',window['session_uuid'],window['cwd'])
@@ -580,7 +603,7 @@ def execute(args):
             refresh(store,executable=executable,max_age=30)
         return store.assign(args.task,args.title,args.to,args.allow,body=read_body(args),dependencies=args.depends_on,base_commit=base,report_to=args.report_to,effort=args.effort,
             task_kind=args.task_kind,capabilities=args.capability,resources=args.resource,priority=args.priority,acceptance=args.acceptance,pin_member=args.pin_member,independent_of=args.independent_of,
-            required_checks=[{'name':c.split('=',1)[0],'command':c.split('=',1)[1],'required':True} for c in args.required_check if '=' in c])
+            required_checks=checks)
     if args.command=='handoff':return store.handoff(args.task,args.to)
     if args.command=='quota':
         if args.refresh:
@@ -671,6 +694,10 @@ def execute(args):
             raise PairError('--probe must be between 0 and 30 / 存活探测须在 0 至 30 秒之间')
         return store.status(probe_timeout=args.probe)
     if args.command in ('pause','resume','stop'):
+        if args.command=='stop':
+            try:from .pair_watchdog import disable_watchdog
+            except ImportError:from pair_watchdog import disable_watchdog
+            disable_watchdog(store,reason='Explicit stop / 明确停止协作')
         return store.control({'pause':'paused','resume':'running','stop':'stopped'}[args.command])
     if args.command=='relay-stop':
         with store.transaction() as db:
@@ -687,7 +714,8 @@ def execute(args):
             if relay_home!=canonical_path(member['codex_home']):
                 raise PairError('Relay account mismatch / relay 必须使用本成员账号目录')
         pool=TransportPool(executable=executable,timeout=args.rpc_timeout)
-        Daemon(store,pool,max_attempts=args.max_attempts,poll_interval=args.poll_interval,member_id=member_id).run()
+        Daemon(store,pool,max_attempts=args.max_attempts,poll_interval=args.poll_interval,member_id=member_id,
+               watchdog_recovery=args.watchdog_recovery).run()
         return {'daemon':'exited','state_directory':str(store.directory)}
     raise PairError('Unknown command / 未知命令')
 

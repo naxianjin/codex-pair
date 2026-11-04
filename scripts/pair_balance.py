@@ -58,13 +58,18 @@ def choose(candidates, effort, quotas, loads):
     eligible=[m for m in candidates if not (quotas[m].get('reliability')=='fresh' and quotas[m].get('remaining')==0)]
     if not eligible:return None,'quota_exhausted'
     if len(eligible)==1:return eligible[0],'only_safe_member'
-    a,b=max(((x,y) for x in eligible for y in eligible if x<y),key=lambda p:abs((quotas[p[0]].get('remaining') or 0)-(quotas[p[1]].get('remaining') or 0)))
-    qa,qb=quotas[a],quotas[b]
-    comparable=(qa.get('reliability')==qb.get('reliability')=='fresh'
-        and qa.get('pool')!=qb.get('pool') and qa.get('limit_id')==qb.get('limit_id')
-        and sorted(w['duration_mins'] for w in qa['windows'])==sorted(w['duration_mins'] for w in qb['windows']))
-    if effort>=5 and comparable and abs(qa['remaining']-qb['remaining'])>=20:
-        return (a if qa['remaining']>qb['remaining'] else b),'quota_gap_at_least_20pp'
+    comparable=[]
+    for index,a in enumerate(eligible):
+        for b in eligible[index+1:]:
+            qa,qb=quotas[a],quotas[b]
+            if (qa.get('reliability')==qb.get('reliability')=='fresh'
+                    and qa.get('pool')!=qb.get('pool') and qa.get('limit_id')==qb.get('limit_id')
+                    and sorted(w['duration_mins'] for w in qa['windows'])==sorted(w['duration_mins'] for w in qb['windows'])):
+                comparable.append((a,b))
+    if effort>=5 and comparable:
+        a,b=max(comparable,key=lambda p:abs(quotas[p[0]]['remaining']-quotas[p[1]]['remaining']))
+        if abs(quotas[a]['remaining']-quotas[b]['remaining'])>=20:
+            return (a if quotas[a]['remaining']>quotas[b]['remaining'] else b),'quota_gap_at_least_20pp'
     selected=min(eligible,key=lambda m:(loads.get(m,0),m))
     return selected,('workload_balance' if comparable else 'workload_fallback')
 

@@ -59,6 +59,8 @@ assign --task <ID> --title <标题> --to A|B|C|D|auto
 
 初始工作量是软参考：两人A30%/B70%；三人A10～20%；四人A10%，其余成员均衡。按effort、实测负担、能力、权限和额度调整，不按代码行数硬分。
 
+下一版候选的start默认 `--workspace-mode isolated`，为成员准备项目内独立树，actor_cwd不变。显式 `--workspace-mode shared` 必须带 `--workspace-reason`；已有协作resume保持布局。复杂任务比较所有有效且可比的成员组合，差值至少20个百分点优先高额度者；其他成员的未知数据不取消已有有效比较。
+
 | 命令 | JSON字段 | 作用 |
 | --- | --- | --- |
 | configure-task | `task`及可选`kind/capabilities/resources/priority/review_required` | 仅pending阶段可改；优先在assign一次给全，避免已派发后补规则 |
@@ -89,7 +91,7 @@ assign --task <ID> --title <标题> --to A|B|C|D|auto
 
 非提交成果：`artifact.kind="snapshot"`，提供`baseline`及`manifest`（相对路径→SHA256；明确删除的文件值为null）。脚本按允许范围冻结到本项目忽略archives，再在审核工作树物化。冻结源、物化结果或测试后业务文件不符时不放行。不得把账号文件、凭据、运行数据库或整个用户目录放进快照。
 
-普通complete保存业务交付后，须submit-stage；每人最多两个待审阶段，running计入。模型回合结束不等于通过。必要检查缺失或波动失败未查明时为needs_validation；不要自填“passed”覆盖工具事实。
+普通complete保存业务交付后，须submit-stage；每人默认最多两个待审阶段，running计入。下一版候选的A可按有证据的策略分别调整任务/阶段容量至2—4。模型回合结束不等于通过。必要检查缺失或波动失败未查明时为needs_validation；不要自填“passed”覆盖工具事实。
 
 ## 隐藏审核与返修
 
@@ -163,7 +165,7 @@ assign --task <ID> --title <标题> --to A|B|C|D|auto
 
 `message/token`只能使用本会话实际领取的协调消息或保存原任务的令牌，用来避免当前协调回合阻塞自身；不能排除其他在途操作。文档不保存领取令牌。恰好50%归入暂停后重新梳理；null保留不确定性，交A判断。交接不把任务标为已完成，不重放旧外部操作。
 
-当前限制：尚未实现按准确会话清理hooks.json中的旧路由；状态层仍拒绝退役绑定。隐藏审核者目前由A登记让位，主动请求及继任审核文档消费尚待补齐。真实多窗口、工具中断和审批联动验收尚未完成，不能据本地测试宣称全部方案已实现。
+当前限制：下一版候选已编码按准确会话和绑定代次清理hooks.json旧路由，失败记录pending，实际清理未验证；状态层继续拒绝退役绑定。隐藏审核者目前由A登记让位，主动请求及继任审核文档消费尚待补齐。真实多窗口、工具中断和审批联动验收未完成，不能据静态检查宣称全部方案已实现。
 
 ## 协议来源和未验证状态
 

@@ -252,6 +252,8 @@ class ApprovalMixin:
                 fail('Approval identity mismatch / 审批归属或摘要不符')
             invalid=(db.execute('SELECT status FROM collaborations').fetchone()[0]!='running'
                      or not self._option(db,'approval_assistance',False) or row['authorization_version']!=self._authorization_version(db))
+            invalid=invalid or bool(self._recovery_gate(db,member=member,task_id=row['task_id'],action='approval'))
+            invalid=invalid or bool(self._cli_compatibility_gate(db,member,'approval_execution'))
             if row['task_id']:
                 task=db.execute('SELECT assignee,status FROM tasks WHERE id=?',(row['task_id'],)).fetchone()
                 invalid=invalid or not task or task['assignee']!=row['member'] or task['status'] not in ('active','waiting_execution')

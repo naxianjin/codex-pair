@@ -316,8 +316,20 @@ class RoleHandoffMixin:
                     source = json.loads(old['snapshot'])
         if source:
             self._release_session(source['codex_home'], source['session_uuid'], source['id'])
+            try:from .pair_core import PairError
+            except ImportError:from pair_core import PairError
+            try:
+                try:from .pair_hook_cleanup import cleanup_retired_hook
+                except ImportError:from pair_hook_cleanup import cleanup_retired_hook
+                cleanup=cleanup_retired_hook(self,source)
+            except (OSError,ValueError,PairError) as error:
+                cleanup={'status':'pending','reason':str(error)}
+            with self.transaction() as db:
+                self._put(db,'role_hook_cleanup:'+key,cleanup)
+                self.event(db,'role_hook_cleanup',handoff=key,result=cleanup)
+        else:cleanup={'status':'not_applicable'}
         return {'accepted': True, 'retired': record['target'], 'duplicate': duplicate,
-                'cli_closed': False, 'work_completed': False, 'document_preserved': True}
+                'cli_closed': False, 'work_completed': False, 'document_preserved': True,'hook_cleanup':cleanup}
 
     def designate_role_successor(self, member, session, cwd, key, *, target):
         with self.transaction() as db:

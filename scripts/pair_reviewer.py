@@ -256,6 +256,9 @@ class ReviewerMixin:
 
     def acquire_reviewer(self, epoch, session, proof):
         with self.transaction() as db:
+            try:from .pair_hidden_handoff import blocked
+            except ImportError:from pair_hidden_handoff import blocked
+            if blocked(self,db,{'kind':'reviewer','id':'reviewer','session':session,'epoch':epoch}):fail('Hidden handoff pending / 交接未完整接收，不开始新审核')
             if self._role_handoff_pending(db,'reviewer'):
                 fail('Reviewer handoff pending / 让位期间不开始新审核')
             row = self._check_reviewer(db, epoch, session, proof)

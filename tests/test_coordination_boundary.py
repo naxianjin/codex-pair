@@ -3,6 +3,7 @@ import unittest
 
 from scripts.pair_core import PairError
 from tests import test_core
+from tests.recovery_fixture import resume_for_test
 
 
 class CoordinationBoundaryTests(unittest.TestCase):
@@ -48,7 +49,7 @@ class CoordinationBoundaryTests(unittest.TestCase):
         self.store.control('paused')
         self.store.assign('work','协调准备','B',['report.md'])
         self.store.configure_task('A',self.sessions['A'],self.directories['A'],'work',kind='coordination')
-        self.store.control('running')
+        resume_for_test(self.store)
         with self.assertRaisesRegex(PairError,'Coordination is report-only'):
             self.finish(self.message(),['b'*40])
 
@@ -65,7 +66,7 @@ class CoordinationBoundaryTests(unittest.TestCase):
     def test_business_review_cannot_be_disabled_by_configuration(self):
         self.store.control('paused')
         self.store.setting('review_required',True)
-        self.store.assign('work','业务','B',['work.py'])
+        self.store.assign('work','业务','B',['work.py'],required_checks=[{'name':'business','command':'python -B -m unittest'}])
         self.store.configure_task('A',self.sessions['A'],self.directories['A'],'work',review_required=False)
         self.assertTrue(self.store.task('work')['review_required'])
 

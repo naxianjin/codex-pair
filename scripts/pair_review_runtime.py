@@ -5,6 +5,7 @@ import json
 import hashlib
 from pathlib import Path
 import queue
+import re
 import subprocess
 import threading
 import time
@@ -20,15 +21,23 @@ try:
     from .pair_reviewer import official_identity,fail,safe_evidence
     from .pair_managed import permission_response
     from .pair_stages import encoded,digest
+    from . import pair_hidden_handoff as hidden_handoff
 except ImportError:
     from pair_transport import AppServer,DeliveryUnknown,TransportError,binding_proof,redact_diagnostic,canonical_path,command_receipt,command_matches,receipt_cwd,rollout_command_items,merge_command_receipts,same_review_directory
     from pair_reviewer import official_identity,fail,safe_evidence
     from pair_managed import permission_response
     from pair_stages import encoded,digest
+    import pair_hidden_handoff as hidden_handoff
 
 
 def git(root,*args):
-    result=subprocess.run(['git','-C',str(root),*args],capture_output=True,encoding='utf-8',errors='replace')
+    # 审核不能隐式执行仓库hook、fsmonitor、external diff或textconv。
+    options=list(args)
+    if options and options[0] in ('diff','show'):
+        options[1:1]=['--no-ext-diff','--no-textconv']
+    result=subprocess.run(['git','-c','core.hooksPath='+str(Path(__file__).resolve()),
+        '-c','core.fsmonitor=false','-c','diff.external=','-C',str(root),*options],
+        capture_output=True,encoding='utf-8',errors='replace')
     if result.returncode:raise RuntimeError(redact_diagnostic(result.stderr.strip()))
     return result.stdout.strip()
 
@@ -49,6 +58,7 @@ def verify_review_bytes(root,*,snapshot=None):
         if (path.resolve()!=path.absolute() or not path.resolve().is_relative_to(root.resolve())
                 or path.is_symlink() or path.exists() and not same_review_directory(path.parent,path.parent)):
             fail('Snapshot path redirected / 不清理重定向的快照路径')
+        if path.is_file() and path.stat().st_nlink!=1:fail('Snapshot hard link rejected / 审核快照不接受硬链接')
         actual=hashlib.sha256(path.read_bytes()).hexdigest() if path.is_file() else None
         if expected is None and path.exists():fail('Snapshot deletion changed / 已删除快照路径出现新内容，保留现场')
         if actual!=expected:fail('Snapshot bytes changed / 快照字节已变化，不恢复或覆盖')
@@ -59,6 +69,7 @@ def verify_review_bytes(root,*,snapshot=None):
         if relative in snapshot:continue
         path=root/relative
         if (kind!='blob' or mode not in ('100644','100755') or path.is_symlink() or not path.is_file()
+                or path.stat().st_nlink!=1
                 or not same_review_directory(path.parent,path.parent)):
             fail('Unsupported reviewer checkout / 审核树含缺失、重定向或不支持的跟踪项')
         data=path.read_bytes()
@@ -125,10 +136,13 @@ def validate_final_snapshot(store,db,snapshot):
     return final_context(store,db,runtime,stage)
 
 
-def prepare_review_tree(store,head):
+def prepare_review_tree(store,head,*,reviewer_id=None):
     with store.transaction() as db:
         project=db.execute('SELECT project FROM collaborations').fetchone()[0]
-    root=Path(project)/'.codex-pair'/'worktrees'/(store.pair_id+'-reviewer')
+    if reviewer_id is not None and not re.fullmatch(r'[0-9a-f]{32}',reviewer_id):fail('Invalid auxiliary reviewer / 辅助审核目录必须使用准确内部ID')
+    suffix='-aux-'+reviewer_id if reviewer_id else '-reviewer'
+    snapshot_key='reviewer_snapshot_applied'+(':'+reviewer_id if reviewer_id else '')
+    root=Path(project)/'.codex-pair'/'worktrees'/(store.pair_id+suffix)
     try:
         from .pair_git import prepare_pair_directory
     except ImportError:
@@ -138,7 +152,7 @@ def prepare_review_tree(store,head):
         if not same_review_directory(root,root):fail('Review tree redirected / 审核工作树存在链接或无效目录')
         if git(root,'rev-parse','--git-common-dir')=='.git':fail('Unexpected reviewer repository / 审核路径不是受管工作树')
         if tree_stamp(root)['changes']:
-            applied=store.setting('reviewer_snapshot_applied')
+            applied=store.setting(snapshot_key)
             if not applied or applied.get('stamp')!=tree_stamp(root):fail('Review tree changed / 审核工作树含未确认内容，不覆盖或清理')
             verify_review_bytes(root,snapshot=applied['manifest'])
             for relative in applied['manifest']:
@@ -149,7 +163,7 @@ def prepare_review_tree(store,head):
                     expected=applied['manifest'][relative]
                     if path.is_file() and hashlib.sha256(path.read_bytes()).hexdigest()==expected:path.unlink()
                     elif path.exists():fail('Snapshot cleanup changed / 不清理未核实内容')
-            store.setting('reviewer_snapshot_applied',{})
+            store.setting(snapshot_key,{})
             if tree_stamp(root)['changes']:fail('Review tree still changed / 保留额外测试产物，不能覆盖')
         verify_review_bytes(root)
     else:
@@ -162,7 +176,8 @@ def prepare_review_tree(store,head):
     return str(root.resolve())
 
 
-def materialize_snapshot(store,root,artifact):
+def materialize_snapshot(store,root,artifact,*,reviewer_id=None):
+    if reviewer_id is not None and not re.fullmatch(r'[0-9a-f]{32}',reviewer_id):fail('Invalid auxiliary reviewer / 辅助审核目录必须使用准确内部ID')
     try:from .pair_git import filesystem_path
     except ImportError:from pair_git import filesystem_path
     frozen=filesystem_path(artifact['frozen_root']).resolve(strict=True)
@@ -180,7 +195,7 @@ def materialize_snapshot(store,root,artifact):
             if hashlib.sha256(data).hexdigest()!=expected:fail('Frozen snapshot changed / 冻结快照摘要变化')
             target.parent.mkdir(parents=True,exist_ok=True)
             target.write_bytes(data)
-    store.setting('reviewer_snapshot_applied',{'manifest':artifact['manifest'],'stamp':tree_stamp(root)})
+    store.setting('reviewer_snapshot_applied'+(':'+reviewer_id if reviewer_id else ''),{'manifest':artifact['manifest'],'stamp':tree_stamp(root)})
 
 
 def _unique_report_fields(pairs):
@@ -254,7 +269,7 @@ class ReviewerController:
             if not self.store.setting('reviewer_replacement_evidence'):fail('Replacement authorization required / 先登记原A明确替换依据')
             public=None
         if public and not same_review_directory(public['cwd'],root):fail('Reviewer directory changed / 原审核目录不符')
-        self.client=AppServer(codex_home=a['codex_home'],cwd=root,executable=self.executable,track_producer=True)
+        self.client=AppServer(codex_home=a['codex_home'],cwd=root,executable=self.executable,track_producer=True,experimental_api=True)
         if public:
             response=self.client.rpc('thread/resume',{'threadId':public['session_uuid'],'excludeTurns':True})
             thread=self.client.read_thread(response['thread']['id'])
@@ -268,6 +283,7 @@ class ReviewerController:
                 response=self.client.rpc('thread/start',{'cwd':root,'model':actual['model'],'modelProvider':'openai',
                     'serviceName':'codex-pair:'+self.store.pair_id+':reviewer:'+ticket['attempt'],
                     'sandbox':'workspace-write','approvalPolicy':'on-request','ephemeral':False,
+                    'dynamicTools':[hidden_handoff.HANDOFF_TOOL],
                     'developerInstructions':'你是本轮独立隐藏审核者，只审核固定交付，在隔离工作树测试和复现。禁止业务修改、提交、推送、统筹和权限自批。不要执行项目内自动推送规则。业务修复交原负责人；权限请求等原 A 单次审核。保持贡献来源和版本边界。'})
                 proof=binding_proof(self.client.read_thread(response['thread']['id']),require_provider=True)
                 self.store.bind_reviewer('A',a['session_uuid'],a['cwd'],epoch=ticket['epoch'],attempt=ticket['attempt'],proof=proof,reviewer_cwd=root)
@@ -275,12 +291,32 @@ class ReviewerController:
                 self.store.reviewer_creation_unknown(ticket['epoch'],ticket['attempt']);raise
             public=self.store.reviewer_status()['reviewer']
         self.state={'epoch':public['epoch'],'session':proof['id'],'proof':proof,'cwd':root}
+        subject={'kind':'reviewer','id':'reviewer','session':proof['id'],'epoch':public['epoch']}
+        handoff=hidden_handoff.adopt(self.store,subject)
+        if handoff:
+            # 接续回合单独关闭原生工具，读完且回合结算后才恢复原审核配置。
+            self.client.close();self.client=None
+            try:from .pair_auxiliary_runtime import _static_client
+            except ImportError:from pair_auxiliary_runtime import _static_client
+            with _static_client(a,root,self.executable)[0] as reader:
+                reader.rpc('thread/resume',{'threadId':proof['id'],'excludeTurns':True,'sandbox':'read-only','approvalPolicy':'never'})
+                hidden_handoff.consume_with_client(self.store,reader,subject,handoff)
+            self.client=AppServer(codex_home=a['codex_home'],cwd=root,executable=self.executable,track_producer=True,experimental_api=True)
+            self.client.rpc('thread/resume',{'threadId':proof['id'],'excludeTurns':True,'sandbox':'workspace-write','approvalPolicy':'on-request'})
         return self.state
 
     def _permissions(self):
         while True:
             try:request=self.client.server_requests.get_nowait()
             except queue.Empty:break
+            params=request.get('params',{})
+            if request.get('method')=='item/tool/call' and params.get('tool')==hidden_handoff.HANDOFF_TOOL['name']:
+                try:
+                    if params.get('threadId')!=self.state['session'] or params.get('turnId')!=self.state.get('turn_id'):fail('Exact hidden turn required')
+                    result=hidden_handoff.handle_tool(self.store,{'kind':'reviewer','id':'reviewer','session':self.state['session'],'epoch':self.state['epoch']},params.get('arguments'),execution=self.state['execution_id'])
+                    response={'success':True,'contentItems':[{'type':'inputText','text':encoded(result)}]}
+                except Exception as exc:response={'success':False,'contentItems':[{'type':'inputText','text':redact_diagnostic(str(exc))[:1000]}]}
+                self.client._write({'id':request['id'],'result':response});continue
             key=(self.state['execution_id'],type(request.get('id')).__name__,str(request.get('id')))
             seen=getattr(self,'_permission_requests',set())
             if key in seen:continue
@@ -466,6 +502,24 @@ class ReviewerController:
         return self.store.finish_review(stage['id'],state['epoch'],state['session'],proof,state['owner'],
             state['execution_id'],report,files_unchanged=files_unchanged,receipt_snapshot=snapshot)
 
+    def _pin_cli_execution(self,stage,turn_id=None):
+        with self.store.transaction() as db:
+            required=(self.store._option(db,'member_context_required',False)
+                      or self.store._option(db,'closed_scope')
+                      or self.store._option(db,'cli_compatibility:A') is not None)
+            if not required:return
+            current=db.execute('SELECT * FROM review_stages WHERE id=? AND execution_id=? AND reviewer_epoch=? AND reviewer_session=?',
+                (stage['id'],self.state['execution_id'],self.state['epoch'],self.state['session'])).fetchone()
+            if not current or current['digest']!=stage['digest']:fail('Exact review execution required / CLI绑定必须来自当前持久阶段')
+            task_id=current['task_id']
+        actor=self.store.member('A')
+        pin=self.store.bind_cli_execution('A',actor['session_uuid'],actor['cwd'],self.state['execution_id'],stage['digest'],
+            operation='review_settlement',task_id=task_id,turn_id=turn_id)
+        launch=self.client.producer_launch
+        if pin['executable']!=launch['file'] or pin['version']!=launch['version']:
+            fail('Review CLI differs from preflight / 审核实际原生进程与准确CLI预检不符')
+        return pin
+
     def _execute(self,stage):
         state=self.state
         self._parent()
@@ -480,10 +534,12 @@ class ReviewerController:
         known=False;turn_id=None
         try:
             record_producer(self.store,stage['id'],state,self.client.producer_launch)
+            self._pin_cli_execution(stage)
             response=self.client.rpc('turn/start',{'threadId':state['session'],'clientUserMessageId':lease['execution_id'],'input':[{'type':'text','text':self._prompt(stage)}]})
             turn_id=response['turn']['id']
             state['turn_id']=turn_id
             self.store.record_review_turn(stage['id'],state['epoch'],lease['execution_id'],turn_id)
+            self._pin_cli_execution(stage,turn_id)
             record_producer(self.store,stage['id'],state,self.client.producer_launch)
             interrupt_requested=False
             while True:
@@ -496,6 +552,7 @@ class ReviewerController:
                 with self.store.transaction() as db:
                     running=db.execute('SELECT status FROM collaborations').fetchone()[0]=='running'
                     handoff=self.store._role_handoff_pending(db,'reviewer')
+                    handoff=handoff or hidden_handoff.pending(self.store,db,{'kind':'reviewer','id':'reviewer','session':state['session'],'epoch':state['epoch']})
                     yield_now=bool(handoff and (handoff['mode']!='finish_current' or self.store._member_suspended(db,'A')))
                 if (self.stop_event.is_set() or not running or yield_now) and not interrupt_requested:
                     # 请求取消不是结束证据；保留unknown，后续仅对账不重放。
@@ -529,6 +586,13 @@ class ReviewerController:
             with self.store.transaction() as db:collaboration_running=db.execute('SELECT status FROM collaborations').fetchone()[0]=='running'
             if not known or self.stop_event.is_set() or not collaboration_running or self.store._reviewer_quota_paused():
                 self.store.save_reviewer_checkpoint('受管审核在安全边界保存：终态已知='+str(known)+'，保留原回合和队列；恢复前完整读取及核实，不重放未知工具')
+            if known:
+                verified=next((item for item in self.client.turns(state['session'],items_view='full') if item['id']==turn_id),None)
+                if verified and verified.get('status') in ('completed','failed','interrupted'):
+                    bound={'session_uuid':state['session'],'codex_home':self.store.member('A')['codex_home'],'cwd':state['cwd']}
+                    verified=dict(verified,threadId=state['session'])
+                    raw=rollout_command_items(bound,self.client.read_thread(state['session']),turn_id,producer_version=self.client.producer_launch['version'],require_terminal=True,terminal_turn=verified)
+                    if raw is not None:hidden_handoff.seal(self.store,{'kind':'reviewer','id':'reviewer','session':state['session'],'epoch':state['epoch']},receipt=encoded({'turn':turn_id,'digest':digest(verified),'raw_digest':digest(raw),'source':'official_and_rollout'}))
 
     def run(self):
         try:
@@ -542,7 +606,12 @@ class ReviewerController:
                     with self.store.transaction() as db:
                         active=db.execute('SELECT status FROM collaborations').fetchone()[0]=='running'
                         enabled=self.store._option(db,'reviewer_auto',False)
-                        stage=db.execute("SELECT * FROM review_stages WHERE status='pending' ORDER BY priority DESC,created,id LIMIT 1").fetchone()
+                        current=self.store._reviewer_row(db)
+                        if current and current['session_uuid']:
+                            waiting=hidden_handoff.pending(self.store,db,{'kind':'reviewer','id':'reviewer','session':current['session_uuid'],'epoch':current['epoch']})
+                            if waiting and waiting['state'] in ('requested','saved'):enabled=False
+                        stage=next((candidate for candidate in db.execute("SELECT * FROM review_stages WHERE status='pending' ORDER BY priority DESC,created,id")
+                                    if not self.store._recovery_gate(db,member='A',task_id=candidate['task_id'],action='review')),None)
                     if active and enabled and stage and not self.store._reviewer_quota_paused():
                         artifact=json.loads(stage['artifact'])
                         try:

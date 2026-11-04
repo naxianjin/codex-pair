@@ -6,16 +6,20 @@ import argparse
 import hashlib
 import json
 import os
-from pathlib import Path
+from pathlib import Path, PurePosixPath
+import re
 import shutil
 import stat
 import tempfile
 import uuid
 
 
-PACKAGE_ROOTS = {"SKILL.md", "agents", "scripts", "references", "tests"}
-FORBIDDEN = {"auth.json", "config.toml", "credentials.json", "__pycache__", ".git", ".pytest_cache"}
-PACKAGE_SUFFIXES = {".md", ".py", ".yaml", ".yml"}
+MANIFEST_NAME = 'package-manifest.json'
+PACKAGE_ROOTS = {'SKILL.md', 'README.md', 'CHANGELOG.md', 'POST_RELEASE_TESTS.md', 'agents', 'scripts',
+                 'references', 'assets', 'licenses'}
+FORBIDDEN = {'auth.json', 'config.toml', 'credentials.json', '__pycache__', '.git',
+             '.pytest_cache', '.codex-pair', 'tests', 'sessions', 'hooks', 'validation'}
+_RESERVED = re.compile(r'^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)', re.I)
 
 
 def native_path(path) -> Path:
@@ -45,36 +49,53 @@ def checked_path(path):
 
 def package_manifest(source: Path) -> dict[str, str]:
     source = checked_path(source).resolve(strict=True)
-    skill = path_stat(source / 'SKILL.md')
-    if not skill or not stat.S_ISREG(skill.st_mode):
-        raise ValueError("源目录缺少 SKILL.md")
-    manifest = {}
-    def visit(path):
-        relative = path.relative_to(source)
-        if any(part.casefold() in FORBIDDEN for part in relative.parts):
-            return
-        checked_path(path)
-        info = path.stat(follow_symlinks=False)
-        if stat.S_ISDIR(info.st_mode):
-            # scandir/stat失败必须中止，不能用is_file的false静默省略合格文件。
-            with os.scandir(path) as entries:
-                children = sorted(entry.name for entry in entries)
-            for name in children:
-                visit(path / name)
-        elif stat.S_ISREG(info.st_mode) and path.suffix.casefold() in PACKAGE_SUFFIXES:
-            manifest[relative.as_posix()] = hashlib.sha256(path.read_bytes()).hexdigest()
-        elif not stat.S_ISREG(info.st_mode):
-            raise ValueError(f'技能包包含非普通文件：{relative}')
-    for name in sorted(PACKAGE_ROOTS):
-        base = source / name
-        if path_stat(base) is not None:
-            visit(base)
-    return manifest
+    path = checked_path(source / MANIFEST_NAME)
+    info = path.stat(follow_symlinks=False)
+    if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
+        raise ValueError('发行清单不是独立普通文件')
+    raw = path.read_bytes()
+    document = json.loads(raw.decode('utf-8'), object_pairs_hook=_unique_object)
+    if (not isinstance(document, dict) or set(document) != {'schema_version', 'files'}
+            or type(document['schema_version']) is not int or document['schema_version'] != 1
+            or not isinstance(document['files'], dict) or 'SKILL.md' not in document['files']):
+        raise ValueError('无效发行清单：需要 schema_version=1、files 和 SKILL.md')
+    manifest = document['files']
+    seen = set()
+    for name, digest in manifest.items():
+        relative = PurePosixPath(name)
+        if (not name or relative.as_posix() != name or relative.is_absolute()
+                or any(part in ('', '.', '..') or part.casefold() in FORBIDDEN
+                       or part.endswith((' ', '.')) or _RESERVED.match(part)
+                       for part in name.split('/'))
+                or any(ord(char) < 32 or char in '\\:*?"<>|' for char in name)
+                or relative.parts[0] not in PACKAGE_ROOTS
+                or relative.suffix.casefold() in ('.sqlite', '.sqlite3', '.db', '.jsonl', '.pyc')
+                or name.casefold() in seen):
+            raise ValueError(f'发行清单包含不允许的路径：{name}')
+        if not isinstance(digest, str) or not re.fullmatch('[a-f0-9]{64}', digest):
+            raise ValueError(f'发行清单摘要无效：{name}')
+        seen.add(name.casefold())
+        file = checked_path(source / name)
+        info = file.stat(follow_symlinks=False)
+        if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
+            raise ValueError(f'技能包包含非普通文件或硬链接：{name}')
+        if hashlib.sha256(file.read_bytes()).hexdigest() != digest:
+            raise ValueError(f'发行清单摘要不一致：{name}')
+    # 清单不自列摘要，复制和ZIP仍携带并复核清单本身。
+    return {**manifest, MANIFEST_NAME: hashlib.sha256(raw).hexdigest()}
+
+
+def _unique_object(pairs):
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError(f'发行清单含重复字段：{key}')
+        result[key] = value
+    return result
 
 
 def install_skill(source: str, homes: list[str]) -> dict:
     source_path = checked_path(source).resolve(strict=True)
-    manifest = package_manifest(source_path)
     targets = []
     for home in homes:
         home_path = native_path(home).resolve(strict=True)
@@ -87,6 +108,7 @@ def install_skill(source: str, homes: list[str]) -> dict:
         if target in targets:
             continue
         targets.append(target)
+    manifest = package_manifest(source_path)
     installed = []
     for target in targets:
         checked_path(target)

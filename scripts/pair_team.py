@@ -188,6 +188,13 @@ class TeamMixin:
                 or inviter['binding_version']!=payload.get('inviter_version')):fail('Inviter mismatch / 发起窗口绑定已变化')
         return row
 
+    def _invitation_seat(self,db,row):
+        if row['state']=='accepted':return row['accepted_member']
+        occupied={r[0] for r in db.execute("SELECT id FROM members WHERE lifecycle<>'retired'")}
+        seat=row['target'] or next((m for m in VISIBLE[1:] if m not in occupied and not db.execute('SELECT 1 FROM members WHERE id=?',(m,)).fetchone()),None)
+        if not seat or seat in occupied:fail('Four visible members maximum / 最多四个可见成员，席位已满')
+        return seat
+
     def accept_invite(self,payload,window,workspace_proof,*,mode='auto'):
         sid=session_uuid(window['session_uuid']);home=canonical_path(window['codex_home'])
         with self.transaction() as db:
@@ -200,10 +207,9 @@ class TeamMixin:
                         and bound['codex_home']==home and bound['cwd']==canonical_path(window['cwd'])
                         and json.loads(bound['proof'])==proof):return bound
                 fail('Invitation consumed / 邀请只能接受一次，旧绑定已失效')
-            occupied={r[0] for r in db.execute("SELECT id FROM members WHERE lifecycle<>'retired'")}
-            seat=row['target'] or next((m for m in VISIBLE[1:] if m not in occupied and not db.execute('SELECT 1 FROM members WHERE id=?',(m,)).fetchone()),None)
-            if not seat or seat in occupied: fail('Four visible members maximum / 最多四个可见成员，席位已满')
+            seat=self._invitation_seat(db,row)
             if db.execute("SELECT 1 FROM reviewer_runtime WHERE session_uuid=? AND state<>'retired'",(sid,)).fetchone(): fail('Reviewer cannot join / 隐藏审核者不占可见席位')
+            if db.execute("SELECT 1 FROM auxiliary_sessions WHERE session_uuid=? AND state<>'retired'",(sid,)).fetchone(): fail('Auxiliary cannot join / 辅助会话不能占可见席位')
             proof=binding_proof(dict(window['proof'],git=workspace_proof),require_provider=True)
             if proof['id']!=sid or proof['cwd']!=canonical_path(window['cwd']): fail('Binding mismatch / 原窗口身份不符')
             old=db.execute('SELECT * FROM members WHERE id=?',(seat,)).fetchone()

@@ -194,10 +194,11 @@ class AssistanceMixin(ApprovalMixin):
 
     def begin_execution(self,member,session,cwd,request_id,token,fingerprint,review):
         if not isinstance(review,str) or not review.strip():fail('Review required / 必须记录任务授权及命令范围审核依据')
-        with self.transaction() as db:
+        with self._recovery_control_transaction() as db:
             self._binding(db,member,session,cwd)
             row=db.execute('SELECT * FROM execution_requests WHERE id=?',(request_id,)).fetchone()
             if member!='A' or not row:fail('Execution owner mismatch / 只能由 A 处理已有执行请求')
+            self._require_recovery_open(db,member=member,task_id=row['task_id'],action='business')
             self._owned_message(db,member,row['message_id'],token)
             if row['digest']!=fingerprint:fail('Request digest mismatch / 待执行内容摘要不符')
             if row['status']!='review':fail('Execution already started or unresolved / 操作已开始或结果待核实，禁止再次执行')
@@ -285,7 +286,7 @@ class AssistanceMixin(ApprovalMixin):
         if self._option(db,'quota_state:'+member,'ready')!='ready':return True
         if self._pool_blocked(db,member):return True
         q=self._quotas(db).get(member,{}) if self._option(db,'quota_checkpoints',False) else {}
-        return q.get('reliability')=='fresh' and q['remaining']<=self._reserve(db,member)
+        return q.get('reliability')=='fresh' and q['remaining']<=self._reserve(db,member) and not self._soft_quota_ignored(db,member,q)
 
     def _reserve(self,db,member):
         floor=self._option(db,'reserve_floor',9)
@@ -296,7 +297,7 @@ class AssistanceMixin(ApprovalMixin):
 
     def _healthy(self,db,member,quotas):
         q=quotas.get(member,{})
-        return q.get('reliability')=='fresh' and q.get('remaining',0)>=min(100,self._reserve(db,member)+5)
+        return (q.get('reliability')=='fresh' and q.get('remaining',0)>=min(100,self._reserve(db,member)+5)) or self._soft_quota_ignored(db,member,q)
 
     def _checkpoint_read_required(self,db,member):
         return any(r['status'] not in ('consumed','transferred') for r in db.execute('SELECT status FROM checkpoints WHERE member=? OR recipient=?',(member,member)))
@@ -338,7 +339,7 @@ class AssistanceMixin(ApprovalMixin):
         members=[r[0] for r in db.execute('SELECT id FROM members')]
         for member in members:
             q=quotas[member];state=self._option(db,'quota_state:'+member,'ready')
-            if state=='ready' and q.get('reliability')=='fresh' and q['remaining']<=self._reserve(db,member):
+            if state=='ready' and q.get('reliability')=='fresh' and q['remaining']<=self._reserve(db,member) and not self._soft_quota_ignored(db,member,q):
                 self._put(db,'quota_state:'+member,'saving')
                 self._put(db,'checkpoint_start:'+member,{'remaining':q['remaining'],'pool':q.get('pool'),'limit_id':q.get('limit_id'),'windows':q.get('windows',[])})
                 generation=uuid.uuid4().hex
@@ -598,7 +599,8 @@ class AssistanceMixin(ApprovalMixin):
         if kind=='approval_review':return self.approval_review_ready(db,message)
         if kind=='execution_request':
             r=db.execute('SELECT status FROM execution_requests WHERE message_id=?',(message['id'],)).fetchone()
-            return bool(r and r[0]=='review') and self._idle(db,[r[0] for r in db.execute("SELECT id FROM members WHERE lifecycle='active'")],exclude=[message['id']]) and not self._member_suspended(db,member)
+            return (not self._recovery_gate(db,member=member,task_id=message['task_id']) and bool(r and r[0]=='review')
+                    and self._idle(db,[r[0] for r in db.execute("SELECT id FROM members WHERE lifecycle='active'")],exclude=[message['id']]) and not self._member_suspended(db,member))
         if kind=='checkpoint_resume':
             row=db.execute("SELECT * FROM checkpoints WHERE message_id=? AND status IN ('offered','consumed','transferred') AND recipient=?",(message['id'],member)).fetchone()
             if not row:return False

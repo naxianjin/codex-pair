@@ -10,12 +10,14 @@ import tempfile
 import zipfile
 
 try:
-    from .install_skill import package_manifest,checked_path,path_stat
+    from .install_skill import package_manifest,checked_path,path_stat,PACKAGE_ROOTS,MANIFEST_NAME
+    from .pair_audit_adapter import CLOUDFLARE_ASSETS
 except ImportError:
-    from install_skill import package_manifest,checked_path,path_stat
+    from install_skill import package_manifest,checked_path,path_stat,PACKAGE_ROOTS,MANIFEST_NAME
+    from pair_audit_adapter import CLOUDFLARE_ASSETS
 
 
-RUNTIME_ROOTS={'SKILL.md','agents','scripts','references'}
+RUNTIME_ROOTS=PACKAGE_ROOTS | {MANIFEST_NAME}
 HANDOFF_RUNTIME='scripts/pair_role_handoff.py'
 REQUIRED={'SKILL.md','agents/openai.yaml','references/onboarding.md','references/protocol.md',
     'references/repair-multi-account.md','scripts/pair.py','scripts/pair_core.py','scripts/pair_git.py',
@@ -23,7 +25,16 @@ REQUIRED={'SKILL.md','agents/openai.yaml','references/onboarding.md','references
     'scripts/pair_balance.py','scripts/pair_quota.py','scripts/pair_reviewer.py',
     'scripts/pair_team.py','scripts/pair_stages.py','scripts/pair_managed.py',
     'scripts/pair_review_runtime.py','scripts/pair_workspace.py','scripts/pair_commands.py',
-    'references/team-commands.md','references/validation-handoff-four-cli.md'}
+    'references/team-commands.md','references/validation-handoff-four-cli.md',
+    'README.md','CHANGELOG.md','POST_RELEASE_TESTS.md','scripts/pair_audit_adapter.py',
+    'assets/upstream-lock.json','assets/ocr-dependency.json','assets/audit/report-schema.json',
+    'assets/audit/ocr-preview-schema.json','assets/audit/ocr-rules-schema.json',
+    'assets/audit/validate-findings.cjs','assets/audit/validate-coverage-ledger.cjs',
+    'assets/audit/read-windows-input.cjs','assets/audit/read-windows-input.ps1','assets/audit/WindowsSafeInput.cs',
+    'references/audit-adapter.md','references/upstream-notices.md',
+    'licenses/open-code-review-Apache-2.0.txt','licenses/cloudflare-security-audit-MIT.txt',
+    'assets/upstream/ocr/WORKFLOW.md','assets/upstream/ocr/system_rules.json'}
+REQUIRED.update('assets/upstream/cloudflare/'+name for name in CLOUDFLARE_ASSETS)
 
 
 def build_package(source, output):
@@ -35,8 +46,7 @@ def build_package(source, output):
     if any(path_stat(path) is not None for path in (output,checksum,pending)):raise FileExistsError('发布包、校验或未完成标记已存在，拒绝覆盖')
     if any(c in output.name for c in '\r\n\\'):raise ValueError('校验文件名包含不支持的换行或转义字符')
     if output.is_relative_to(source):raise ValueError('输出不得位于技能源目录内')
-    manifest={name:digest for name,digest in package_manifest(source).items()
-        if Path(name).parts[0] in RUNTIME_ROOTS}
+    manifest=package_manifest(source)
     missing=(REQUIRED | {HANDOFF_RUNTIME})-manifest.keys()
     if missing:raise ValueError('技能包缺少运行文件：'+', '.join(sorted(missing)))
     output.parent.mkdir(parents=True,exist_ok=True)

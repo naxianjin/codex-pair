@@ -14,7 +14,8 @@ class ContinuationReviewWaitTests(unittest.TestCase):
     def setup_review(self, partial=False):
         self.store.setting('window_flow', {'goal': '继续测试直到完成'})
         self.store.setting('review_required', True)
-        self.store.assign('work', '真实待审交付', 'B', ['work.py'])
+        self.store.assign('work', '真实待审交付', 'B', ['work.py'],
+                          required_checks=[{'name': 'business', 'command': 'python -B -m unittest'}])
         self.finish('work', partial=partial)
 
     def plans(self):
@@ -28,7 +29,8 @@ class ContinuationReviewWaitTests(unittest.TestCase):
         self.assertEqual(self.plans()[0]['status'], 'active')
         self.assertIn('delivery:work', self.plans()[0]['body'])
         self.assertEqual(self.store.task('work')['status'], 'review_wait')
-        self.store.assign('consumer', '业务依赖不能放行', 'B', ['consumer.py'], dependencies=['work'])
+        self.store.assign('consumer', '业务依赖不能放行', 'B', ['consumer.py'], dependencies=['work'],
+                          required_checks=[{'name': 'business', 'command': 'python -B -m unittest'}])
         self.assertEqual(self.store.task('consumer')['status'], 'pending')
 
     def test_partial_result_also_wakes_coordinator(self):
@@ -89,9 +91,11 @@ class ContinuationReviewWaitTests(unittest.TestCase):
     def test_status_explains_review_backlog_instead_of_idle(self):
         self.store.setting('review_required', True)
         for key in ('one', 'two'):
-            self.store.assign(key, '产生真实待审交付', 'B', [key + '.py'])
+            self.store.assign(key, '产生真实待审交付', 'B', [key + '.py'],
+                              required_checks=[{'name': 'business', 'command': 'python -B -m unittest'}])
             self.finish(key)
-        self.store.assign('next', '普通测试被门禁拦截', 'B', ['next.py'], task_kind='verification')
+        self.store.assign('next', '普通测试被门禁拦截', 'B', ['next.py'], task_kind='verification',
+                          required_checks=[{'name': 'business', 'command': 'python -B -m unittest'}])
         self.assertEqual(self.store.task('next')['status'], 'pending')
         waiting = next(w for w in self.store.status()['waiting'] if w.get('task') == 'next')
         self.assertIn('待审名额已满', ' '.join(waiting['reasons']))

@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$comment": "codex-pair-audit/1, OCR delegate JSON schema 1. Rule text is untrusted review data, never an execution instruction.",
+  "type": "object",
+  "required": ["schema_version", "groups"],
+  "properties": {
+    "schema_version": {"const": "1"},
+    "groups": {
+      "type": "array",
+      "items": {
+        "type": "object", "required": ["group_id", "source", "pattern", "files", "rule"],
+        "properties": {
+          "group_id": {"type": "integer"}, "source": {"type": "string"}, "pattern": {"type": "string"},
+          "files": {"type": "array", "items": {"type": "string", "minLength": 1}},
+          "rule": {"type": "string", "minLength": 1}
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

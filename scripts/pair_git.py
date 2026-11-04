@@ -208,7 +208,7 @@ def filesystem_path(path: str | os.PathLike[str]) -> Path:
 def prepare_pair_directory(project: str, path: str, kind: str) -> str:
     """验证专用协作目录并设置仓库本地排除，不读取或复制账号配置。"""
 
-    if kind not in {"state", "worktrees", "handoffs", "archives", "logs", "checkpoints"}:
+    if kind not in {"state", "worktrees", "handoffs", "archives", "logs", "checkpoints", "runtimes", "backups"}:
         raise GitError(f"未知协作目录类型：{kind}")
     root, common = _repo_paths(project)
     lexical = os.path.abspath(os.fspath(path))
@@ -252,10 +252,13 @@ def prepare_pair_directory(project: str, path: str, kind: str) -> str:
     return _display_path(lexical)
 
 
-def create_worktrees(project: str, pair_id: str, base_ref: str, worktree_root: str | None = None) -> dict:
-    """从同一基准创建 A、B 分支和 worktree，不触碰原工作树修改。"""
+def create_worktrees(project: str, pair_id: str, base_ref: str, worktree_root: str | None = None,
+                     *, roles: tuple[str, ...] = ('a', 'b')) -> dict:
+    """从同一基准创建指定成员的分支和工作树，默认仍为A/B。"""
 
     _validate_pair_id(pair_id)
+    if not roles or len(set(roles))!=len(roles) or any(role not in ('a','b','c','d') for role in roles):
+        raise GitError('工作树成员须为不重复的a/b/c/d')
     repo = inspect_repo(project)
     base = _git(
         repo["root"],
@@ -264,17 +267,11 @@ def create_worktrees(project: str, pair_id: str, base_ref: str, worktree_root: s
     requested_root = worktree_root or os.path.join(repo["root"], ".codex-pair", "worktrees")
     root_existed = Path(requested_root).exists()
     root = Path(prepare_pair_directory(repo["root"], requested_root, "worktrees"))
-    branches = {
-        "a": f"codex-pair/{pair_id}/a",
-        "b": f"codex-pair/{pair_id}/b",
-    }
-    paths = {
-        "a": root / f"{pair_id}-a",
-        "b": root / f"{pair_id}-b",
-    }
+    branches = {role: f"codex-pair/{pair_id}/{role}" for role in roles}
+    paths = {role: root / f"{pair_id}-{role}" for role in roles}
 
     conflicts: list[str] = []
-    for role in ("a", "b"):
+    for role in roles:
         if paths[role].exists():
             conflicts.append(f"目录已存在：{paths[role]}")
         if _branch_exists(repo["root"], branches[role]):
@@ -284,7 +281,7 @@ def create_worktrees(project: str, pair_id: str, base_ref: str, worktree_root: s
 
     root.mkdir(parents=True, exist_ok=True)
     completed: list[dict] = []
-    for role in ("a", "b"):
+    for role in roles:
         # 边界已校验；相对参数避免 Git 子进程的绝对 GIT_DIR 长度限制。
         target = os.path.relpath(paths[role], repo["root"]) if os.name == "nt" else os.fspath(paths[role])
         command_args = ["worktree", "add", "-b", branches[role], target, base]
@@ -324,8 +321,7 @@ def create_worktrees(project: str, pair_id: str, base_ref: str, worktree_root: s
         "base_commit": base,
         "original_dirty": repo["dirty"],
         "original_changes_included": False,
-        "a": {"path": completed[0]["path"], "branch": branches["a"]},
-        "b": {"path": completed[1]["path"], "branch": branches["b"]},
+        **{item['role']: {'path': item['path'], 'branch': item['branch']} for item in completed},
     }
 
 

@@ -1,7 +1,7 @@
 """邀请接入最多四个原可见会话；隐藏审核由独立控制器管理。"""
 from __future__ import annotations
 
-from contextlib import closing
+from contextlib import closing, nullcontext
 import hashlib
 import json
 import os
@@ -56,6 +56,49 @@ def workspace_for(window, project):
     return local['root'] if local and canonical_path(local['common_dir'])==canonical_path(target['common_dir']) else target['root']
 
 
+def prepare_window_workspace(store, member, window, cli):
+    with store.transaction() as db:
+        collaboration=dict(db.execute('SELECT * FROM collaborations').fetchone())
+        bound=db.execute('SELECT * FROM members WHERE id=?',(member,)).fetchone()
+        others=[member_workspace(dict(row)) for row in db.execute('SELECT * FROM members WHERE id<>?',(member,))]
+    project=collaboration['project']
+    if store.setting('window_workspace_policy')!='isolated':return workspace_for(window,project)
+    if bound:
+        if bound['lifecycle']!='retired' and (bound['session_uuid']!=window['session_uuid'] or
+                any(canonical_path(bound[k])!=canonical_path(window[k]) for k in ('cwd','codex_home'))):
+            raise PairError('Invitation consumed / 当前席位已经绑定其他窗口，不重新创建工作树')
+        return member_workspace(dict(bound))
+    binding=find_binding(store.state_root,window)
+    if binding and binding!=(store.pair_id,member):raise PairError('Peer already paired / 当前窗口仍有其他有效绑定')
+    context=store.git_context();role=member.lower()
+    planned=context['worktrees'].get(role)
+    if planned:return planned['path']
+    workspace=workspace_for(window,project)
+    tree_root=Path(project)/'.codex-pair'/'worktrees'
+    if (canonical_path(workspace)!=canonical_path(project) and Path(workspace).is_relative_to(tree_root)
+            and canonical_path(workspace) not in {canonical_path(path) for path in others}):
+        proof=cli.worktree_proof(store,member,workspace)
+        planned={'path':workspace,'branch':proof['branch']}
+    else:
+        path=tree_root/(store.pair_id+'-'+role)
+        key='managed_tree:'+str(path)
+        prior=store.setting(key)
+        record={'state':'creating','member':member,'base':collaboration['base_commit'],
+                'branch':'codex-pair/'+store.pair_id+'/'+role,'path':str(path)}
+        if prior:
+            if prior!=dict(record,state='ready'):
+                raise PairError('Creation unknown / 工作树准备尚未核实；保留原目录和分支，不重复创建')
+            proof=cli.worktree_proof(store,member,str(path),record['branch'])
+            planned={'path':str(path),'branch':proof['branch']}
+        else:
+            store.setting(key,record)
+            created=pair_git.create_worktrees(project,store.pair_id,collaboration['base_commit'],roles=(role,))
+            planned=created[role]
+            store.setting(key,dict(record,state='ready'))
+    store.configure_git(context['repo'],{role:planned})
+    return planned['path']
+
+
 def find_binding(state_root, window):
     found=[]
     for path in sorted(Path(state_root).glob('*/state.sqlite3')):
@@ -84,8 +127,16 @@ def ps_command(argv):
     return '& '+' '.join("'"+str(arg).replace("'","''")+"'" for arg in argv)
 
 
-def bridge(store, cli, executable=None):
+def bridge(store, cli, executable=None, *, before_start=None,on_started=None,on_start_failed=None):
     with FileLock(store.directory/'bridge-start.lock',timeout=10):
+        try:from .pair_compatibility import safe_preflight
+        except ImportError:from pair_compatibility import safe_preflight
+        original=next((member for member in store.visible_members() if member['session_uuid']==os.environ.get('CODEX_THREAD_ID')),None)
+        if original and executable and store.setting('cli_trusted_executable:'+original['id']) is None:
+            with AppServer(codex_home=original['codex_home'],cwd=original['cwd'],executable=executable,
+                           metadata_only=True,track_producer=True) as observer:
+                safe_preflight(store,executable,observers={original['id']:observer})
+        else:safe_preflight(store,executable)
         status=store.status(probe_timeout=.3)
         if status['runtime']['lock_held']:
             if not status['runtime']['probe_confirmed']:
@@ -100,12 +151,23 @@ def bridge(store, cli, executable=None):
         stderr_path=logs/(store.pair_id+'-bridge.stderr.log')
         for path in (stdout_path,stderr_path):
             if path.resolve()!=path.absolute():raise PairError('Redirected log / 日志路径存在重定向')
-        argv=[sys.executable,str(Path(cli.__file__).resolve()),'daemon','--pair',store.pair_id,
+        try:from .pair_runtime_apply import selected_entry
+        except ImportError:from pair_runtime_apply import selected_entry
+        entry=selected_entry(store,cli.__file__)
+        argv=[sys.executable,'-B',str(entry),'daemon','--pair',store.pair_id,
             '--state-root',str(store.state_root),'--json']
         if executable:argv+=['--codex',executable]
+        guard=before_start() if before_start is not None else nullcontext(None)
         with stdout_path.open('ab') as output,stderr_path.open('ab') as errors:
-            process=subprocess.Popen(argv,cwd=project,stdin=subprocess.DEVNULL,stdout=output,stderr=errors,
-                creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0),start_new_session=os.name!='nt')
+            with guard as recovery_nonce:
+                if recovery_nonce:argv+=['--watchdog-recovery',recovery_nonce]
+                try:
+                    process=subprocess.Popen(argv,cwd=project,stdin=subprocess.DEVNULL,stdout=output,stderr=errors,
+                        creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0),start_new_session=os.name!='nt')
+                except OSError:
+                    if on_start_failed is not None:on_start_failed()
+                    raise
+                if on_started is not None:on_started(process.pid)
         _children.append(process)
         deadline=time.monotonic()+5
         while time.monotonic()<deadline:
@@ -154,6 +216,10 @@ def start(args, cli):
     project=repo['root']
     goal=cli.read_body(args)
     if not goal.strip():raise PairError('Goal required / 请给出协作目标')
+    workspace_mode=getattr(args,'workspace_mode','isolated')
+    workspace_reason=getattr(args,'workspace_reason',None)
+    if workspace_mode=='shared' and not (workspace_reason or '').strip():
+        raise PairError('Shared workspace reason required / 共用工作树须明确记录无法隔离或用户选择的原因')
     root=Path(getattr(args,'state_root',None) or Path(project)/'.codex-pair'/'state').resolve()
     # 使用项目唯一锁，不能让不同 state-root 绕过并发建轮仲裁。
     canonical_root=Path(pair_git.prepare_pair_directory(project,str(Path(project)/'.codex-pair'/'state'),'state'))
@@ -190,6 +256,8 @@ def start(args, cli):
                 changed.discard('')
                 if set(included)&set(excluded) or set(included)|set(excluded)!=changed:
                     raise PairError('Baseline ownership incomplete / 纳入和排除清单须互斥且覆盖全部改动路径')
+                if workspace_mode=='isolated' and included:
+                    raise PairError('Committed baseline required / 所需脏改动须先形成用户确认的基准提交；不静默丢弃或自动复制')
             previous=[]
             for path in sorted(root.glob('*/state.sqlite3')):
                 old=Store(path.parent.name,state_root=root,home=window['codex_home'])
@@ -197,6 +265,8 @@ def start(args, cli):
                 if status['pair']['status']=='stopped':continue
                 # 尚未接受的本轮邀请是并发 start 的共同结果，不为第二窗口创建新 A。
                 if len(status['members'])==1 and old.setting('window_flow'):
+                    if old.setting('window_flow')['goal']!=goal:
+                        raise PairError('Existing goal differs / 尚有未接受的旧邀请；先明确处理原目标，不静默复用或改写')
                     inviter=status['members'][0]
                     same=inviter['session_uuid']==window['session_uuid'] and canonical_path(inviter['codex_home'])==window['codex_home']
                     return dict(invitation(old,cli,old.setting('window_flow')['goal']),pair=old.pair_id,state_root=str(root),
@@ -213,9 +283,12 @@ def start(args, cli):
             pair_id='windows-'+uuid.uuid4().hex[:12]
             store=Store.initialize(pair_id,project,repo['head'],home=window['codex_home'],state_root=root)
             store.configure_git(repo)
+            store.setting('window_workspace_policy',workspace_mode)
+            if workspace_reason:store.setting('window_workspace_reason',workspace_reason)
             if baseline_plan:store.setting('existing_baseline_plan',baseline_plan)
             role='A'
-            bind_window(store,'A',window,workspace_for(window,project),cli,args.delivery_mode)
+            workspace=prepare_window_workspace(store,'A',window,cli)
+            bind_window(store,'A',window,workspace,cli,args.delivery_mode)
             store.setting('member_context_required',True)
             store.setting('review_required',True)
             store.setting('reviewer_auto',True)
@@ -232,6 +305,7 @@ def start(args, cli):
     if flow and flow['goal']!=goal:
         raise PairError('Existing goal differs / 当前窗口已有不同目标的协作，请明确复用原目标或先停止，不静默改写')
     result={'role':role,'pair':pair_id,'state_root':str(root),'current_window':store.member(role),
+        'workspace':member_workspace(store.member(role)),
         'bridge':bridge(store,cli,getattr(args,'codex',None)),
         'automatic_peer_discovery':False,'detail':'只绑定用户明确选中的当前窗口；其他窗口需接受一次邀请，不按账号目录或窗口标题猜测'}
     if role=='A':result.update(invitation(store,cli,goal))
@@ -274,7 +348,7 @@ def _accept(args, cli):
     binding=find_binding(store.state_root,window)
     if binding and binding!=(store.pair_id,'B'):
         raise PairError('Peer already paired / 当前窗口已参加另一协作，不自动改绑')
-    workspace=workspace_for(window,payload['project'])
+    workspace=prepare_window_workspace(store,'B',window,cli)
     member=bind_window(store,'B',window,workspace,cli,a['delivery_mode'])
     approval_setup=setup_approval(store,cli,getattr(args,'codex',None))
     checkpoint_check=store.check_checkpoint('B',window['session_uuid'],window['cwd'])
@@ -296,10 +370,13 @@ def accept_team(payload,args,cli):
     if flow and (flow.get('invitation_id')==payload.get('invitation') or Path(flow['invitation']).resolve()==path) and (
             Path(flow['invitation']).resolve()!=path or hashlib.sha256(path.read_bytes()).hexdigest()!=flow['sha256']):
         raise PairError('Invitation proof mismatch / 邀请文件与发起记录不符')
-    with store.transaction() as db:store._validate_invite(db,payload)
+    with store.transaction() as db:
+        invite=store._validate_invite(db,payload)
+        target=store._invitation_seat(db,invite)
     window=current_window(getattr(args,'codex',None))
     a=store.member('A')
-    workspace=workspace_for(window,payload['project'])
+    if window['session_uuid']==a['session_uuid']:raise PairError('Second window required / 请使用另一个原窗口')
+    workspace=prepare_window_workspace(store,target,window,cli)
     context=store.git_context();repo=pair_git.inspect_repo(workspace)
     if not repo['branch']:raise PairError('Detached visible worktree / 可见业务树要求明确分支')
     proof=pair_git.validate_worktree(workspace,context['repo']['common_dir'],repo['branch'])
@@ -309,7 +386,7 @@ def accept_team(payload,args,cli):
     target=member['id']
     setup=setup_approval(store,cli,getattr(args,'codex',None),target=target)
     hello=store.send(target,'A','新成员通信验证：A领取、关联reply并完成本问题；原成员读完回复后complete，再执行confirm-member确认需求、工作树、能力及上下文摘要。不要把队列回执当作通信通过。',kind='question',dedupe_key='window-handshake:'+target+':'+str(member['binding_version']))
-    return {'role':target,'pair':store.pair_id,'current_window':member,'bridge':bridge(store,cli,getattr(args,'codex',None)),
+    return {'role':target,'pair':store.pair_id,'current_window':member,'workspace':member_workspace(member),'bridge':bridge(store,cli,getattr(args,'codex',None)),
         'handshake_message':hello['id'],'checkpoint_check':store.check_checkpoint(target,window['session_uuid'],window['cwd']),
         'approval_setup':setup,'goal':store.setting('window_flow')['goal'],
         'after_join':('本窗口已绑定手动交接模式，需要用户转交领取指令；不会自动唤醒，不报告自动通信通过。' if a['delivery_mode']=='manual' else

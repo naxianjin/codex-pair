@@ -46,7 +46,7 @@ DeepSeek 窗口沿用同一 start/accept 流程，必须由用户选中原窗口
 
 start 保留两个窗口的原会话 cwd：当前 cwd 属于目标仓库时沿用该工作树，否则使用用户指定的项目根目录作为 workspace。任务工具使用 workspace，领取/完成工具使用 actor_cwd。
 
-同工作树的代码任务和自动投递回合串行，避免共享暂存区冲突；问答跨回合交接。已有不同 worktree 时允许不重叠的并行任务。用户明确选择隔离工作树模式时才使用低层 init，不为并行偷偷重建窗口。
+下一版候选的start默认给各成员准备项目内独立worktree，保留原会话cwd；已有合适独立树沿用，文件操作使用返回的workspace。显式共享模式须同时提供 `--workspace-mode shared --workspace-reason <原因>`，共享工作区继续串行，问答跨回合交接。创建失败保留现场，不自动降级，不为并行重建原窗口；旧协作显式恢复不改原布局。
 
 新状态在 <项目>/.codex-pair/state/<随机ID>/，邀请在 handoffs，日志在 logs。写入前校验真实路径、源文件与 Git common dir 的 info/exclude；本地 /.codex-pair/ 排除不得隐藏已跟踪内容。保留原有修改、历史与旧协作，不静默搬迁。
 

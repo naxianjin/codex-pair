@@ -6,11 +6,29 @@ try:
     from .pair_stages import StageMixin
     from .pair_managed import ManagedApprovalMixin
     from .pair_role_handoff import RoleHandoffMixin
+    from .pair_diagnostics import AdmissionMixin, capacity
+    from .pair_recovery import RecoveryMixin, upgrade_recovery_v14
+    from .pair_recovery_graph import RecoveryGraphMixin
+    from .pair_control_runtime import ControlRuntimeMixin
+    from .pair_hidden_handoff import HiddenHandoffMixin
+    from .pair_runtime_apply import RuntimeApplyMixin
+    from .pair_auxiliary import AuxiliaryMixin, upgrade_auxiliary_v14
+    from .pair_quota_consent import QuotaConsentMixin
+    from .pair_compatibility import CompatibilityMixin
 except ImportError:
     from pair_team import TeamMixin
     from pair_stages import StageMixin
     from pair_managed import ManagedApprovalMixin
     from pair_role_handoff import RoleHandoffMixin
+    from pair_diagnostics import AdmissionMixin, capacity
+    from pair_recovery import RecoveryMixin, upgrade_recovery_v14
+    from pair_recovery_graph import RecoveryGraphMixin
+    from pair_control_runtime import ControlRuntimeMixin
+    from pair_hidden_handoff import HiddenHandoffMixin
+    from pair_runtime_apply import RuntimeApplyMixin
+    from pair_auxiliary import AuxiliaryMixin, upgrade_auxiliary_v14
+    from pair_quota_consent import QuotaConsentMixin
+    from pair_compatibility import CompatibilityMixin
 
 from contextlib import closing, contextmanager, ExitStack
 import hashlib
@@ -180,7 +198,7 @@ COMMIT;
 '''
 
 
-class Store(RoleHandoffMixin, ManagedApprovalMixin, TeamMixin, StageMixin, ReviewerMixin, AssistanceMixin):
+class Store(RuntimeApplyMixin, HiddenHandoffMixin, ControlRuntimeMixin, RecoveryGraphMixin, RecoveryMixin, AuxiliaryMixin, CompatibilityMixin, QuotaConsentMixin, AdmissionMixin, RoleHandoffMixin, ManagedApprovalMixin, TeamMixin, StageMixin, ReviewerMixin, AssistanceMixin):
     def __init__(self, pair_id, *, home=None, state_root=None, create=False):
         self.pair_id = identifier(pair_id)
         self.home = Path(home or effective_home()).resolve()
@@ -209,23 +227,33 @@ class Store(RoleHandoffMixin, ManagedApprovalMixin, TeamMixin, StageMixin, Revie
     def _upgrade(self):
         with closing(sqlite3.connect(self.path)) as db:
             version=db.execute('PRAGMA user_version').fetchone()[0]
-        if version==13:return
-        if version not in (1,2,3,4,5,6,7,8,10,11,12):raise PairError('Unsupported schema / 不支持的数据库版本')
+        if version==14:return
+        if version not in (1,2,3,4,5,6,7,8,10,11,12,13):raise PairError('Unsupported schema / 不支持的数据库版本')
         with ExitStack() as guards,closing(sqlite3.connect(self.path)) as db:
+            db.row_factory=sqlite3.Row
             guards.enter_context(FileLock(self.daemon_lock,timeout=2))
             for visible in ('A','B','C','D'):guards.enter_context(FileLock(self.directory/('relay-'+visible+'.lock'),timeout=2))
             guards.enter_context(FileLock(self.directory/'reviewer-process.lock',timeout=2))
             guards.enter_context(FileLock(self.control_lock,timeout=30))
             version=db.execute('PRAGMA user_version').fetchone()[0]
-            if version==13:return
+            if version==14:return
             unresolved=db.execute("SELECT 1 FROM messages WHERE delivery_status IN ('delivering','unknown') OR (delivery_status='accepted' AND (remote_status IS NULL OR remote_status IN ('queued','inProgress'))) LIMIT 1").fetchone()
             if unresolved:raise PairError('Legacy delivery unresolved / 请先停止旧派发并对账处理中消息，再升级；原状态未移动')
+            if version==13 and (
+                    db.execute("SELECT 1 FROM reviewer_runtime WHERE state IN ('starting','running','unknown') OR owner IS NOT NULL").fetchone()
+                    or db.execute("SELECT 1 FROM review_stages WHERE status='running'").fetchone()
+                    or db.execute("SELECT 1 FROM managed_permissions WHERE status IN ('pending','allowed','granted','unknown')").fetchone()
+                    or db.execute("SELECT 1 FROM approval_requests WHERE status IN ('pending','allowed','granted','unknown')").fetchone()
+                    or db.execute("SELECT 1 FROM execution_requests WHERE status IN ('running','unknown')").fetchone()):
+                raise PairError('Legacy execution unresolved / 旧审核、协助执行或审批尚未对账，原状态未迁移')
             backup_path=str(self.directory/('schema-v%d-%s.backup.sqlite3'%(version,time.time_ns())))
             if os.name=='nt' and not backup_path.startswith('\\\\?\\'):
                 # SQLite 的备份辅助文件也需要扩展路径，备份目录和名称保持不变。
                 backup_path='\\\\?\\UNC\\'+backup_path[2:] if backup_path.startswith('\\\\') else '\\\\?\\'+backup_path
             with closing(sqlite3.connect(backup_path)) as backup:
                 db.backup(backup)
+                if backup.execute('PRAGMA integrity_check').fetchone()[0]!='ok':
+                    raise PairError('Migration backup invalid / 迁移备份完整性检查失败')
             if version==1:db.executescript(MIGRATION_2)
             if version in (1,2):self._upgrade_accounts(db)
             if version<4:self._upgrade_windows(db)
@@ -237,6 +265,16 @@ class Store(RoleHandoffMixin, ManagedApprovalMixin, TeamMixin, StageMixin, Revie
             if version<11:self._upgrade_reviewer_execution(db)
             if version<12:self._upgrade_team(db)
             if version<13:self._upgrade_stages(db)
+            self._upgrade_next(db)
+
+    def _upgrade_next(self, db):
+        with db:
+            db.execute('BEGIN IMMEDIATE')
+            upgrade_recovery_v14(db)
+            upgrade_auxiliary_v14(db)
+            if db.execute('PRAGMA foreign_key_check').fetchall():
+                raise PairError('Migration integrity failure / schema 14 外键校验失败')
+            db.execute('PRAGMA user_version=14')
 
     def _upgrade_handoffs(self, db):
         with db:
@@ -297,13 +335,15 @@ class Store(RoleHandoffMixin, ManagedApprovalMixin, TeamMixin, StageMixin, Revie
             db.execute('PRAGMA foreign_keys=ON')
 
     @contextmanager
-    def transaction(self):
-        connection = sqlite3.connect(self.path, timeout=15, isolation_level=None)
+    def transaction(self, *, timeout=15):
+        connection = sqlite3.connect(self.path, timeout=timeout, isolation_level=None)
         connection.row_factory = sqlite3.Row
         connection.execute('PRAGMA foreign_keys=ON')
-        connection.execute('PRAGMA busy_timeout=15000')
+        connection.execute('PRAGMA busy_timeout='+str(int(timeout*1000)))
         try:
             connection.execute('BEGIN IMMEDIATE')
+            if connection.execute('PRAGMA user_version').fetchone()[0]!=14:
+                raise PairError('Unsupported write schema / 当前控制器仅写入schema 14，禁止跨版本并发写入')
             yield connection
             connection.commit()
         except BaseException:
@@ -337,7 +377,7 @@ class Store(RoleHandoffMixin, ManagedApprovalMixin, TeamMixin, StageMixin, Revie
                 if version == 0:
                     db.execute('PRAGMA journal_mode=WAL')
                     db.executescript(SCHEMA)
-                elif version not in (1,2,3,4,5,6,7,8,10,11,12,13):
+                elif version not in (1,2,3,4,5,6,7,8,10,11,12,13,14):
                     raise PairError('Unsupported schema / 不支持的数据库版本')
                 if version==0:
                     db.executescript(MIGRATION_2)
@@ -351,9 +391,10 @@ class Store(RoleHandoffMixin, ManagedApprovalMixin, TeamMixin, StageMixin, Revie
                     store._upgrade_reviewer_execution(db)
                     store._upgrade_team(db)
                     store._upgrade_stages(db)
+                    store._upgrade_next(db)
             finally:
                 db.close()
-            if version in (1,2,3,4,5,6,7,8,10,11,12):
+            if version in (1,2,3,4,5,6,7,8,10,11,12,13):
                 raise PairError('Upgrade existing state first / 请先使用 status 升级旧状态，再初始化')
             with store.transaction() as db:
                 existing = db.execute('SELECT * FROM collaborations').fetchone()
@@ -396,9 +437,9 @@ class Store(RoleHandoffMixin, ManagedApprovalMixin, TeamMixin, StageMixin, Revie
             if canonical_path(data['repo']['common_dir'])!=canonical_path(repo['common_dir']):
                 raise PairError('Git repository identity changed / 公共 Git 目录发生变化')
             if worktrees:
-                if data['worktrees'] and data['worktrees']!=worktrees:
+                if any(key in data['worktrees'] and data['worktrees'][key]!=value for key,value in worktrees.items()):
                     raise PairError('Existing worktree plan differs / 已有 worktree 计划不同，拒绝覆盖')
-                data['worktrees']=worktrees
+                data['worktrees'].update(worktrees)
             db.execute('INSERT INTO git_context VALUES(1,?) ON CONFLICT(id) DO UPDATE SET data=excluded.data',(dumps(data),))
             return data
 
@@ -557,6 +598,12 @@ class Store(RoleHandoffMixin, ManagedApprovalMixin, TeamMixin, StageMixin, Revie
             raise PairError('Invalid acceptance / 验收条件和必要检查必须明确')
         with self.transaction() as db:
             report_to=report_to or self._coordinator(db)
+            checks=list(required_checks)
+            if self._option(db,'review_required',False) and task_kind not in ('planning','coordination') and not checks:
+                raise PairError('Check contract required / 需审核业务须在派发前登记非空必要检查')
+            names=[check['name'] for check in checks]
+            if len(names)!=len(set(names)) or any(check.get('required',True) is not True for check in checks):
+                raise PairError('Unique required checks expected / 必要检查名称必须唯一，不能登记为可选')
             self._coordination_report_only(db,task_kind,required_checks=required_checks)
             self._member(db,'A');self._member(db,report_to)
             auto=assignee=='auto'
@@ -601,21 +648,13 @@ class Store(RoleHandoffMixin, ManagedApprovalMixin, TeamMixin, StageMixin, Revie
         for row in db.execute("SELECT * FROM tasks WHERE status='pending' ORDER BY priority DESC,created,id").fetchall():
             task=dict(row)
             if task['id'].startswith('pair-plan-') and self._option(db,'closed_scope'):continue
-            unmet=db.execute("SELECT 1 FROM dependencies d JOIN tasks t ON t.id=d.depends_on WHERE d.task_id=? AND t.status NOT IN ('completed','integrated') LIMIT 1",(task['id'],)).fetchone()
-            if unmet:continue
-            if any(not self._stage_passed(db,r[0]) for r in db.execute('SELECT depends_on FROM dependencies WHERE task_id=?',(task['id'],))):continue
+            if any(not self._task_obligation_satisfied(db,r[0]) for r in db.execute('SELECT depends_on FROM dependencies WHERE task_id=?',(task['id'],))):continue
             if not self._resources_available(db,task):continue
             # 旧入口保留跨工作树范围锁；新版成员流程依靠独立树与显式共享资源隔离。
             if legacy_scopes and any(scopes_overlap(json.loads(task['allowed_paths']),json.loads(a['allowed_paths'])) for a in active+delivered):continue
             candidates=[]
             for member_id in workspaces:
-                if not self._member_eligible(db,member_id,task) or self._member_suspended(db,member_id) or self._pool_blocked(db,member_id):continue
-                if task['task_kind'] not in ('coordination','planning','repair') and db.execute("SELECT count(*) FROM tasks WHERE assignee=? AND status IN ('review_wait','needs_validation')",(member_id,)).fetchone()[0]>=2:continue
-                if any(a['assignee']==member_id or workspaces.get(a['assignee'])==workspaces[member_id] for a in active):continue
-                if any(workspaces[a['assignee']]==workspaces[member_id] for a in active+delivered):continue
-                parents=db.execute('''SELECT p.id,p.assignee,p.commits_json FROM dependencies d JOIN tasks p ON p.id=d.depends_on WHERE d.task_id=?''',(task['id'],)).fetchall()
-                if task['allowed_paths']!='[]' and any(json.loads(p['commits_json'] or '[]') and workspaces[p['assignee']]!=workspaces[member_id]
-                       and not db.execute("SELECT 1 FROM integrations WHERE task_id=? AND receiver=? AND status='completed'",(p['id'],workspaces[member_id])).fetchone() for p in parents):continue
+                if self._admission_reasons(db,task,member_id):continue
                 candidates.append(member_id)
             reason='fixed_assignment'
             if task['assignment_mode']=='auto':
@@ -635,9 +674,12 @@ class Store(RoleHandoffMixin, ManagedApprovalMixin, TeamMixin, StageMixin, Revie
             if task['assignee'] not in candidates:continue
             db.execute('UPDATE tasks SET assignee=?,assignment_reason=? WHERE id=?',(task['assignee'],reason,task['id']))
             db.execute("UPDATE tasks SET status='active',updated=? WHERE id=?",(time.time(),task['id']))
-            prerequisites=[dict(r) for r in db.execute('''SELECT p.id,p.result,p.commits_json,d.id delivery_id FROM dependencies x
-                JOIN tasks p ON p.id=x.depends_on LEFT JOIN deliveries d ON d.id='delivery:'||p.id WHERE x.task_id=?''',(task['id'],))]
-            summary=[{'task':p['id'],'summary':(p['result'] or '')[:600],'commits':json.loads(p['commits_json'] or '[]'),'delivery_id':self.stage_delivery(db,p['id'])} for p in prerequisites]
+            summary=[]
+            for parent in db.execute('SELECT depends_on FROM dependencies WHERE task_id=?',(task['id'],)).fetchall():
+                effective=self._effective_obligation_task(db,parent[0])
+                produced=db.execute('SELECT result,commits_json FROM tasks WHERE id=?',(effective,)).fetchone()
+                summary.append({'task':parent[0],'effective_task':effective,'summary':(produced['result'] or '')[:600],
+                                'commits':json.loads(produced['commits_json'] or '[]'),'delivery_id':self.stage_delivery(db,parent[0])})
             body=task['body'] or task['title']
             if summary:body+='\n前置交付（执行前分页读取并确认记录）：\n'+dumps(summary)
             self._send(db,self._coordinator(db),task['assignee'],body,kind='task',task_id=task['id'],dedupe_key='task:'+task['id'])
@@ -648,6 +690,7 @@ class Store(RoleHandoffMixin, ManagedApprovalMixin, TeamMixin, StageMixin, Revie
 
     def schedule(self):
         with self.transaction() as db:
+            self._recovery_tick(db)
             self._member_context_tick(db)
             self._assistance_tick(db)
             self._stage_complete(db)
@@ -736,6 +779,11 @@ class Store(RoleHandoffMixin, ManagedApprovalMixin, TeamMixin, StageMixin, Revie
         allowed=member in (task['assignee'],task['report_to']) or db.execute('SELECT 1 FROM messages WHERE delivery_id=? AND recipient=?',(delivery_id,member)).fetchone()
         allowed=allowed or db.execute('''SELECT 1 FROM dependencies d JOIN tasks t ON t.id=d.task_id
             WHERE d.depends_on=? AND t.assignee=? AND t.status<>'pending' ''',(record['task_id'],member)).fetchone()
+        allowed=allowed or self._recovery_delivery_allowed(db,member,delivery_id,record['digest'])
+        allowed=allowed or self._continuation_delivery_allowed(db,member,delivery_id)
+        if not allowed:
+            allowed=any(self._effective_obligation_task(db,row[0])==record['task_id'] for row in db.execute('''SELECT d.depends_on
+                FROM dependencies d JOIN tasks t ON t.id=d.task_id WHERE t.assignee=? AND t.status<>'pending' ''',(member,)))
         if not allowed:raise PairError('Delivery access denied / 当前成员无权读取本交付')
         return dict(record)
 
@@ -785,12 +833,19 @@ class Store(RoleHandoffMixin, ManagedApprovalMixin, TeamMixin, StageMixin, Revie
                         return {'claimed':False,'reason':'delivery_failed' if unavailable['delivery_status']=='failed' and unavailable['process_status']=='unclaimed' else 'already_'+unavailable['process_status'],
                                 'delivery_status':unavailable['delivery_status'],'process_status':unavailable['process_status']}
                 return {'claimed':False,'reason':'already_claimed_or_unavailable'}
-            if collaboration_state=='paused' and message['delivery_status'] not in ('accepted','delivering','unknown','manual_handoff'):
+            if message['kind']=='task':
+                reasons=self._recovery_gate(db,member=member_id,task_id=message['task_id'])
+                if collaboration_state=='paused' or reasons:
+                    return {'claimed':False,'reason':'collaboration_paused_before_business','blockers':reasons}
+            if (collaboration_state=='paused'
+                    and message['kind'] not in ('result','execution_result','blocked','checkpoint')
+                    and message['delivery_status'] not in ('accepted','delivering','unknown','manual_handoff')):
                 return {'claimed':False,'reason':'collaboration_paused_before_delivery'}
             if message['kind']=='task':
                 task=db.execute('SELECT * FROM tasks WHERE id=?',(message['task_id'],)).fetchone()
                 if task['status']!='active':
                     return {'claimed':False,'reason':'task_not_active'}
+                self._require_continuation_claim(db,message['task_id'],member_id)
             token=secrets.token_hex(24)
             if not self._message_current(db,message):return {'claimed':False,'reason':'stale_binding'}
             if message['kind']=='task' and (not self._member_eligible(db,member_id) or self._member_suspended(db,member_id)):return {'claimed':False,'reason':'member_suspended'}
@@ -948,6 +1003,7 @@ class Store(RoleHandoffMixin, ManagedApprovalMixin, TeamMixin, StageMixin, Revie
             for task_id in excluded:
                 if tasks[task_id]['status'] not in ('completed','integrated','cancelled','handed_back','review_wait','needs_fix','needs_validation'):
                     raise PairError('Work remains / 不能将仍待执行的业务任务当作历史排除')
+            record['task_ids']=[row[0] for row in db.execute('SELECT id FROM tasks ORDER BY id')]
             record['closed_at']=time.time()
             self._put(db,'closed_scope',record)
             self.event(db,'scope_closed',**record)
@@ -979,7 +1035,7 @@ class Store(RoleHandoffMixin, ManagedApprovalMixin, TeamMixin, StageMixin, Revie
                 if commits or partial:raise PairError('Planning is read-only / 规划任务不交付代码提交或中途交回')
                 plan=db.execute('SELECT created FROM tasks WHERE id=?',(message['task_id'],)).fetchone()
                 if goal_complete:
-                    if db.execute("SELECT 1 FROM tasks WHERE id<>? AND status NOT IN ('completed','integrated') LIMIT 1",(message['task_id'],)).fetchone():
+                    if any(not self._task_obligation_satisfied(db,row[0]) for row in db.execute("SELECT id FROM tasks WHERE id<>? AND status NOT IN ('completed','integrated')",(message['task_id'],))):
                         raise PairError('Work remains / 仍有未完成工作，不能确认目标完成')
                     if any(not self._stage_passed(db,t[0]) for t in db.execute('SELECT id FROM tasks WHERE review_required=1')):
                         raise PairError('Review remains / 尚有具体业务版本未审核通过')
@@ -991,8 +1047,10 @@ class Store(RoleHandoffMixin, ManagedApprovalMixin, TeamMixin, StageMixin, Revie
                     raise PairError('Register next work / 请先登记后续任务，或用 --goal-complete 确认原目标完成')
             if message['delivery_id']:self._require_ack(db,member_id,message['delivery_id'])
             if message['kind']=='task':
-                repair=db.execute('SELECT source_stage FROM repair_links WHERE task_id=?',(message['task_id'],)).fetchone()
-                if repair:self._require_ack(db,member_id,'stage:'+repair[0])
+                repair=self._continuation_repair_link(db,message['task_id'])
+                if repair:self._require_ack(db,member_id,'stage:'+repair['source_stage'])
+                for delivery_id in self._continuation_required_deliveries(db,message['task_id']):
+                    self._require_ack(db,member_id,delivery_id)
                 for prerequisite in db.execute('SELECT depends_on FROM dependencies WHERE task_id=?',(message['task_id'],)).fetchall():
                     self._require_ack(db,member_id,self.stage_delivery(db,prerequisite[0]))
             elif partial:raise PairError('Partial applies to tasks / 只有业务任务可中途交回')
@@ -1051,6 +1109,8 @@ class Store(RoleHandoffMixin, ManagedApprovalMixin, TeamMixin, StageMixin, Revie
             pending_reviews=[(r['id'],r['status']) for r in db.execute(
                 "SELECT id,status FROM tasks WHERE id NOT LIKE 'pair-plan-%' AND status IN ('review_wait','needs_fix','needs_validation','handed_back') ORDER BY id")
                 if db.execute("SELECT 1 FROM deliveries WHERE task_id=?",(r['id'],)).fetchone()
+                and not self._task_obligation_satisfied(db,r['id'])
+                and not db.execute("SELECT 1 FROM task_continuations c JOIN tasks successor ON successor.id=c.successor_task WHERE c.source_task=? AND successor.status<>'cancelled'",(r['id'],)).fetchone()
                 and not db.execute("SELECT 1 FROM messages WHERE task_id=? AND kind='result' AND (process_status<>'completed' OR delivery_status IN ('unknown','failed','delivering'))",(r['id'],)).fetchone()]
         else:
             if db.execute("SELECT 1 FROM tasks WHERE status NOT IN ('completed','integrated') LIMIT 1").fetchone():return
@@ -1085,9 +1145,18 @@ class Store(RoleHandoffMixin, ManagedApprovalMixin, TeamMixin, StageMixin, Revie
             raise PairError('Invalid control state / 无效控制状态')
         # 和真正开始投递持有同一锁；返回后任何后续投递都会先看到新状态。
         with FileLock(self.control_lock,timeout=30), self.transaction() as db:
+            previous=db.execute('SELECT status FROM collaborations').fetchone()[0]
+            if state=='running' and (previous!='running' or self._recovery_gate(db)):
+                raise PairError('Resume reconciliation required / 使用 request-resume 登记明确继续并完成核查；旧控制命令不解除暂停或停止')
+            if state in ('paused','stopped'):self._new_control_generation(db)
             db.execute('UPDATE collaborations SET status=?,revision=revision+1',(state,))
             if state!='running':self._invalidate_approvals(db,'Collaboration paused or stopped / 协作暂停或停止')
             if state=='stopped':
+                db.execute('UPDATE recovery_policies SET enabled=0,version=version+1')
+                watchdog=self._option(db,'bridge_watchdog_v14')
+                if watchdog:
+                    watchdog.update(enabled=False,state='disabled',reason='explicit_stop')
+                    self._put(db,'bridge_watchdog_v14',watchdog)
                 self._put(db,'reviewer_auto',False)
                 self._put(db,'automatic_recovery',False)
                 db.execute("UPDATE invitations SET state='revoked' WHERE state='open'")
@@ -1240,8 +1309,10 @@ class Store(RoleHandoffMixin, ManagedApprovalMixin, TeamMixin, StageMixin, Revie
         with self.transaction() as db:
             task=db.execute('SELECT * FROM tasks WHERE id=?',(message['task_id'],)).fetchone() if message['task_id'] else None
             required=[self.stage_delivery(db,r[0]) for r in db.execute("SELECT depends_on FROM dependencies WHERE task_id=?",(message['task_id'],))] if message['kind']=='task' else []
-            repair=db.execute('SELECT source_stage FROM repair_links WHERE task_id=?',(message['task_id'],)).fetchone() if message['kind']=='task' else None
-            if repair:required.append('stage:'+repair[0])
+            repair=self._continuation_repair_link(db,message['task_id']) if message['kind']=='task' else None
+            if repair:required.append('stage:'+repair['source_stage'])
+            if message['kind']=='task':required.extend(self._continuation_required_deliveries(db,message['task_id']))
+            required=list(dict.fromkeys(required))
         if message.get('delivery_id'):required.append(message['delivery_id'])
         payload={'protocol':'codex-pair/1','message_id':message['id'],'pair_id':self.pair_id,
                  'sender':message['sender'],'recipient':message['recipient'],'kind':message['kind'],
@@ -1282,6 +1353,7 @@ class Daemon:
             quotas=self.store._quotas(db);selected=[]
             for row in db.execute('SELECT * FROM members').fetchall():
                 member=dict(row);q=quotas.get(member['id'],{})
+                if self.store._soft_quota_ignored(db,member['id'],q):continue
                 if self.member_id and self.member_id!=member['id']:continue
                 if q.get('reliability')!='fresh' or q.get('remaining',101)>self.store._reserve(db,member['id']):continue
                 notice=db.execute("SELECT id FROM messages WHERE recipient=? AND kind='checkpoint' AND process_status<>'completed' ORDER BY created DESC LIMIT 1",(member['id'],)).fetchone()
@@ -1304,13 +1376,14 @@ class Daemon:
                     a=self.store._option(db,'approval_authority','A')
                     self.store._send(db,a,a,'低额度止损：'+member['id']+' '+result['state']+'。已暂停新派发；中断请求不等于工具终态或交接成功，核实原回合并保存，无法确认时立即人工Esc；不重放未知操作。',kind='blocked',dedupe_key=key)
 
-    def __init__(self, store, transport, *, max_attempts=3, poll_interval=.25, member_id=None):
+    def __init__(self, store, transport, *, max_attempts=3, poll_interval=.25, member_id=None, watchdog_recovery=None):
         if max_attempts<1 or max_attempts>10 or poll_interval<=0:
             raise PairError('Invalid retry or polling limit / 无效重试或轮询参数')
         self.store,self.transport=store,transport
         self.max_attempts,self.poll_interval=max_attempts,poll_interval
         self.owner=secrets.token_hex(16)
         self.member_id=member_id
+        self.watchdog_recovery=watchdog_recovery
         self._observe_errors={}
 
     def _begin(self):
@@ -1329,6 +1402,8 @@ class Daemon:
             busy_workspaces={member_workspace(members[r['recipient']]) for r in busy}
             busy_workspaces.update(member_workspace(members[r['member']]) for r in db.execute("SELECT member FROM approval_requests WHERE status='pending'"))
             message=next((m for m in candidates if not ((m['task_id'] or '').startswith('pair-plan-') and self.store._option(db,'closed_scope')) and self.store._message_current(db,m) and self.store._assistance_dispatchable(db,m)
+                          and (members[m['recipient']]['delivery_mode']=='manual' or not self.store._cli_compatibility_gate(db,m['recipient'],'new_delivery'))
+                          and (m['kind']!='task' or not self.store._recovery_gate(db,member=m['recipient'],task_id=m['task_id']))
                 and (m['kind']=='approval_review' or member_workspace(members[m['recipient']]) not in busy_workspaces)
                 and (m['dedupe_key']!='window-ready' or self.store.window_verified(db))),None)
             if not message:return None
@@ -1463,6 +1538,23 @@ class Daemon:
             except BaseException:
                 gate.release();raise
             self.store.recover(self.owner,self.member_id)
+            try:from .pair_runtime_apply import record_loaded_runtime,drain_requested
+            except ImportError:from pair_runtime_apply import record_loaded_runtime,drain_requested
+            if self.member_id is None and Path(__file__).parent.parent.joinpath('package-manifest.json').is_file():record_loaded_runtime(self.store)
+            try:from .pair_control_events import ControlObserver
+            except ImportError:from pair_control_events import ControlObserver
+            control_observer=ControlObserver(self.store,executable=getattr(self.transport,'options',{}).get('executable'))
+            locks.callback(control_observer.close)
+            control_observer.poll()
+            try:from .pair_compatibility import CompatibilityMonitor
+            except ImportError:from pair_compatibility import CompatibilityMonitor
+            compatibility_monitor=CompatibilityMonitor(self.store,getattr(self.transport,'options',{}).get('executable'),member_id=self.member_id)
+            compatibility_monitor.poll(force=True)
+            self.reconcile()
+            if self.watchdog_recovery:
+                try:from .pair_watchdog import acknowledge_bridge_start
+                except ImportError:from pair_watchdog import acknowledge_bridge_start
+                acknowledge_bridge_start(self.store,self.watchdog_recovery)
             ticks=0
             quota_monitor=None
             if hasattr(self.transport,'signals'):
@@ -1472,19 +1564,26 @@ class Daemon:
                 quota_monitor.start()
             reviewer_controller=None
             if self.member_id is None and self.store.setting('review_required'):
-                try:from .pair_review_runtime import ReviewerController
-                except ImportError:from pair_review_runtime import ReviewerController
+                if (self.store.setting('auxiliary_policy') or {}).get('enabled'):
+                    try:from .pair_auxiliary_runtime import AuxiliaryController as ReviewerController
+                    except ImportError:from pair_auxiliary_runtime import AuxiliaryController as ReviewerController
+                else:
+                    try:from .pair_review_runtime import ReviewerController
+                    except ImportError:from pair_review_runtime import ReviewerController
                 reviewer_controller=ReviewerController(self.store,executable=getattr(self.transport,'options',{}).get('executable'))
                 reviewer_controller.start()
             next_schedule=0
             try:
                 while True:
+                    control_observer.poll()
+                    compatibility_monitor.poll()
                     self.store.heartbeat(self.owner,self.member_id)
                     with self.store.transaction() as db:
                         state=db.execute('SELECT status FROM collaborations').fetchone()[0]
                         if self.member_id and db.execute('SELECT stop_requested FROM bridge_workers WHERE member=?',(self.member_id,)).fetchone()[0]:break
                     if state=='stopped':break
                     self.reconcile()
+                    if drain_requested(self.store):break
                     self.quota_stop_once()
                     if hasattr(self.transport,'signals'):
                         for member,event in self.transport.signals():

@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "dependency": "@alibaba-group/open-code-review",
+  "repository": "https://github.com/alibaba/open-code-review",
+  "version": "1.13.3",
+  "tag": "v1.13.3",
+  "source_commit": "375f64cd6f67a48a135da83cfcf59c52669a09cb",
+  "rules_commit": "216dcf513593055a70165f793e96b52589d71b1b",
+  "delegate_schema_version": "1",
+  "license": "Apache-2.0",
+  "auto_download": false,
+  "auto_update": false,
+  "configure_llm": false,
+  "binary_bundled": false,
+  "platforms": {
+    "windows-amd64": {
+      "filename": "opencodereview-windows-amd64.exe",
+      "sha256": "09bf6d1b8a24859fcc88f7bab1576a290a074f147655b860be4e766b568c3809",
+      "source_url": "https://github.com/alibaba/open-code-review/releases/download/v1.13.3/opencodereview-windows-amd64.exe"
+    },
+    "windows-arm64": {
+      "filename": "opencodereview-windows-arm64.exe",
+      "sha256": "d9f5b40f36df5eb1e1c7ba6188a1a68c080bc43742c6043f5d9a8bcdf830f48c",
+      "source_url": "https://github.com/alibaba/open-code-review/releases/download/v1.13.3/opencodereview-windows-arm64.exe"
+    }
+  },
+  "verification_scope": "GitHub release asset digests and tag commit read on 2026-11-01; binary not downloaded or executed; isolated compatibility probe pending."
+}

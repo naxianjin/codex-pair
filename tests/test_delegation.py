@@ -9,6 +9,7 @@ from unittest.mock import patch
 from scripts.pair_core import Store,PairError,Daemon
 from scripts.pair_approvals import approval_package_digest
 from tests import test_core
+from tests.recovery_fixture import resume_for_test
 
 
 class DelegationTests(unittest.TestCase):
@@ -57,7 +58,7 @@ class DelegationTests(unittest.TestCase):
 
     def test_pause_and_resume_does_not_resurrect_allow(self):
         self.enable();request=self.request();self.allow(request)
-        self.store.control('paused');self.store.control('running')
+        self.store.control('paused');resume_for_test(self.store)
         self.assertEqual(self.store.approval_outcome('B',self.sessions['B'],request['id'],request['digest'])['status'],'expired')
 
     def test_changed_authorization_rejects_claimed_review(self):
@@ -284,7 +285,7 @@ class DelegationTests(unittest.TestCase):
         upgraded=Store('test',home=self.home)
         self.assertEqual(upgraded.message(request['message_id'])['claim_token'],claim['claim_token'])
         with upgraded.transaction() as db:
-            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],13)
+            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],14)
             self.assertFalse(db.execute('PRAGMA foreign_key_check').fetchall())
         class Interrupted(sqlite3.Connection):
             def execute(self,sql,*args):

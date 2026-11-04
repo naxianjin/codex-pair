@@ -12,6 +12,7 @@ import unittest
 
 from scripts.pair_core import Daemon, FileLock, PairError, Store, scopes_overlap
 from scripts.pair_transport import DeliveryUnknown, SessionBusy, TransportError
+from tests.recovery_fixture import resume_for_test
 
 
 class FakeTransport:
@@ -272,7 +273,9 @@ class CoreTests(unittest.TestCase):
         before=len(fake.calls)
         for _ in range(3):self.assertFalse(daemon.dispatch_one())
         self.assertEqual(len(fake.calls),before)
-        self.store.control('running')
+        fake.observation={'turn_id':'turn-'+fake.calls[0][1]['id'],'remote_status':'completed'}
+        daemon.reconcile()
+        resume_for_test(self.store)
         self.assertTrue(daemon.dispatch_one())
 
     def test_stop_keeps_records_and_code_and_does_not_claim(self):
@@ -284,8 +287,11 @@ class CoreTests(unittest.TestCase):
         self.assertFalse(self.claim(message['id'])['claimed'])
         self.assertEqual(artifact.read_text(encoding='utf-8'),'用户代码')
         self.assertEqual(len(self.store.status()['messages']),1)
-        self.store.control('running')
-        self.assertTrue(self.claim(message['id'])['claimed'])
+        with self.assertRaisesRegex(PairError,'Resume reconciliation required'):
+            self.store.control('running')
+        with self.assertRaisesRegex(PairError,'Explicit new scope'):
+            resume_for_test(self.store)
+        self.assertFalse(self.claim(message['id'])['claimed'])
 
     def test_pause_allows_already_submitted_message_to_finish_but_blocks_pending_claim(self):
         accepted=self.message();daemon=Daemon(self.store,FakeTransport(self.store));daemon.dispatch_one()
@@ -294,6 +300,22 @@ class CoreTests(unittest.TestCase):
         self.assertTrue(self.claim(accepted['id'])['claimed'])
         self.assertFalse(self.claim(pending['id'],member='A')['claimed'])
         self.assertFalse(daemon.dispatch_one())
+
+    def test_pause_preserves_pending_result_read_and_completion_without_dispatch(self):
+        self.task()
+        task_message=next(m for m in self.store.status()['messages'] if m['task_id']=='first' and m['kind']=='task')
+        self.complete(task_message)
+        result=next(m for m in self.store.status()['messages'] if m['task_id']=='first' and m['kind']=='result')
+        self.assertEqual(result['delivery_status'],'pending')
+        self.store.control('paused')
+        claimed=self.claim(result['id'],member='A')
+        self.assertTrue(claimed['claimed'])
+        actor=('A',self.sessions['A'],self.directories['A'])
+        record=self.store.read_delivery(*actor,'delivery:first')
+        self.assertIsNone(record['next_offset'])
+        self.store.ack_delivery(*actor,'delivery:first',record['digest'])
+        self.assertTrue(self.store.complete(*actor,result['id'],claimed['claim_token'],'已核对原交付，继续保持暂停')['completed'])
+        self.assertFalse(Daemon(self.store,FakeTransport(self.store)).dispatch_one())
 
     def test_no_reply_does_not_release_or_reassign_active_task(self):
         self.task()
@@ -373,14 +395,12 @@ class RealCoreTests(unittest.TestCase):
         for member in ('A','B'):
             result=subprocess.run(common+['join','--member',member,'--new-session','--worktree',str(root/member.lower())],capture_output=True,encoding='utf-8',timeout=180)
             self.assertEqual(result.returncode,0,result.stdout+result.stderr)
-        store.control('paused')
+        # 本用例只验真实通信；暂停后的恢复另须正式执行器证据，不能由测试夹具放行。
         store.assign('proof','真实领取完成闭环','B',['probe.txt'],body='本任务仅验证通信，不修改项目代码，不运行 Git。先按 claim_argv 领取，claimed=true 后用 complete 提交实质结果 PAIR_BUSINESS_OK。结果文件写入协作状态目录，不写入 worktree。不要发送收到或谢谢。')
         logs=(evidence/'core-daemon.stdout').open('wb');errors=(evidence/'core-daemon.stderr').open('wb')
         daemon=subprocess.Popen(common+['daemon'],stdout=logs,stderr=errors,creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
         try:
             self.assertTrue(store.status(probe_timeout=5)['runtime']['probe_confirmed'])
-            self.assertEqual(store.status()['messages'],[])
-            store.control('running')
             deadline=time.monotonic()+180
             status=None
             while time.monotonic()<deadline:
