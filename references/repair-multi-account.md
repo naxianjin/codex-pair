@@ -10,7 +10,7 @@
 
 ## 先修正安装与角色发现
 
-源码以当前项目目录为准，不依赖特定磁盘路径。检查参与 CLI 的实际 CODEX_HOME，不能仅凭窗口名或预设文件夹猜账号。参与窗口仅支持官方 Codex CLI 的 OpenAI 官方账号与已配置 DeepSeek API，不扩展其他提供方；DeepSeek 边界与验收见 [deepseek.md](deepseek.md)。
+源码以当前项目目录为准，不依赖特定磁盘路径。检查参与 CLI 的实际 CODEX_HOME，不能仅凭窗口名或预设文件夹猜账号。参与窗口支持官方 Codex CLI 中已配置的 OpenAI、DeepSeek API 或 wokey；wokey 的额度与官方审核边界见 [wokey.md](wokey.md)，DeepSeek 边界与验收见 [deepseek.md](deepseek.md)。
 
 此前维修使用过多个独立 CODEX_HOME；它们只是历史安装实例，不决定参与窗口。运行时各窗口的 home 从自身环境读取。需要自动发现技能时在该环境安装同版 skill；也可在现有会话显式读取邀请指向的同一份 SKILL.md，无需为刷新技能重开窗口，但这不等于已安装。分别备份旧 skill，只安装技能文件，不复制认证、配置、会话或缓存。检查引用和哈希一致，不声称安装即已加载。
 

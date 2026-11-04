@@ -1,4 +1,4 @@
-"""DeepSeek 专项离线验证；不读取真实凭据，不启动 CLI 或付费 API。"""
+"""第三方提供方专项离线验证；不读取真实凭据，不启动 CLI 或付费 API。"""
 import json
 import os
 from pathlib import Path
@@ -66,7 +66,7 @@ class DeepSeekTests(unittest.TestCase):
         return client
 
     def test_current_window_uses_account_rpc_only_for_openai_fingerprint(self):
-        for provider in ('openai', 'deepseek'):
+        for provider in ('openai', 'deepseek', 'wokey'):
             with self.subTest(provider=provider):
                 client = self.observer(provider=provider)
                 client.rpc = (Mock(return_value={'account':{'id':'test-account','type':'chatgpt'}}) if provider=='openai'
@@ -118,6 +118,26 @@ class DeepSeekTests(unittest.TestCase):
         self.assertIsNone(member['connection']['provider'])
         self.assertEqual(member['capabilities']['automatic_communication'], 'unverified')
         self.assertEqual(self.store.member('A')['proof'], legacy)
+
+    def test_wokey_binding_and_unknown_quota_do_not_grant_official_review(self):
+        from scripts.pair_quota import read_member
+        from scripts.pair_reviewer import official_identity
+        from scripts.pair_core import PairError
+        self.join('A', 'wokey', model='gpt-6.1-sol')
+        member = self.store.member('A')
+        proof = json.loads(member['proof'])
+        self.assertEqual(proof['modelProvider'], 'wokey')
+        self.assertEqual(proof['model'], 'gpt-6.1-sol')
+        client = Mock()
+        client.validate.return_value = proof
+        client.rpc.side_effect = AssertionError('第三方提供方不查询官方账号或额度')
+        quota = read_member(self.store, member, client)
+        self.assertIsNone(quota['remaining'])
+        self.assertEqual(quota['windows'], [])
+        self.assertEqual(quota['reliability'], 'unsupported')
+        client.rpc.assert_not_called()
+        with self.assertRaises(PairError):
+            official_identity(proof)
 
     def test_provider_change_prevents_queue_submission(self):
         member = dict(self.members['A'], proof=self.thread(provider='deepseek'))
@@ -280,7 +300,8 @@ class DeepSeekTests(unittest.TestCase):
                 self.assertNotIn(secret, value)
 
     def test_mixed_and_deepseek_pair_routing_never_falls_back_on_identity_error(self):
-        for providers in (('openai','deepseek'), ('deepseek','openai'), ('deepseek','deepseek')):
+        for providers in (('openai','deepseek'), ('deepseek','openai'), ('deepseek','deepseek'),
+                          ('openai','wokey'), ('wokey','openai')):
             with self.subTest(providers=providers):
                 pool = TransportPool()
                 clients = []

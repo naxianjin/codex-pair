@@ -39,7 +39,7 @@ accept 发出 window-handshake 问题，A 领取、发送关联 reply 并完成�
 
 ## 提供方与能力边界
 
-仅支持官方 Codex CLI 的 OpenAI 官方账号与 DeepSeek API。DeepSeek 沿用原 CLI 已配置的 Responses API；桥只投递和观察，不代替另一窗口执行 API 推理，不接管其凭据。提供方与模型应依据目标 thread/read 的 modelProvider/model 识别，不把 account/read 的账号邮箱作为 API 必需条件。持久化 proof 使用身份和 Git 校验所需的白名单最小字段，不保存完整线程响应、认证头或 Key。status 中的提供方、模型及能力状态不得包含机密；未验证能力须明确标注，不能由提供方名称推定工具可用。实现与真实验收分别报告，详细清单见 [deepseek.md](deepseek.md)。
+可见成员支持官方 Codex CLI 中已配置的 OpenAI、DeepSeek 或 wokey 提供方。桥只投递和观察，不代替另一窗口执行 API 推理，不接管其凭据。提供方与模型应依据目标 thread/read 的 modelProvider/model 识别，不把 account/read 的账号邮箱作为非 OpenAI 提供方的必需条件。wokey 不提供官方 account/rateLimits 证据，额度记为 unknown，不参与 20 个百分点比较，也不能作为官方 GPT 审核者。持久化 proof 使用身份和 Git 校验所需的白名单最小字段，不保存完整线程响应、认证头或 Key。status 中的提供方、模型及能力状态不得包含机密；未验证能力须明确标注，不能由提供方名称推定工具可用。实现与真实验收分别报告，详细清单见 [deepseek.md](deepseek.md) 和 [wokey.md](wokey.md)。
 
 ## 通信、回执与恢复
 

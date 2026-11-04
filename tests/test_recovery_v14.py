@@ -333,14 +333,14 @@ class RecoveryV14Tests(unittest.TestCase):
         with self.store.transaction() as db:
             self.assertEqual(db.execute('SELECT count(*) FROM recovery_applications').fetchone()[0], 0)
 
-    def remaining_fixture(self, *, enabled=True, pinned=False):
+    def remaining_fixture(self, *, enabled=True, pinned=False, provider='deepseek'):
         if enabled:
             self.enable('continuation')
         self.store.assign('saved', '原业务', 'B', ['patch.py'], acceptance=['输出正确'],
                          required_checks=[{'name': 'unit', 'command': 'python unit.py', 'required': True}], pin_member=pinned)
         path = self.root / 'B' / 'patch.py'; path.write_text('saved = 1\n', encoding='utf-8')
         with self.store.transaction() as db:
-            proof = {'id': self.sessions['B'], 'cwd': self.directories['B'], 'modelProvider': 'deepseek', 'model': 'deepseek-chat'}
+            proof = {'id': self.sessions['B'], 'cwd': self.directories['B'], 'modelProvider': provider, 'model': 'deepseek-chat' if provider == 'deepseek' else 'gpt-6.1-sol'}
             db.execute("UPDATE members SET proof=? WHERE id='B'", (json.dumps(proof),))
             db.execute("UPDATE tasks SET status='handed_back',result='已保存第一步；第二步未执行' WHERE id='saved'")
             db.execute("UPDATE messages SET process_status='claimed',claim_token='original-token',delivery_status='accepted',remote_status='completed' WHERE task_id='saved'")
@@ -372,6 +372,15 @@ class RecoveryV14Tests(unittest.TestCase):
             self.assertEqual(self.store._continuation_contributors(db, 'remaining')[0]['provider'], 'deepseek')
         repeated = self.store.continue_remaining_work(*self.actor(), 'saved', 'remaining', source['source_digest'], **kwargs)
         self.assertTrue(repeated['duplicate'])
+
+    def test_wokey_remaining_work_keeps_original_contributor(self):
+        source, kwargs, _ = self.remaining_fixture(provider='wokey')
+        result = self.store.continue_remaining_work(*self.actor(), 'saved', 'remaining', source['source_digest'], **kwargs)
+        self.assertEqual(result['state'], 'registered')
+        with self.store.transaction() as db:
+            contributor = self.store._continuation_contributors(db, 'remaining')[0]
+        self.assertEqual(contributor['provider'], 'wokey')
+        self.assertEqual(contributor['model'], 'gpt-6.1-sol')
 
     def test_safe_recovery_cannot_enable_policy_or_duplicate_remaining_work(self):
         source, kwargs, _ = self.remaining_fixture(enabled=False)

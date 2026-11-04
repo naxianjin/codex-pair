@@ -17,7 +17,7 @@
 
 ## 提供方与能力证据
 
-核心实现从目标 thread/read 元数据识别 modelProvider/model，采用仅支持 OpenAI 与 DeepSeek 的明确判定，缺失或未知值应报告限制，不自动推测兼容。DeepSeek 不要求 account/read 返回 OpenAI 邮箱；OpenAI 双账号验收仍按原匿名身份摘要确认。
+核心实现从目标 thread/read 元数据识别 modelProvider/model，采用支持 OpenAI、DeepSeek 与 wokey 的明确判定，缺失或未知值应报告限制，不自动推测兼容。DeepSeek 不要求 account/read 返回 OpenAI 邮箱；OpenAI 双账号验收仍按原匿名身份摘要确认。wokey 的单独边界见 [wokey.md](wokey.md)。
 
 proof 只保留会话身份、提供方/模型、cwd、持久性及 Git 校验所需的白名单字段，不持久化完整 thread/read 响应或任意嵌套元数据。status.members[].connection 包含 provider、model、metadata_status、source。source=binding_snapshot 表示加入时的绑定快照，不是持续探测；metadata_status 为 verified、missing 或 unsupported，只表明提供方元数据判定，不能证明 API、工具或自动通信可用。旧 proof 缺少提供方时返回 missing，不重写历史记录。
 

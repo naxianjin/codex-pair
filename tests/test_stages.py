@@ -68,6 +68,21 @@ class StageTests(unittest.TestCase):
         self.assertEqual(self.store.task('api')['status'],'review_wait')
         with self.assertRaises(PairError):self.store.require_reviewed('api')
 
+    def test_wokey_stage_preserves_actual_provider_and_waits_for_review(self):
+        self.delivered()
+        proof = {'id': self.sessions['B'], 'cwd': self.directories['B'],
+                 'modelProvider': 'wokey', 'model': 'gpt-6.1-sol'}
+        with self.store.transaction() as db:
+            db.execute("UPDATE members SET proof=? WHERE id='B'", (json.dumps(proof),))
+        stage = self.store.submit_stage(*self.actor('B'), 'api', {'kind': 'commit', 'head': 'b'*40},
+            [{'member': 'B', 'provider': 'wokey', 'model': 'gpt-6.1-sol'}], [],
+            {'objective': '接口', 'acceptance': ['输出正确'], 'environment': {}, 'lockfiles': [], 'baseline': 'a'*40})
+        self.assertEqual(stage['status'], 'pending')
+        contributors = json.loads(stage['contributors'])
+        self.assertTrue(all(c['provider'] == 'wokey' for c in contributors))
+        with self.assertRaises(PairError):
+            self.store.require_reviewed('api')
+
     def test_two_pending_stages_do_not_drop_saved_delivery(self):
         for index in range(3):
             self.delivered('stage-'+str(index))

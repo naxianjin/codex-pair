@@ -564,7 +564,7 @@ class RecoveryMixin:
                     fail('Original contributor binding unavailable / 原作者绑定历史缺失，不能用新账号覆盖')
                 member = json.loads(historical[0])
             proof = json.loads(member['proof']) if isinstance(member['proof'], str) else member['proof']
-            if proof.get('modelProvider') not in ('openai', 'deepseek') or not proof.get('model'):
+            if proof.get('modelProvider') not in ('openai', 'deepseek', 'wokey') or not proof.get('model'):
                 fail('Original contributor model unavailable / 原作者实际模型及提供方尚未核验')
             contributor = {'member': task['assignee'], 'provider': proof['modelProvider'], 'model': proof['model'],
                            'session_uuid': member['session_uuid'], 'binding_version': version, 'source_task': task_id}

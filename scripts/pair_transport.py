@@ -244,7 +244,7 @@ def session_uuid(value):
 def provider_identity(proof):
     """只使用 thread/read 的提供方，不从模型名、账号目录或登录文件猜测。"""
     provider=proof.get('modelProvider')
-    supported=provider in ('openai','deepseek')
+    supported=provider in ('openai','deepseek','wokey')
     model=proof.get('model')
     if not isinstance(model,str) or not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9._:/+\-]{0,127}',model) or model.startswith('sk-'):
         model=None
@@ -257,7 +257,7 @@ def binding_proof(thread, *, require_provider=False):
     """持久化白名单，拒绝把线程预览、认证、任意 extra 或历史回合写入绑定。"""
     identity=provider_identity(thread)
     if identity['metadata_status']=='unsupported':
-        raise TransportError('Unsupported model provider / 当前仅支持 OpenAI 与 DeepSeek 提供方')
+        raise TransportError('Unsupported model provider / 当前仅支持 OpenAI、DeepSeek 与 wokey 提供方')
     if require_provider and identity['metadata_status']=='missing':
         raise TransportError('Provider metadata missing / 无法从当前会话确认提供方，不猜测兼容性')
     proof={'id':session_uuid(thread['id']),'cwd':canonical_path(thread['cwd']),

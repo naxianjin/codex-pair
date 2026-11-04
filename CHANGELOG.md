@@ -1,5 +1,11 @@
 # 更新说明
 
+## 2026-11-04 — 补充 wokey 成员兼容
+
+按用户选定的配置，允许官方 CLI 中原有的 `wokey` 提供方参与可见成员协作，补齐身份保存、兼容性预检、阶段贡献来源和剩余工作恢复。此前这些入口只接受 OpenAI、DeepSeek，会拒绝加入或后续送审。保留原认证、模型和权限；wokey 的官方额度接口不可用时仍记为未知，不参与 20 个百分点的比较，也不获得官方 GPT 审核或发布资格。需要官方审核的混合测试由官方 GPT 窗口先发起，再邀请 wokey 窗口。
+
+在断网 Hyper-V 受限客体运行 `test_deepseek`、`test_stages`、`test_compatibility_v14`、`test_recovery_v14`、`test_reviewer`、`test_multi_account`、`test_package`、`test_install`：8 个模块、129 项通过，0 失败、0 跳过。快照为 `d13d4503f6d2ad6477534f51f8b52c04cff558b0b5506a85a070a1940d807170`；新增用例核对真实提供方来源、未知额度、官方审核拒绝与恢复来源。此结果仅证明隔离行为回归，真实原窗口的身份绑定、自动通信、任务交接及整合仍待执行。
+
 ## 2026-11-04 — 补测独立安装及交接边界，修正发行清单
 
 在断网 Hyper-V 受限客体复测 package、install、windows、multi_account、handoff_balance、compatibility_v14、cli166_producer_compat：7 个模块、120 项通过、无失败或跳过。隔离探针确认当前输入可读、历史输入读拒及受限进程终态。测试快照为 `1d96bdd991dd3a277e32f1ab0cef1bb570765c2f52e8984e8da04f5cf6d9757f`；没有沿用旧批次作为本轮通过数。
