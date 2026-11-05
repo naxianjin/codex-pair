@@ -465,6 +465,16 @@ class AuxiliaryTests(unittest.TestCase):
         self.assertEqual(len(result['report_digests']), 1)
         self.assertNotIn(rejected_digest, result['report_digests'])
 
+    def test_completed_report_survives_reviewer_epoch_advance(self):
+        candidate = self.candidate()
+        initial = self.settled_auxiliary_fixture(candidate)
+        self.assertEqual(initial['verdict'], 'passed')
+        with self.store.transaction() as db:
+            db.execute('UPDATE auxiliary_sessions SET epoch=epoch+1')
+        result = self.store.settle_audit(*self.actor(), candidate['id'])
+        self.assertEqual(result['verdict'], 'passed')
+        self.assertEqual(result['report_digests'], initial['report_digests'])
+
     def test_no_live_hyperv_claim_from_task_flag(self):
         self.queue(requires_dynamic=True)
         ticket = self.reserve()
