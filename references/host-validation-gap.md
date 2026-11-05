@@ -106,3 +106,5 @@
 2026-11-05：新增 pair_validator_worker.py 内部固定工作入口和 validator_request()，将Store两份规范输入及报告绑定转为固定8文件契约，校验Node摘要，仅运行两项CJS并核对输入前后摘要。真实Node正例、非法findings、输入/Node摘要不符及额外命令拒绝，连同辅助池/清单共44项测试通过。工作入口自身不提供隔离、子进程整体终态或正式回执证明；须由外层只读快照、资源/进程/磁盘限制保护。尚无Hyper-V接入与生产调用，不放行父阶段。
 
 45a1e2a独立复核发现继承NODE_OPTIONS可预加载契约外代码。已限制Node子进程环境仅SYSTEMROOT/WINDIR/TEMP/TMP，补真实预加载process.exit(0)对非法findings不得伪造成功测试；执行后复核Node摘要。3项worker测试通过，待准确新版本复审。
+
+bd7456c复审发现相对root可能使核对路径和子进程执行路径不一致。已将root及Node固定为绝对路径，新增相对目录下嵌套伪校验器对非法输入不得成功回归。4项worker测试通过；该问题修复前版本不予接受。

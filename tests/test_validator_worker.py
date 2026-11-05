@@ -1,6 +1,7 @@
 """固定工作入口的真实 Node 校验；不作为隔离或正式回执证明。"""
 import copy
 import hashlib
+import os
 from pathlib import Path
 import shutil
 import tempfile
@@ -55,3 +56,17 @@ class ValidatorWorkerTests(unittest.TestCase):
         with patch.dict('os.environ', {'NODE_OPTIONS': '--require=' + str(preload)}):
             result = run_validators(self.root, self.request, node=self.node)
         self.assertFalse(result['validators_succeeded'])
+
+    def test_relative_root_runs_checked_scripts_instead_of_nested_scripts(self):
+        nested = self.root / self.root.name
+        nested.mkdir()
+        for name in ('validate-findings.cjs', 'validate-coverage-ledger.cjs'):
+            (nested / name).write_text('process.exit(0)', encoding='utf-8')
+        (self.root / 'findings.json').write_bytes(b'{}')
+        self.request['files']['findings.json'] = hashlib.sha256(b'{}').hexdigest()
+        previous = Path.cwd()
+        try:
+            os.chdir(self.root.parent)
+            self.assertFalse(run_validators(self.root.name, self.request, node=self.node)['validators_succeeded'])
+        finally:
+            os.chdir(previous)

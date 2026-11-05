@@ -37,7 +37,8 @@ def validator_request(prepared, *, node_sha256):
 
 def run_validators(root, request, *, node):
     """输入目录须由外层执行器固定为只读；不接受任意命令或额外校验器。"""
-    root = Path(root)
+    root = Path(root).absolute()
+    node = Path(node).absolute()
     names = ('validate-findings.cjs', 'validate-coverage-ledger.cjs')
     readers = ('read-windows-input.cjs', 'read-windows-input.ps1', 'WindowsSafeInput.cs')
     files = request['files']
