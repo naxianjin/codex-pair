@@ -254,3 +254,24 @@ class OriginalWebSocketTests(unittest.TestCase):
         with patch('scripts.pair_native_capabilities.time.monotonic',side_effect=[0,1,16]):
             with self.assertRaisesRegex(TransportError,'deadline'):
                 observer.rpc('thread/read',{})
+
+
+    def test_watchdog_aborts_blocked_receive_without_stopping_server(self):
+        import threading,time
+        import websocket
+        from scripts.pair_native_capabilities import OriginalWebSocket
+        observer=OriginalWebSocket.__new__(OriginalWebSocket);observer.sequence=0
+        ended=threading.Event()
+        class BlockedSocket:
+            def send(self,value):pass
+            def settimeout(self,value):pass
+            def abort(self):ended.set()
+            def recv(self):
+                if not ended.wait(1):raise AssertionError('watchdog did not abort')
+                raise websocket.WebSocketConnectionClosedException('aborted')
+        observer.socket=BlockedSocket()
+        timer=threading.Timer
+        with patch('scripts.pair_native_capabilities.threading.Timer',side_effect=lambda delay,callback:timer(.02,callback)):
+            with self.assertRaisesRegex(TransportError,'result unknown'):
+                observer.rpc('thread/read',{})
+        self.assertTrue(ended.is_set())

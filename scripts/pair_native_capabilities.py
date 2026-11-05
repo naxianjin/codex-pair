@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import time
+import threading
 from pathlib import Path
 from urllib.parse import urlsplit
 
@@ -129,9 +130,12 @@ class OriginalWebSocket:
             raise TransportError('Original WebSocket observer is read-only')
         import websocket
         self.sequence+=1
+        deadline=time.monotonic()+15
+        watchdog=threading.Timer(15,self.socket.abort)
+        watchdog.daemon=True
+        watchdog.start()
         try:
             self.socket.send(json.dumps({'id':self.sequence,'method':method,'params':params}))
-            deadline=time.monotonic()+15
             while True:
                 remaining=deadline-time.monotonic()
                 if remaining<=0:raise TransportError('Original WebSocket RPC deadline exceeded')
@@ -147,6 +151,8 @@ class OriginalWebSocket:
                     return response['result']
         except (websocket.WebSocketException,OSError) as error:
             raise TransportError('Original WebSocket metadata result unknown') from error
+        finally:
+            watchdog.cancel()
 
     def __enter__(self):return self
     def __exit__(self,*args):self.socket.close()
