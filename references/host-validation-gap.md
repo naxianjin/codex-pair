@@ -120,3 +120,5 @@ bd7456c复审发现相对root可能使核对路径和子进程执行路径不一
 e9c7aad复核发现native计数字段接受bool/float及results元素非对象的异常类型问题，已严格整数/对象校验；增加文件映射、顺序、摘要、超时等拒绝回归，5项worker通过。前版76项回归不沿用为新版本，最新待复审。
 
 38494ea复审发现binding字典相等会混同epoch整数与bool/float，现改规范JSON保留类型比较，补epoch=true/1.0拒绝回归，5项worker通过，待复审。
+
+2026-11-05继续：worker结果增加有界stderr文本并由宿主核对UTF-8摘要，补findings/ledger顶层对象负例的具体array拒绝原因及诊断篡改拒绝；5项worker测试通过。输出仍为捕获后限额，外层Job资源限制仍必要；旧artifact缺stderr保持旧证据不追写。

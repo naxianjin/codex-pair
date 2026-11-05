@@ -60,6 +60,10 @@ def verify_validator_result(request, native, artifact):
             value = item.get(field)
             if not isinstance(value, str) or len(value) != 64 or any(c not in '0123456789abcdef' for c in value):
                 raise ValueError('Invalid validator output digest')
+        stderr = item.get('stderr')
+        if (not isinstance(stderr, str) or len(stderr.encode('utf-8')) > 1048576
+                or hashlib.sha256(stderr.encode('utf-8')).hexdigest() != item['stderr_sha256']):
+            raise ValueError('Validator diagnostic digest mismatch')
     passed = all(item['exit_code'] == 0 for item in results)
     if artifact.get('validators_succeeded') is not passed:
         raise ValueError('Validator outcome inconsistent')
@@ -103,7 +107,8 @@ def run_validators(root, request, *, node):
             raise ValueError('Validator output exceeded limit')
         results.append({'validator': name, 'exit_code': process.returncode,
                         'stdout_sha256': hashlib.sha256(process.stdout).hexdigest(),
-                        'stderr_sha256': hashlib.sha256(process.stderr).hexdigest()})
+                        'stderr_sha256': hashlib.sha256(process.stderr).hexdigest(),
+                        'stderr': process.stderr.decode('utf-8', errors='strict')})
     for name in expected:
         if hashlib.sha256((root / name).read_bytes()).hexdigest() != files[name]:
             raise ValueError('Validator input changed during execution')

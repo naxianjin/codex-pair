@@ -70,7 +70,19 @@ class ValidatorWorkerTests(unittest.TestCase):
         self.request['files']['findings.json'] = hashlib.sha256(b'{}').hexdigest()
         rejected = run_validators(self.root, self.request, node=self.node)
         self.assertFalse(rejected['validators_succeeded'])
+        self.assertIn('array', rejected['results'][0]['stderr'])
         self.assertFalse(verify_validator_result(self.request, native, rejected)['validators_succeeded'])
+        (self.root / 'findings.json').write_bytes(b'[]')
+        self.request['files']['findings.json'] = hashlib.sha256(b'[]').hexdigest()
+        (self.root / 'coverage_ledger.json').write_bytes(b'{}')
+        self.request['files']['coverage_ledger.json'] = hashlib.sha256(b'{}').hexdigest()
+        ledger = run_validators(self.root, self.request, node=self.node)
+        self.assertEqual([r['exit_code'] for r in ledger['results']], [0, 1])
+        self.assertIn('expected a top-level array', ledger['results'][1]['stderr'])
+        self.assertFalse(verify_validator_result(self.request, native, ledger)['validators_succeeded'])
+        ledger['results'][1]['stderr'] = 'altered diagnostic'
+        with self.assertRaisesRegex(ValueError, 'diagnostic digest mismatch'):
+            verify_validator_result(self.request, native, ledger)
 
     def test_isolated_python_cli_returns_bound_results(self):
         request_path = self.root / 'request.json'
