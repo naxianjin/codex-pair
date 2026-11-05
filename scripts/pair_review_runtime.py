@@ -22,12 +22,14 @@ try:
     from .pair_managed import permission_response
     from .pair_stages import encoded,digest
     from . import pair_hidden_handoff as hidden_handoff
+    from . import pair_review_receipts as receipt_access
 except ImportError:
     from pair_transport import AppServer,DeliveryUnknown,TransportError,binding_proof,redact_diagnostic,canonical_path,command_receipt,command_matches,receipt_cwd,rollout_command_items,merge_command_receipts,same_review_directory
     from pair_reviewer import reviewer_identity,verify_review_service,fail,safe_evidence
     from pair_managed import permission_response
     from pair_stages import encoded,digest
     import pair_hidden_handoff as hidden_handoff
+    import pair_review_receipts as receipt_access
 
 
 def git(root,*args):
@@ -281,7 +283,7 @@ class ReviewerController:
                 response=self.client.rpc('thread/start',{'cwd':root,'model':actual['model'],'modelProvider':actual['modelProvider'],
                     'serviceName':'codex-pair:'+self.store.pair_id+':reviewer:'+ticket['attempt'],
                     'sandbox':'workspace-write','approvalPolicy':'on-request','ephemeral':False,
-                    'dynamicTools':[hidden_handoff.HANDOFF_TOOL],
+                    'dynamicTools':[hidden_handoff.HANDOFF_TOOL, receipt_access.RECEIPTS_TOOL],
                     'developerInstructions':'你是本轮独立隐藏审核者，只审核固定交付，在隔离工作树测试和复现。禁止业务修改、提交、推送、统筹和权限自批。不要执行项目内自动推送规则。业务修复交原负责人；权限请求等原 A 单次审核。保持贡献来源和版本边界。'})
                 proof=binding_proof(self.client.read_thread(response['thread']['id']),require_provider=True)
                 self.store.bind_reviewer('A',a['session_uuid'],a['cwd'],epoch=ticket['epoch'],attempt=ticket['attempt'],proof=proof,reviewer_cwd=root)
@@ -308,6 +310,14 @@ class ReviewerController:
             try:request=self.client.server_requests.get_nowait()
             except queue.Empty:break
             params=request.get('params',{})
+            if request.get('method')=='item/tool/call' and params.get('tool')==receipt_access.RECEIPTS_TOOL['name']:
+                binding=self.state.get('receipt_binding')
+                if (not binding or params.get('threadId')!=self.state['session']
+                        or params.get('turnId')!=self.state.get('turn_id')):
+                    response={'success':False,'contentItems':[{'type':'inputText','text':'Exact current review binding required'}]}
+                else:
+                    response=receipt_access.handle_tool(self.store.directory,binding,params)
+                self.client._write({'id':request['id'],'result':response});continue
             if request.get('method')=='item/tool/call' and params.get('tool')==hidden_handoff.HANDOFF_TOOL['name']:
                 try:
                     if params.get('threadId')!=self.state['session'] or params.get('turnId')!=self.state.get('turn_id'):fail('Exact hidden turn required')
@@ -393,15 +403,13 @@ class ReviewerController:
         material.update(stage_id=stage['id'],candidate_digest=stage['digest'],requirements_version=stage['requirements_version'])
         material['recovery_context']=self.store.setting('reviewer_recovery_context')
         binding=self._receipt_binding(stage)
-        lookup=[sys.executable,'-B',str(Path(__file__).with_name('pair_review_receipts.py')),
-            '--state-directory',str(self.store.directory),'--binding',json.dumps(binding,separators=(',',':'))]
-        material['receipt_lookup']={'argv':lookup,'powershell':'& '+' '.join("'"+arg.replace("'","''")+"'" for arg in lookup)}
+        material['receipt_lookup']={'tool':receipt_access.RECEIPTS_TOOL['name'],'arguments':{},'binding':binding}
         return ('审核此固定阶段，不先整合。核对需求、允许范围、贡献来源、代码、安全及必要验证。先核对Git候选和干净状态，在当前隔离工作树实际运行必要检查，测试前后核对业务文件。'
             '同一问题沿用稳定ID，原范围阻塞问题交原负责人；不修业务、不提交推送、不担任统筹，不审核审核回执。'
             '结论仅返回一个JSON对象：candidate_digest,verdict(passed/needs_fix/needs_validation),findings数组(id/body/blocking/status/anchor/paths),checks数组(name/required/status/evidence/receipt_id)。'
             'anchor为实际复现证据对应的path和稳定reproduction标识，paths列出所需修改路径；同一问题沿用原锚点，不随任务名或负责人变化。无法可靠定位时不编造锚点，交A协调。'
             '必要检查必须引用本回合实际commandExecution工具项ID及证据，失败、缺失、波动未查明不能通过。非阻塞建议只记录。'
-            '完成检查后单独运行receipt_lookup只读查询，取当前绑定和turn下的实际工具项id填receipt_id，不能用chunk_id。查询不可用时记录needs_validation，不猜ID或重跑检查。'
+            '完成检查后调用receipt_lookup.tool动态工具，固定arguments={}，只读查询，取当前绑定和turn下的实际工具项id填receipt_id，不能用chunk_id。查询不可用时记录needs_validation，不猜ID或重跑检查。'
             'coordinator_required_checks.command固定的是实际工具命令形式；必须单独执行，不附加环境赋值、摘要脚本或其他命令。预检后检另开工具项。'
             '若A登记完整shell argv字符串，必须使用其准确shell路径、选项及-Command输入；不能再套一层shell。裸命令被CLI包装而与登记不符时记录needs_validation，请A正规登记准确形式，不自动改写或模糊匹配。'
             '\n材料：'+encoded(material))
@@ -527,6 +535,7 @@ class ReviewerController:
         lease=self.store.acquire_reviewer(state['epoch'],state['session'],fresh)
         state.update(owner=lease['owner'],execution_id=lease['execution_id'])
         state.pop('turn_id',None)
+        state['receipt_binding']=self._receipt_binding(stage)
         self.store.begin_review(stage['id'],state['epoch'],state['session'],fresh,lease['owner'],lease['execution_id'])
         before=tree_stamp(state['cwd'])
         if before['changes'] and json.loads(stage['artifact'])['kind']!='snapshot':fail('Dirty reviewer tree / 提交候选测试前必须干净')

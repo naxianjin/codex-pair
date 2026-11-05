@@ -96,6 +96,12 @@ class FinalSettlementTests(unittest.TestCase):
         rows.append({'type': 'event_msg', 'payload': {'type': 'task_complete', 'turn_id': 'turn-one', 'completed_at': 123}})
         path.write_text(''.join(json.dumps(row) + '\n' for row in rows), encoding='utf-8')
 
+    def test_dynamic_tool_output_cannot_replace_missing_original_command_receipt(self):
+        fake = {'type': 'dynamicToolCall', 'id': 'query-output', 'status': 'completed',
+                'tool': 'pair_review_receipts', 'output': json.dumps({'receipts': [self.item]})}
+        self.full['items'] = [fake, self.message]
+        self.assertEqual(self.finish()['verdict'], 'needs_validation')
+
     def test_missing_notification_item_full_rollout_settles_before_verdict(self):
         runtime.settle_permissions(self.store, self.ticket['epoch'], self.lease['execution_id'], self.notification)
         self.assertEqual(self.permission_status(), 'unknown')

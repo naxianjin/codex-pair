@@ -22,6 +22,35 @@ except ImportError:
     from pair_reviewer import reviewer_identity
 
 
+RECEIPTS_TOOL = {
+    'name': 'pair_review_receipts',
+    'description': 'Read completed command receipts for this exact current review execution; never grants approval.',
+    'inputSchema': {'type': 'object', 'properties': {}, 'additionalProperties': False},
+}
+
+
+def handle_tool(directory, expected, params, *, observer_factory=AppServer):
+    """固定空输入；请求身份与当前库绑定均须准确，不接受模型指定来源。"""
+    try:
+        if (not isinstance(params, dict) or params.get('tool') != RECEIPTS_TOOL['name']
+                or type(params.get('arguments')) is not dict or params['arguments']):
+            raise ValueError('Invalid fixed query input')
+        stage, runtime, version, before = current_binding(directory, expected)
+        if (params.get('threadId') != expected['session']
+                or params.get('turnId') != stage['turn_id']):
+            raise ValueError('Wrong dynamic query turn')
+        result = read_receipts(directory, expected, observer_factory=observer_factory)
+        if (current_binding(directory, expected)[3] != before
+                or result['turn'] != params['turnId']):
+            raise ValueError('Dynamic query binding changed')
+        return {'success': True, 'contentItems': [{'type': 'inputText', 'text': json.dumps(result, ensure_ascii=True)}]}
+    except Exception as exc:
+        # 不返回原始异常文本、账号响应、路径或模型输入。
+        return {'success': False, 'contentItems': [{'type': 'inputText', 'text': json.dumps({
+            'ok': False, 'stage': 'receipt_query', 'error': type(exc).__name__,
+            'detail': 'Current receipts unavailable; preserve needs_validation; do not guess IDs'})}]}
+
+
 def current_binding(directory, expected):
     fields = {'pair', 'stage', 'digest', 'epoch', 'session', 'execution'}
     if (not isinstance(expected, dict) or set(expected) != fields or type(expected['epoch']) is not int
@@ -51,6 +80,7 @@ def current_binding(directory, expected):
     if (collaboration['id'] != expected['pair'] or collaboration['status'] != 'running'
             or directory != Path(collaboration['project']).absolute() / '.codex-pair' / 'state' / expected['pair']
             or not stage or stage['status'] != 'running' or not stage['turn_id']
+            or collaboration.get('requirements_version', stage['requirements_version']) != stage['requirements_version']
             or stage['digest'] != expected['digest'] or runtime.get('state') != 'running'
             or runtime.get('epoch') != expected['epoch'] or stage['reviewer_epoch'] != expected['epoch']
             or stage['reviewer_session'] != runtime.get('session_uuid') or runtime.get('session_uuid') != expected['session']
@@ -152,7 +182,9 @@ def read_receipts(directory, expected, *, observer_factory=AppServer):
         value = command_receipt(item)
         if value is None or value['status'] != 'completed' or value['cwd'] != turn['receipt_cwd']:
             continue
-        if len(json.dumps(value)) > 16000 or redact_diagnostic(value) != value:
+        if len(json.dumps(value)) > 16000:
+            raise ValueError('Receipt item too large')
+        if redact_diagnostic(value) != value:
             continue
         records.append(value)
     if len(records) > 128:

@@ -188,5 +188,108 @@ class ReviewReceiptAccessTests(unittest.TestCase):
             self.assertEqual(controller._report(turn, stage)['verdict'], 'needs_validation')
 
 
+    def tool(self, arguments=None, **changes):
+        params = dict(tool=access.RECEIPTS_TOOL['name'], arguments={} if arguments is None else arguments,
+                      threadId=self.binding['session'], turnId='turn-one')
+        params.update(changes)
+        return access.handle_tool(self.directory, self.binding, params, observer_factory=self.observer)
+
+    def test_dynamic_query_reads_completed_items_while_turn_is_in_progress(self):
+        before = self.path.read_bytes()
+        # Observer exposes only metadata; no wait_turn or tool response API exists.
+        response = self.tool()
+        self.assertTrue(response['success'])
+        result = json.loads(response['contentItems'][0]['text'])
+        self.assertEqual(result['receipts'][0]['id'], 'item-one')
+        self.assertEqual(self.turn['status'], 'inProgress')
+        self.assertEqual(self.path.read_bytes(), before)
+
+    def test_dynamic_query_rejects_model_selected_sources_and_wrong_turn(self):
+        for arguments in ({'session': self.binding['session']}, {'path': str(self.path)}, 'new source', [], False):
+            self.assertFalse(self.tool(arguments)['success'])
+        for changes in ({'threadId': 'other'}, {'turnId': 'other'}, {'tool': 'other'}):
+            self.assertFalse(self.tool(**changes)['success'])
+        self.assertFalse(self.tool(arguments='{}')['success'])
+
+    def test_dynamic_query_rejects_stale_requirements_and_total_overflow(self):
+        self.update('ALTER TABLE collaborations ADD COLUMN requirements_version INTEGER')
+        self.update('UPDATE collaborations SET requirements_version=2')
+        self.assertFalse(self.tool()['success'])
+        self.update('UPDATE collaborations SET requirements_version=1')
+        self.assertTrue(self.tool()['success'])
+        self.turn['items'] = [dict(self.item, id=str(i), command='x'*9000) for i in range(8)]
+        self.assertFalse(self.tool()['success'])
+
+    def test_dynamic_query_does_not_leak_observer_errors_or_change_database(self):
+        before = self.path.read_bytes()
+        def denied(**kwargs):
+            raise PermissionError('sk-private-key confidential account response')
+        params = dict(tool=access.RECEIPTS_TOOL['name'], arguments={},
+                      threadId=self.binding['session'], turnId='turn-one')
+        result = access.handle_tool(self.directory, self.binding, params, observer_factory=denied)
+        self.assertFalse(result['success'])
+        self.assertNotIn('sk-private', json.dumps(result))
+        self.assertNotIn('confidential', json.dumps(result))
+        self.assertEqual(before, self.path.read_bytes())
+
+    def test_dynamic_query_rejects_changed_binding_and_item_overflow(self):
+        original = self.observer
+        def observer(**kwargs):
+            instance = original(**kwargs)
+            read = instance.read_thread
+            def changed(*args):
+                self.update('UPDATE members SET binding_version=2')
+                return read(*args)
+            instance.read_thread = changed
+            return instance
+        params = dict(tool=access.RECEIPTS_TOOL['name'], arguments={},
+                      threadId=self.binding['session'], turnId='turn-one')
+        self.assertFalse(access.handle_tool(self.directory, self.binding, params, observer_factory=observer)['success'])
+        self.update('UPDATE members SET binding_version=1')
+        self.turn['items'] = [dict(self.item, command='x'*17000)]
+        self.assertFalse(self.tool()['success'])
+        self.turn['items'] = [dict(self.item, id=str(i)) for i in range(129)]
+        self.assertFalse(self.tool()['success'])
+
+    def test_dynamic_query_conflicts_and_failed_items_do_not_grant_approval(self):
+        self.turn['items'] = [self.item, dict(self.item, exitCode=1)]
+        self.assertEqual(json.loads(self.tool()['contentItems'][0]['text'])['receipts'], [])
+        self.assertEqual(self.final_verdict(), 'needs_validation')
+
+    def test_controller_dispatches_query_without_approval_or_wait_turn(self):
+        import queue
+        from unittest.mock import patch
+        from types import SimpleNamespace
+        controller = ReviewerController(None)
+        controller.store = SimpleNamespace(directory=self.directory)
+        controller.state = dict(session=self.binding['session'], turn_id='turn-one',
+                                receipt_binding=dict(self.binding))
+        params = dict(tool=access.RECEIPTS_TOOL['name'], arguments={},
+                      threadId=self.binding['session'], turnId='turn-one')
+        requests = queue.Queue()
+        requests.put({'id': 'query-one', 'method': 'item/tool/call', 'params': params})
+        writes = []
+        controller.client = SimpleNamespace(server_requests=requests, _write=writes.append)
+        controller.pending_permissions = {}
+        handler = access.handle_tool
+        with patch.object(access, 'handle_tool', side_effect=lambda directory, binding, params:
+                          handler(directory, binding, params, observer_factory=self.observer)):
+            controller._permissions()
+        self.assertEqual(len(writes), 1)
+        self.assertTrue(writes[0]['result']['success'])
+        self.assertEqual(controller.pending_permissions, {})
+
+    def test_prompt_uses_fixed_dynamic_tool_instead_of_script_lookup(self):
+        from types import SimpleNamespace
+        controller = ReviewerController(SimpleNamespace(pair_id='pair-test', setting=lambda key: None))
+        controller.state = dict(epoch=1, session=self.binding['session'], execution_id='exec-one')
+        stage = dict(id='stage-one', digest='a'*64, requirements_version=1,
+                     artifact='{}', contributors='[]', checks='[]', payload='{}')
+        prompt = controller._prompt(stage)
+        self.assertIn('pair_review_receipts', prompt)
+        self.assertNotIn('pair_review_receipts.py', prompt)
+        self.assertNotIn('--state-directory', prompt)
+
+
 if __name__ == '__main__':
     unittest.main()
