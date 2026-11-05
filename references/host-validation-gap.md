@@ -110,3 +110,5 @@
 bd7456c复审发现相对root可能使核对路径和子进程执行路径不一致。已将root及Node固定为绝对路径，新增相对目录下嵌套伪校验器对非法输入不得成功回归。4项worker测试通过；该问题修复前版本不予接受。
 
 244e41f复核指出SYSTEMROOT值仍可污染PowerShell定位。已改Windows GetWindowsDirectoryW获取系统目录，测试同时污染NODE_OPTIONS/SYSTEMROOT/WINDIR后非法输入仍拒绝；4项worker测试通过。最新修复尚待独立复审，先前75项回归仅对应244e41f，不沿用为新版本通过。
+
+增加worker独立CLI，支持Python -I -B运行，固定root/request/node参数，限制请求64KiB，stdout输出绑定结果。真实独立Python CLI正例及worker共5项测试通过。CLI本身不登记正式证据；最新入口尚待复审与Hyper-V接入。

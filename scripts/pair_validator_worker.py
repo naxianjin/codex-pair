@@ -1,6 +1,7 @@
 """可信隔离执行器调用的固定 CJS 工作入口；自身不提供隔离或正式放行证明。"""
 import hashlib
 import ctypes
+import json
 import os
 from pathlib import Path
 import stat
@@ -81,3 +82,17 @@ def run_validators(root, request, *, node):
     return {'binding': request['binding'], 'files': files, 'results': results,
             'validators_succeeded': all(item['exit_code'] == 0 for item in results),
             'formal_checks_verified': False}
+
+
+if __name__ == '__main__':
+    import argparse
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--root', required=True)
+    parser.add_argument('--request', required=True)
+    parser.add_argument('--node', required=True)
+    args = parser.parse_args()
+    request_path = Path(args.request)
+    if request_path.stat().st_size > 65536:
+        raise ValueError('Validator request exceeded limit')
+    request = json.loads(request_path.read_text(encoding='utf-8'))
+    print(json.dumps(run_validators(args.root, request, node=args.node), ensure_ascii=False, sort_keys=True))

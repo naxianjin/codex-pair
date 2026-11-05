@@ -2,6 +2,9 @@
 import copy
 import hashlib
 import os
+import json
+import subprocess
+import sys
 from pathlib import Path
 import shutil
 import tempfile
@@ -35,6 +38,19 @@ class ValidatorWorkerTests(unittest.TestCase):
         (self.root / 'findings.json').write_bytes(b'{}')
         self.request['files']['findings.json'] = hashlib.sha256(b'{}').hexdigest()
         self.assertFalse(run_validators(self.root, self.request, node=self.node)['validators_succeeded'])
+
+    def test_isolated_python_cli_returns_bound_results(self):
+        request_path = self.root / 'request.json'
+        request_path.write_text(json.dumps(self.request), encoding='utf-8')
+        worker = Path(__file__).resolve().parents[1] / 'scripts/pair_validator_worker.py'
+        result = subprocess.run([sys.executable, '-I', '-B', str(worker), '--root', str(self.root),
+                                 '--request', str(request_path), '--node', self.node],
+                                capture_output=True, text=True, timeout=40)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        report = json.loads(result.stdout)
+        self.assertEqual(report['binding'], self.request['binding'])
+        self.assertTrue(report['validators_succeeded'])
+        self.assertFalse(report['formal_checks_verified'])
 
     def test_reject_changed_input_tool_and_extra_command(self):
         for kind in ('input', 'node', 'extra'):
