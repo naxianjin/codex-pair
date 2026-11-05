@@ -40,3 +40,12 @@
 任务级暂停通过准确原回合和当前消息绑定进入PreToolUse、Stop及PostToolUse检查；暂停任务所属窗口的回合无法关联时保留阻塞，其他准确绑定的无关任务不因此变成全组暂停。PostToolUse仍只保存结果并提示，不宣称能够中断模型。
 
 管理命令只接受独立字面量参数，保留Windows反斜杠、中文、空格和单引号转义；拒绝组合命令及插值，继续核对解释器、脚本、协作、状态根目录和成员。上述修改仅完成静态候选，行为验证仍延期；完整原生工具控制仍为false。
+
+
+## 2026-11-05 本地 WebSocket 原执行器查询候选
+
+当前Windows主机的AF_UNIX创建返回10050；原窗口迁移到官方loopback WebSocket服务后，第二只读连接已实际查询原B的idle状态及后台终端空列表。此结果只证明查询可用，不证明完整工具控制或恢复已通过。
+
+inspect-control-capabilities 输入可显式提供 `connection_file`，指向启动脚本生成的本地连接记录。记录包含endpoint、原session、codex_home和临时token_file路径，不含令牌正文。适配核对原绑定与服务返回的配置目录，地址仅接受ws://127.0.0.1及明确端口；使用capability令牌认证且不发送Origin头。依赖已安装的websocket-client；缺失时明确报错，不回退到另一个账号或新执行器。
+
+该入口只允许initialize、thread/read、hooks/list、thread/backgroundTerminals/list及身份核对所需account/read。禁止thread/resume、turn/start、turn/interrupt和审批操作；关闭观察连接不终止服务。连接记录须显式传入，不扫描临时目录猜选运行时。尚未将此记录绑定到自动恢复适配，活动安装与桥未切换。

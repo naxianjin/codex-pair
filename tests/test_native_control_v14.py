@@ -175,3 +175,24 @@ class CapabilityDefinitionTests(unittest.TestCase):
         self.assertFalse(result['available']);self.assertIsNone(result['background_terminals'])
         self.assertEqual(result['blocker'],'original_runtime_unobservable')
         self.assertIn('不能证明',result['next_action'])
+
+
+class OriginalWebSocketTests(unittest.TestCase):
+    def test_binding_rejects_wrong_session_and_non_loopback_before_connect(self):
+        import tempfile
+        from pathlib import Path
+        from scripts.pair_native_capabilities import OriginalWebSocket
+        actor={'session_uuid':'original','codex_home':str(Path.cwd())}
+        with tempfile.TemporaryDirectory() as root:
+            path=Path(root)/'connection.json'
+            for session,endpoint in [('wrong','ws://127.0.0.1:1234'),('original','ws://example.com:1234')]:
+                path.write_text(json.dumps({'session':session,'codex_home':actor['codex_home'],'endpoint':endpoint}),encoding='utf-8')
+                with self.assertRaisesRegex(ValueError,'binding mismatch'):
+                    OriginalWebSocket(actor,path)
+
+    def test_read_only_rpc_rejects_model_and_approval_operations(self):
+        from scripts.pair_native_capabilities import OriginalWebSocket
+        observer=OriginalWebSocket.__new__(OriginalWebSocket)
+        for method in ('thread/resume','turn/start','turn/interrupt','item/commandExecution/requestApproval'):
+            with self.assertRaisesRegex(TransportError,'read-only'):
+                observer.rpc(method,{})

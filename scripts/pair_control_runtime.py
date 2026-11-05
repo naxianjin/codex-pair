@@ -48,7 +48,7 @@ def management_command(store,actor,event):
 
 
 class ControlRuntimeMixin:
-    def inspect_control_capabilities(self,member,session,cwd,executable):
+    def inspect_control_capabilities(self,member,session,cwd,executable,*,connection_file=None):
         try:
             from .pair_native_capabilities import inspect_original_runtime
             from .pair_producer import file_identity
@@ -60,7 +60,7 @@ class ControlRuntimeMixin:
             trusted=self._option(db,'cli_trusted_executable:'+member)
         actual=file_identity(executable)
         if not trusted or actual!=trusted['file']:fail('Original CLI executable required')
-        result=inspect_original_runtime(actor,configured,executable)
+        result=inspect_original_runtime(actor,configured,executable,connection_file=connection_file)
         return dict(result,member=member,session=session,binding_version=actor['binding_version'],
                     executable_sha256=actual['sha256'],observed_at=time.time(),full_tool_control=False)
 

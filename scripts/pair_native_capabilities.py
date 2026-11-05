@@ -1,6 +1,10 @@
 """只核对官方CLI原守护进程可见的控制能力；枚举存在不代表可以拦截。"""
 from __future__ import annotations
 
+import json
+from pathlib import Path
+from urllib.parse import urlsplit
+
 try:
     from .pair_transport import AppServer, TransportError, redact_diagnostic
 except ImportError:
@@ -33,13 +37,16 @@ def hook_capabilities(configured,listing):
         'permission_policy_changed':False}
 
 
-def inspect_original_runtime(actor,configured,executable):
+def inspect_original_runtime(actor,configured,executable,*,connection_file=None):
     """连接既有daemon，不启动/恢复线程；无法观察原执行器就保留unknown。"""
     if not configured or configured.get('session')!=actor['session_uuid'] or configured.get('binding_version')!=actor['binding_version']:
         configured=None
+    source='original_websocket' if connection_file else 'original_shared_daemon'
     try:
-        with AppServer(backend='shared',codex_home=actor['codex_home'],cwd=actor['cwd'],executable=executable,
-                metadata_only=True,account_metadata=True,hook_metadata=True,runtime_metadata=True,experimental_api=True) as client:
+        client=OriginalWebSocket(actor,connection_file) if connection_file else AppServer(
+            backend='shared',codex_home=actor['codex_home'],cwd=actor['cwd'],executable=executable,
+            metadata_only=True,account_metadata=True,hook_metadata=True,runtime_metadata=True,experimental_api=True)
+        with client:
             thread=client.validate(actor)
             listing=client.rpc('hooks/list',{'threadId':actor['session_uuid']})
             terminals=[];cursor=None;seen=set()
@@ -56,11 +63,75 @@ def inspect_original_runtime(actor,configured,executable):
                 if not cursor:break
                 if not isinstance(cursor,str) or cursor in seen:raise TransportError('Repeated background terminal cursor')
                 seen.add(cursor)
-            return {'available':True,'source':'original_shared_daemon','thread_status':thread.get('status'),
+            return {'available':True,'source':source,'thread_status':thread.get('status'),
                 'background_terminals':terminals,'capabilities':hook_capabilities(configured,listing),
                 'new_session_created':False,'processes_terminated':False}
     except (TransportError,OSError,ValueError,KeyError,TypeError) as error:
-        return {'available':False,'source':'original_shared_daemon','reason':redact_diagnostic(str(error))[:1000],
+        return {'available':False,'source':source,'reason':redact_diagnostic(str(error))[:1000],
             'background_terminals':None,'full_tool_control':False,'new_session_created':False,'processes_terminated':False,
             'blocker':'original_runtime_unobservable',
             'next_action':'核对原窗口是否由可连接的共享daemon承载；独立新app-server或单纯信任Hook不能证明原执行器空闲。'}
+
+
+class OriginalWebSocket:
+    """只连接用户明确指定的本地服务，不创建或恢复原会话。"""
+    backend='shared'
+    account_metadata=True
+    validate=AppServer.validate
+
+    def __init__(self,actor,connection_file):
+        try:from .pair_transport import canonical_path
+        except ImportError:from pair_transport import canonical_path
+        record=json.loads(Path(connection_file).read_text(encoding='utf-8-sig'))
+        endpoint=urlsplit(record['endpoint'])
+        if (record['session']!=actor['session_uuid']
+                or canonical_path(record['codex_home'])!=canonical_path(actor['codex_home'])
+                or endpoint.scheme!='ws' or endpoint.hostname!='127.0.0.1' or not endpoint.port
+                or endpoint.username or endpoint.password or endpoint.query or endpoint.fragment
+                or endpoint.path not in ('','/')):
+            raise ValueError('Original WebSocket binding mismatch')
+        try:
+            import websocket
+        except ImportError as error:
+            raise TransportError('WebSocket observer requires websocket-client') from error
+        token=Path(record['token_file']).read_text(encoding='utf-8').strip()
+        if not token or any(c in token for c in '\r\n'):
+            raise ValueError('Invalid local capability token')
+        try:
+            self.socket=websocket.create_connection(record['endpoint'],header=['Authorization: Bearer '+token],
+                suppress_origin=True,timeout=15)
+        except (websocket.WebSocketException,OSError) as error:
+            raise TransportError('Original WebSocket connection failed') from error
+        self.sequence=0
+        try:
+            identity=self.rpc('initialize',{'clientInfo':{'name':'codex_pair_observer','version':'1'},
+                'capabilities':{'experimentalApi':True}})
+            if canonical_path(identity['codexHome'])!=canonical_path(actor['codex_home']):
+                raise ValueError('Original WebSocket CODEX_HOME mismatch')
+            self.socket.send(json.dumps({'method':'initialized','params':{}}))
+        except BaseException:
+            self.socket.close()
+            raise
+
+    def read_thread(self,session):
+        return self.rpc('thread/read',{'threadId':session,'includeTurns':False})['thread']
+
+    def rpc(self,method,params):
+        if method not in ('initialize','thread/read','hooks/list','thread/backgroundTerminals/list','account/read'):
+            raise TransportError('Original WebSocket observer is read-only')
+        import websocket
+        self.sequence+=1
+        try:
+            self.socket.send(json.dumps({'id':self.sequence,'method':method,'params':params}))
+            while True:
+                response=json.loads(self.socket.recv())
+                if 'method' in response and 'id' in response:
+                    raise TransportError('Unexpected request on read-only WebSocket')
+                if response.get('id')==self.sequence:
+                    if 'error' in response:raise TransportError('Original WebSocket metadata RPC failed')
+                    return response['result']
+        except (websocket.WebSocketException,OSError) as error:
+            raise TransportError('Original WebSocket metadata result unknown') from error
+
+    def __enter__(self):return self
+    def __exit__(self,*args):self.socket.close()
