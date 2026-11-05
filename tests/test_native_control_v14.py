@@ -29,6 +29,27 @@ class NativeControlTests(unittest.TestCase):
     def paused(self):
         self.store.request_pause('A',self.sessions['A'],self.directories['A'],reason='用户暂停',idempotency_key='native-pause')
 
+    def test_control_connection_binding_requires_original_probe_and_keeps_generation(self):
+        import tempfile
+        from pathlib import Path
+        actor=self.store.member('A')
+        with tempfile.TemporaryDirectory() as root:
+            connection=Path(root)/'connection.json';connection.write_text('{}')
+            with self.store.transaction() as db:
+                self.store._put(db,'cli_trusted_executable:B',{'file':{'sha256':'fixture'}})
+                generation=self.store._control_generation(db)
+            with patch('scripts.pair_producer.file_identity',return_value={'sha256':'fixture'}),patch(
+                    'scripts.pair_native_capabilities.inspect_original_runtime',return_value={'available':False}):
+                with self.assertRaisesRegex(Exception,'not verified'):
+                    self.store.bind_control_connection('A',actor['session_uuid'],actor['cwd'],'fixture',target='B',connection_file=str(connection))
+            with patch('scripts.pair_producer.file_identity',return_value={'sha256':'fixture'}),patch(
+                    'scripts.pair_native_capabilities.inspect_original_runtime',return_value={'available':True}):
+                result=self.store.bind_control_connection('A',actor['session_uuid'],actor['cwd'],'fixture',target='B',connection_file=str(connection))
+            self.assertFalse(result['full_tool_control'])
+            with self.store.transaction() as db:
+                self.assertEqual(self.store._control_generation(db),generation)
+                self.assertEqual(self.store._option(db,'control_connection:B')['session'],self.sessions['B'])
+
     def test_original_queued_message_is_blocked_after_pause(self):
         key,text=self.prompt();self.paused()
         with self.store.transaction() as db:

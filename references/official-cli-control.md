@@ -48,4 +48,7 @@
 
 inspect-control-capabilities 输入可显式提供 `connection_file`，指向启动脚本生成的本地连接记录。记录包含endpoint、原session、codex_home和临时token_file路径，不含令牌正文。适配核对原绑定与服务返回的配置目录，地址仅接受ws://127.0.0.1及明确端口；使用capability令牌认证且不发送Origin头。依赖已安装的websocket-client；缺失时明确报错，不回退到另一个账号或新执行器。
 
-该入口只允许initialize、thread/read、hooks/list、thread/backgroundTerminals/list及身份核对所需account/read。禁止thread/resume、turn/start、turn/interrupt和审批操作；关闭观察连接不终止服务。连接记录须显式传入，不扫描临时目录猜选运行时。尚未将此记录绑定到自动恢复适配，活动安装与桥未切换。
+该入口只允许initialize、thread/read、hooks/list、thread/backgroundTerminals/list及身份核对所需account/read。禁止thread/resume、turn/start、turn/interrupt和审批操作；关闭观察连接不终止服务。连接记录须显式传入，不扫描临时目录猜选运行时。候选已接入显式登记及自动恢复读取；活动安装与桥未切换。
+
+
+原A可通过 `bind-control-connection` 输入 `{"target":"B","connection_file":"准确连接记录绝对路径"}` 登记连接。登记前实际查询并复核原成员、配置和CLI摘要；登记只保存路径及准确session/binding_version，不保存令牌、不解除暂停。ProductionRecoveryAdapter消费该记录时仍复验session/binding_version；没有记录沿用原shared查询，不扫描或自动选择临时服务。完整工具控制仍明确不支持。

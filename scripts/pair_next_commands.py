@@ -14,6 +14,7 @@ except ImportError:
 
 COMMANDS = {
     'inspect-control-capabilities':'inspect_control_capabilities',
+    'bind-control-connection':'bind_control_connection',
     'apply-recovery-runtime':'apply_recovery_runtime',
     'reconcile-runtime-application':'reconcile_runtime_application',
     'read-hidden-handoff':'read_hidden_handoff',

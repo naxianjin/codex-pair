@@ -64,6 +64,33 @@ class ControlRuntimeMixin:
         return dict(result,member=member,session=session,binding_version=actor['binding_version'],
                     executable_sha256=actual['sha256'],observed_at=time.time(),full_tool_control=False)
 
+    def bind_control_connection(self,member,session,cwd,executable,*,target,connection_file):
+        try:
+            from .pair_native_capabilities import inspect_original_runtime
+            from .pair_producer import file_identity
+        except ImportError:
+            from pair_native_capabilities import inspect_original_runtime
+            from pair_producer import file_identity
+        with self.transaction() as db:
+            self._a_actor(db,member,session,cwd)
+            actor=dict(self._member(db,target))
+            trusted=self._option(db,'cli_trusted_executable:'+target)
+            configured=self._option(db,'control_hooks:'+target)
+        if actor['lifecycle']!='active' or not trusted or file_identity(executable)!=trusted['file']:
+            fail('Original active CLI binding required')
+        path=str(Path(connection_file).resolve(strict=True))
+        result=inspect_original_runtime(actor,configured,executable,connection_file=path)
+        if not result['available']:fail('Original connection not verified / 原执行器连接未核实')
+        with self.transaction() as db:
+            self._a_actor(db,member,session,cwd)
+            current=self._member(db,target)
+            if any(current[key]!=actor[key] for key in ('session_uuid','binding_version','codex_home','cwd')):
+                fail('Original connection binding changed')
+            record={'connection_file':path,'session':actor['session_uuid'],'binding_version':actor['binding_version']}
+            self._put(db,'control_connection:'+target,record)
+            self.event(db,'control_connection_bound',member=target,session=actor['session_uuid'],full_tool_control=False)
+        return dict(record,target=target,verified=True,full_tool_control=False)
+
     def install_control_hooks(self,member,session,cwd,target):
         import os
         import subprocess
@@ -377,11 +404,15 @@ class ProductionRecoveryAdapter:
                     matched=[tool for tool in turn.get('items',[]) if tool.get('id')==item['tool']]
                     if len(matched)!=1 or matched[0].get('status') not in ('completed','failed'):unknown.append(item['tool'])
                 hooks=settings.get('control_hooks:'+actor['id'])
+                connection=settings.get('control_connection:'+actor['id'])
+                connection_file=None
+                if connection and connection.get('session')==actor['session_uuid'] and connection.get('binding_version')==actor['binding_version']:
+                    connection_file=connection['connection_file']
                 trusted=False;original=None
                 if not actor['id'].startswith('@'):
                     try:from .pair_native_capabilities import inspect_original_runtime
                     except ImportError:from pair_native_capabilities import inspect_original_runtime
-                    original=inspect_original_runtime(actor,hooks,self.executable)
+                    original=inspect_original_runtime(actor,hooks,self.executable,connection_file=connection_file)
                     trusted=bool(original.get('available') and original['capabilities']['local_tool_definition_trusted'])
                     if not original.get('available'):unknown.append('original_runtime_unavailable')
                     elif original['background_terminals']:unknown.append('original_background_terminals_running')
