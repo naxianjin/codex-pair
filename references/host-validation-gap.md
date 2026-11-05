@@ -114,3 +114,5 @@ bd7456c复审发现相对root可能使核对路径和子进程执行路径不一
 增加worker独立CLI，支持Python -I -B运行，固定root/request/node参数，限制请求64KiB，stdout输出绑定结果。真实独立Python CLI正例及worker共5项测试通过。CLI本身不登记正式证据；最新入口尚待复审与Hyper-V接入。
 
 7b64924复核指出请求stat后无界读取不兑现64KiB边界，现改同句柄最多读取65537字节，超限拒绝，并补真实CLI超限回归。5项worker测试通过；完整正式链路仍未完成。
+
+2026-11-05 Hyper-V真实诊断正负例成功：受限账户/private desktop/Job、无网卡、只读输入，两个运行均13总进程/0活动/无超时。正例两退出0，非法findings负例1/0。仅合成绑定诊断，非正式执行器验收。新增verify_validator_result核对请求绑定、8文件摘要、两项结果、终态与汇总一致性，仍formal_checks_verified=false；5项worker测试及本轮真实提取artifact验收通过。持久unknown、宿主hard deadline、全控制链身份、独立run回执、Store正式消费仍待实现。

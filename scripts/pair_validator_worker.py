@@ -37,6 +37,33 @@ def validator_request(prepared, *, node_sha256):
             'node_sha256': node_sha256}
 
 
+def verify_validator_result(request, native, artifact):
+    """宿主验收同次隔离结果；不替代控制链身份和官方工具回执核验。"""
+    if (native.get('ExitCode') != 0 or native.get('ActiveProcesses') != 0
+            or native.get('TimedOut') is not False):
+        raise ValueError('Validator execution terminal state unverified')
+    if (artifact.get('binding') != request['binding'] or artifact.get('files') != request['files']
+            or artifact.get('formal_checks_verified') is not False):
+        raise ValueError('Validator result binding mismatch')
+    results = artifact.get('results')
+    names = ['validate-findings.cjs', 'validate-coverage-ledger.cjs']
+    if (not isinstance(results, list) or len(results) != 2
+            or [item.get('validator') for item in results] != names):
+        raise ValueError('Validator results incomplete')
+    for item in results:
+        if type(item.get('exit_code')) is not int:
+            raise ValueError('Invalid validator exit code')
+        for field in ('stdout_sha256', 'stderr_sha256'):
+            value = item.get(field)
+            if not isinstance(value, str) or len(value) != 64 or any(c not in '0123456789abcdef' for c in value):
+                raise ValueError('Invalid validator output digest')
+    passed = all(item['exit_code'] == 0 for item in results)
+    if artifact.get('validators_succeeded') is not passed:
+        raise ValueError('Validator outcome inconsistent')
+    return {'execution_completed': True, 'validators_succeeded': passed,
+            'formal_checks_verified': False}
+
+
 def run_validators(root, request, *, node):
     """输入目录须由外层执行器固定为只读；不接受任意命令或额外校验器。"""
     root = Path(root).absolute()

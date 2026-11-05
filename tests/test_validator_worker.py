@@ -11,7 +11,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from scripts.pair_validator_worker import run_validators
+from scripts.pair_validator_worker import run_validators, verify_validator_result
 
 
 @unittest.skipUnless(shutil.which('node'), 'Node required')
@@ -35,9 +35,26 @@ class ValidatorWorkerTests(unittest.TestCase):
         result = run_validators(self.root, self.request, node=self.node)
         self.assertTrue(result['validators_succeeded'])
         self.assertFalse(result['formal_checks_verified'])
+        native = {'ExitCode': 0, 'ActiveProcesses': 0, 'TimedOut': False}
+        self.assertTrue(verify_validator_result(self.request, native, result)['validators_succeeded'])
+        for kind in ('binding', 'missing', 'active', 'forged'):
+            changed = copy.deepcopy(result)
+            terminal = dict(native)
+            if kind == 'binding':
+                changed['binding'] = {}
+            elif kind == 'missing':
+                changed['results'].pop()
+            elif kind == 'active':
+                terminal['ActiveProcesses'] = 1
+            else:
+                changed['validators_succeeded'] = False
+            with self.subTest(kind=kind), self.assertRaises(ValueError):
+                verify_validator_result(self.request, terminal, changed)
         (self.root / 'findings.json').write_bytes(b'{}')
         self.request['files']['findings.json'] = hashlib.sha256(b'{}').hexdigest()
-        self.assertFalse(run_validators(self.root, self.request, node=self.node)['validators_succeeded'])
+        rejected = run_validators(self.root, self.request, node=self.node)
+        self.assertFalse(rejected['validators_succeeded'])
+        self.assertFalse(verify_validator_result(self.request, native, rejected)['validators_succeeded'])
 
     def test_isolated_python_cli_returns_bound_results(self):
         request_path = self.root / 'request.json'
