@@ -602,6 +602,61 @@ class AuxiliaryMixin:
         return {'saved': True, 'duplicate': False, 'stage_passed': False,
                 'validation': validation, 'actual_start_counted': bool(execution['charged'])}
 
+    def record_validator_run(self, member, session, cwd, execution_id, lease, run_id,
+                             request, native, artifact, tool_identity):
+        """保存可核验的补充证据；诊断执行器不能授予正式通过。"""
+        try:
+            from .pair_auxiliary_runtime import saved_validator_inputs
+            from .pair_validator_worker import validator_request, verify_validator_result
+        except ImportError:
+            from pair_auxiliary_runtime import saved_validator_inputs
+            from pair_validator_worker import validator_request, verify_validator_result
+        if any(not isinstance(value, dict) for value in (request, native, artifact)):
+            fail('Validator objects required')
+        if not isinstance(run_id, str) or not re.fullmatch(r'[0-9a-f]{32}', run_id):
+            fail('Invalid validator run ID')
+        if not isinstance(tool_identity, dict) or not tool_identity:
+            fail('Validator tool identity required')
+        for name, value in tool_identity.items():
+            if not isinstance(name, str) or not name or not isinstance(value, str) or not re.fullmatch(r'[0-9a-f]{64}', value):
+                fail('Invalid validator tool identity')
+        if tool_identity.get('node') != request.get('node_sha256'):
+            fail('Validator Node binding mismatch')
+        if len(tool_identity) > 32 or len(encoded({'request': request, 'native': native, 'artifact': artifact, 'tools': tool_identity}).encode('utf-8')) > 2097152:
+            fail('Validator evidence exceeds limit')
+        prepared = saved_validator_inputs(self, member, session, cwd, execution_id, lease)
+        expected = validator_request(prepared, node_sha256=request['node_sha256'])
+        if digest(expected) != digest(request):
+            fail('Validator request changed / 请求不是当前固定报告')
+        verified = verify_validator_result(request, native, artifact)
+        record = {'execution_id': execution_id, 'run_id': run_id, 'request': request,
+                  'native': native, 'artifact': artifact, 'tool_identity': tool_identity,
+                  'verification': verified, 'formal_checks_verified': False}
+        with self.transaction() as db:
+            self._a_actor(db, member, session, cwd)
+            execution = self._auxiliary_execution(db, execution_id, lease)
+            report = db.execute('SELECT * FROM auxiliary_reports WHERE execution_id=?', (execution_id,)).fetchone()
+            if (execution['state'] != 'completed' or not report
+                    or report['report_digest'] != prepared['original_report_digest']
+                    or digest(json.loads(report['raw_report'])) != prepared['stored_report_digest']
+                    or digest(json.loads(report['adapted_report'])) != prepared['adapted_report_digest']):
+                fail('Validator source changed / 保存期间报告已变化')
+            candidate = self._auxiliary_candidate(db, self._auxiliary_task(db, execution['task_id'])['candidate_id'])
+            if any(execution[key] != candidate[key] for key in ('candidate_digest', 'contract_digest')):
+                fail('Validator candidate changed')
+            key = 'validator_run:' + run_id
+            old = self._option(db, key)
+            if old is not None and old != record:
+                fail('Validator receipt conflict / 不得覆盖既有运行')
+            if old is None:
+                self._put(db, key, record)
+                runs = self._option(db, 'validator_runs:' + execution_id, [])
+                self._put(db, 'validator_runs:' + execution_id, runs + [run_id])
+                self.event(db, 'validator_run_saved', execution=execution_id, run=run_id,
+                           request_digest=digest(request), formal_checks_verified=False)
+            return {'saved': True, 'duplicate': old is not None, 'run_id': run_id,
+                    'validators_succeeded': verified['validators_succeeded'], 'formal_checks_verified': False}
+
     def settle_audit(self, member, session, cwd, candidate_id):
         """子报告不写父stage；缺本次准确正式回执时保留 needs_validation。"""
         with self.transaction() as db:
@@ -613,6 +668,7 @@ class AuxiliaryMixin:
             covered = set()
             verdicts = set()
             records = []
+            validator_runs = []
             for task in tasks:
                 report = db.execute('SELECT * FROM auxiliary_reports WHERE execution_id=?', (task['last_execution'],)).fetchone()
                 execution = db.execute('SELECT * FROM auxiliary_executions WHERE id=?', (task['last_execution'],)).fetchone()
@@ -632,6 +688,14 @@ class AuxiliaryMixin:
                 self._auxiliary_independent(db, candidate, task, execution['session_uuid'])
                 if validation.get('errors') or not validation.get('coverage_complete'):
                     reasons.append('report_validation_incomplete:' + task['id'])
+                for run_id in self._option(db, 'validator_runs:' + execution['id'], []):
+                    supplemental = self._option(db, 'validator_run:' + run_id)
+                    if (supplemental and supplemental['execution_id'] == execution['id']
+                            and supplemental['request']['binding']['original_report_digest'] == report['report_digest']
+                            and supplemental['request']['binding']['stored_report_digest'] == evidence['stored_report_digest']
+                            and supplemental['request']['binding']['adapted_report_digest'] == evidence['adapted_report_digest']):
+                        validator_runs.append({'run_id': run_id, 'execution_id': execution['id'],
+                                               'formal_checks_verified': False})
                 if not evidence.get('formal_checks_verified'):
                     reasons.append('formal_receipts_missing:' + task['id'])
                 verdicts.add(result.get('verdict', 'needs_validation'))
@@ -659,7 +723,7 @@ class AuxiliaryMixin:
             status = 'needs_validation' if reasons else ('needs_fix' if 'needs_fix' in verdicts else 'passed')
             result = {'candidate_id': candidate_id, 'stage_id': candidate['stage_id'], 'verdict': status,
                       'reasons': sorted(set(reasons)), 'report_digests': records,
-                      'ordinary_stage_changed': False, 'new_work_started': False}
+                      'ordinary_stage_changed': False, 'new_work_started': False, 'validator_runs': validator_runs}
             db.execute('UPDATE auxiliary_candidates SET status=?,result=? WHERE id=?', (status, encoded(result), candidate_id))
             self.event(db, 'auxiliary_audit_settled', candidate=candidate_id, verdict=status, reasons=result['reasons'])
             return result

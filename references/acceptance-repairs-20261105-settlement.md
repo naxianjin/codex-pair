@@ -19,3 +19,13 @@
 ## 历史报告与会话复用
 
 继续核对epoch发现：reserve_auxiliary合法复用空闲session会递增epoch，已完成报告不应跟随当前session代次失效。撤销未提交的过严epoch/session检查，产品实现保持71bbe4c；新增历史报告跨epoch保持有效的回归，58项辅助/结算/清单通过。原epoch变化探针的passed不记为缺陷；未提交的旧检查复审不作为保留实现的通过证据。
+
+## 隔离补充证据登记入口
+
+新增 `record-validator-run`，输入 execution_id、lease、32位小写hex run_id、request、native、artifact、tool_identity。工具身份使用小写SHA256，node须与请求node_sha256一致。入口重新生成当前Store固定请求，保存前在事务内复核报告与执行绑定；按run_id幂等，冲突拒绝。负例可追溯保存，超时、残留进程及异常终态拒绝。父settle仅列匹配执行及三份报告摘要的validator_runs引用。
+
+此入口接受协调者提交的自洽诊断证据，不能证明隔离执行真实发生；所有记录和父引用固定formal_checks_verified=false，不清除正式门禁。它不是可信宿主直接取证、完整工具链登记或正式放行接线。独立OpenAI只读复审在此限定范围内未发现阻塞；63项相关回归通过。仍需可信执行器实际调用与正式能力认证，不能由输入JSON授予formal。
+
+证据入口限制为最多32项工具身份、总JSON不超过2MiB；新增Node不匹配与超限测试通过。冻结首轮漏带pair_next_commands.py导致清单不一致，1失败37错误已保存，不记为产品通过；修正完整快照后重跑。
+
+完整快照全量1212项通过，0失败0错误3跳过。最后仅追加命令映射断言，45项辅助/清单复测通过。正式回执接线仍未完成，本轮交付仅非正式登记及父结算引用。

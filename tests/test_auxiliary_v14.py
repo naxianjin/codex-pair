@@ -383,6 +383,39 @@ class AuxiliaryTests(unittest.TestCase):
                 finally:
                     with self.store.transaction() as db:
                         db.execute(f'UPDATE {table} SET {field}=? WHERE {key}=?', (original, value))
+        empty_digest = __import__('hashlib').sha256(b'').hexdigest()
+        artifact = {'binding': request['binding'], 'files': request['files'],
+                    'formal_checks_verified': False, 'validators_succeeded': True,
+                    'results': [{'validator': name, 'exit_code': 0, 'stdout_sha256': empty_digest,
+                                 'stderr_sha256': empty_digest, 'stderr': ''}
+                                for name in ('validate-findings.cjs', 'validate-coverage-ledger.cjs')]}
+        native = {'ExitCode': 0, 'ActiveProcesses': 0, 'TimedOut': False}
+        args = (*self.actor(), ticket['execution_id'], ticket['lease'], '1' * 32,
+                request, native, artifact, {'node': 'a' * 64})
+        from scripts.pair_next_commands import COMMANDS
+        self.assertEqual(COMMANDS['record-validator-run'], 'record_validator_run')
+        saved = self.store.record_validator_run(*args)
+        self.assertFalse(saved['formal_checks_verified'])
+        self.assertFalse(saved['duplicate'])
+        self.assertTrue(self.store.record_validator_run(*args)['duplicate'])
+        settled = self.store.settle_audit(*self.actor(), candidate['id'])
+        self.assertEqual(settled['validator_runs'][0]['run_id'], '1' * 32)
+        self.assertEqual(settled['verdict'], 'needs_validation')
+        with self.assertRaisesRegex(PairError, 'receipt conflict'):
+            self.store.record_validator_run(*args[:-1], {'node': 'a' * 64, 'python': 'b' * 64})
+        with self.assertRaisesRegex(ValueError, 'terminal state unverified'):
+            self.store.record_validator_run(*args[:7], dict(native, TimedOut=True), artifact, {'node': 'a' * 64})
+        with self.assertRaisesRegex(PairError, 'exceeds limit'):
+            self.store.record_validator_run(*args[:-1], dict({'node': 'a' * 64}, **{str(i): 'a' * 64 for i in range(32)}))
+        with self.assertRaisesRegex(PairError, 'Node binding mismatch'):
+            self.store.record_validator_run(*args[:-1], {'node': 'b' * 64})
+        import copy
+        negative = copy.deepcopy(artifact)
+        negative['results'][0]['exit_code'] = 1
+        negative['validators_succeeded'] = False
+        rejected = self.store.record_validator_run(*args[:5], '2' * 32, request, native, negative, {'node': 'a' * 64})
+        self.assertFalse(rejected['validators_succeeded'])
+        self.assertFalse(rejected['formal_checks_verified'])
         result['inputs'][0]['input_bytes'] = b'{}'
         with self.assertRaisesRegex(ValueError, 'bytes changed'):
             validator_request(result, node_sha256='a' * 64)
