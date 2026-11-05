@@ -1,6 +1,6 @@
 {
   "files": {
-    "CHANGELOG.md": "7ba2a858b221c6ae8eb979b68ec9d7c46fe338f75274c912ad56e0afeeb7aaa0",
+    "CHANGELOG.md": "5a80d024b7adfd06190733b86f9f15e3532cd9f56c4c7c43d1b26f791ece75a3",
     "POST_RELEASE_TESTS.md": "20f930df316b42d6fca4c8cf7b86e7c2e80a22d5a517a5a826342a6e469d7a42",
     "README.md": "86d6476f8802724aea2eeb32270bc5512b40938cb275c763a3efa4b8b8e09b5b",
     "SKILL.md": "be24fa14bd5748cec7252e8668c21191aeb9c0f464994d5592ccba3f966fe1ac",
@@ -99,7 +99,7 @@
     "scripts/pair_hook_cleanup.py": "70e553ed12f2049c9338132d585bb266fd3c3bfa1547e93b958fa940457ab746",
     "scripts/pair_json.py": "65ff026174cb5f97e836a51bbe46d2096401ee4be54bedb9576e328dc0534d7a",
     "scripts/pair_managed.py": "733b3b40793077c75d2e1de8e7a786102cea942721e0e5b6ce9dd0b452d680f0",
-    "scripts/pair_native_capabilities.py": "6cff2cd82a7306bfe9c7a266fde9f81ab62beab6dbdd4f530543f147a5c840e1",
+    "scripts/pair_native_capabilities.py": "689ba8d90ea184fcbde002d14c86a01e6ea56919e30f76e4d74a33154bc4d729",
     "scripts/pair_next_commands.py": "f440806011f777c9cb102239ae4655100a59894a5f9c456111e55819bebbcd0e",
     "scripts/pair_permission_hook.py": "ecba73a543b3c3c52893daafe763f4360b9e80cc45d6873d897ec840fa86b0ba",
     "scripts/pair_producer.py": "f8e515951835813143a04c5634ee1b09adfcdab202d71bed2079dff714335487",

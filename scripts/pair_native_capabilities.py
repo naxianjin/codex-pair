@@ -107,7 +107,7 @@ class OriginalWebSocket:
             self.socket=websocket.create_connection(record['endpoint'],header=['Authorization: Bearer '+token],
                 suppress_origin=True,timeout=15,redirect_limit=0,http_no_proxy=['127.0.0.1'])
             if self.socket.getstatus()!=101:
-                self.socket.close()
+                self.socket.shutdown()
                 raise TransportError('Original WebSocket redirect refused')
         except (websocket.WebSocketException,OSError) as error:
             raise TransportError('Original WebSocket connection failed') from error
@@ -119,11 +119,14 @@ class OriginalWebSocket:
                 raise ValueError('Original WebSocket CODEX_HOME mismatch')
             self.socket.send(json.dumps({'method':'initialized','params':{}}))
         except BaseException:
-            self.socket.close()
+            self.socket.shutdown()
             raise
 
     def read_thread(self,session):
-        return self.rpc('thread/read',{'threadId':session,'includeTurns':False})['thread']
+        thread=self.rpc('thread/read',{'threadId':session,'includeTurns':False}).get('thread')
+        if not isinstance(thread,dict) or not isinstance(thread.get('status'),dict):
+            raise TransportError('Invalid original thread state')
+        return thread
 
     def rpc(self,method,params):
         if method not in ('initialize','thread/read','hooks/list','thread/backgroundTerminals/list','account/read'):
@@ -155,4 +158,4 @@ class OriginalWebSocket:
             watchdog.cancel()
 
     def __enter__(self):return self
-    def __exit__(self,*args):self.socket.close()
+    def __exit__(self,*args):self.socket.shutdown()

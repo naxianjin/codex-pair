@@ -275,3 +275,20 @@ class OriginalWebSocketTests(unittest.TestCase):
             with self.assertRaisesRegex(TransportError,'result unknown'):
                 observer.rpc('thread/read',{})
         self.assertTrue(ended.is_set())
+
+
+    def test_invalid_nested_thread_status_is_rejected(self):
+        from unittest.mock import Mock
+        from scripts.pair_native_capabilities import OriginalWebSocket
+        observer=OriginalWebSocket.__new__(OriginalWebSocket)
+        observer.rpc=Mock(return_value={'thread':{'status':[]}})
+        with self.assertRaisesRegex(TransportError,'thread state'):
+            observer.read_thread('original')
+
+    def test_exit_shuts_down_observer_without_close_handshake(self):
+        from unittest.mock import Mock
+        from scripts.pair_native_capabilities import OriginalWebSocket
+        observer=OriginalWebSocket.__new__(OriginalWebSocket);observer.socket=Mock()
+        observer.__exit__()
+        observer.socket.shutdown.assert_called_once_with()
+        observer.socket.close.assert_not_called()
