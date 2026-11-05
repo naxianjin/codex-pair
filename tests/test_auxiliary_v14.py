@@ -336,6 +336,10 @@ class AuxiliaryTests(unittest.TestCase):
         candidate = self.queue()
         ticket = self.reserve()
         self.start_fixture(ticket)
+        with self.store.transaction() as db:
+            db.execute("UPDATE auxiliary_tasks SET track='cloudflare' WHERE id='aux'")
+            db.execute('UPDATE auxiliary_candidates SET tracks=?,coverage_units=? WHERE id=?',
+                       (json.dumps(['cloudflare']), json.dumps([{'id': 'source', 'track': 'cloudflare', 'required': True}]), candidate['id']))
         with self.assertRaisesRegex(PairError, 'Validator source unavailable'):
             saved_validator_inputs(self.store, *self.actor(), ticket['execution_id'], ticket['lease'])
         with self.store.transaction() as db:
@@ -344,6 +348,7 @@ class AuxiliaryTests(unittest.TestCase):
             fixed = dict(self.store._auxiliary_candidate(db, task['candidate_id']))
             context = _context(self.store, {'execution': execution, 'task': task, 'candidate': fixed})
             raw = {'context': context, 'verdict': 'needs_validation', 'findings': [], 'checks': [],
+                   'coverage_ledger': [{'coverage_id': 'source', 'status': 'covered'}],
                    'coverage': [{'unit_id': 'source', 'status': 'reviewed', 'evidence_refs': ['fixture']}],
                    'unverified_candidates': []}
             adapted = adapt_report(raw, context=context, expected_units=[{'id': 'source', 'required': True}])
@@ -351,10 +356,24 @@ class AuxiliaryTests(unittest.TestCase):
                                              adapted['validation'], {'formal_checks_verified': False})
         result = saved_validator_inputs(self.store, *self.actor(), ticket['execution_id'], ticket['lease'])
         self.assertEqual(result['context'], context)
-        self.assertEqual(result['inputs'], [])
+        self.assertEqual(len(result['inputs']), 2)
+        self.assertEqual(json.loads(result['inputs'][0]['input_bytes']), [])
+        self.assertEqual(json.loads(result['inputs'][1]['input_bytes']), raw['coverage_ledger'])
+        with self.assertRaisesRegex(PairError, 'lease mismatch'):
+            saved_validator_inputs(self.store, *self.actor(), ticket['execution_id'], 'wrong-lease')
         self.assertFalse(result['execution_started'])
         self.assertFalse(result['formal_checks_verified'])
         self.assertEqual(self.store.settle_audit(*self.actor(), candidate['id'])['verdict'], 'needs_validation')
+        for field in ('raw_report', 'adapted_report'):
+            with self.store.transaction() as db:
+                original = db.execute('SELECT '+field+' FROM auxiliary_reports WHERE execution_id=?', (ticket['execution_id'],)).fetchone()[0]
+                changed = json.loads(original)
+                changed['verdict'] = 'passed'
+                db.execute('UPDATE auxiliary_reports SET '+field+'=? WHERE execution_id=?', (json.dumps(changed), ticket['execution_id']))
+            with self.assertRaisesRegex(PairError, 'Validator report integrity unavailable'):
+                saved_validator_inputs(self.store, *self.actor(), ticket['execution_id'], ticket['lease'])
+            with self.store.transaction() as db:
+                db.execute('UPDATE auxiliary_reports SET '+field+'=? WHERE execution_id=?', (original, ticket['execution_id']))
         with self.store.transaction() as db:
             db.execute('UPDATE auxiliary_tasks SET last_execution=NULL WHERE id=?', (task['id'],))
         with self.assertRaisesRegex(PairError, 'Stale auxiliary execution'):

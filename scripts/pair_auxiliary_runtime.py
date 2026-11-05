@@ -493,7 +493,11 @@ def saved_validator_inputs(store, member, session, cwd, execution_id, lease):
         view = {'execution': execution, 'task': task, 'candidate': candidate}
         context = _context(store, view)
         adapted = json.loads(report['adapted_report'])
-        inputs = validator_inputs({'adapted_report': adapted, 'adapted_sha256': digest(adapted),
+        evidence = json.loads(report['evidence'])
+        if (evidence.get('stored_report_digest') != digest(json.loads(report['raw_report']))
+                or evidence.get('adapted_report_digest') != digest(adapted)):
+            fail('Validator report integrity unavailable / 保存时摘要缺失或报告已变化')
+        inputs = validator_inputs({'adapted_report': adapted, 'adapted_sha256': evidence['adapted_report_digest'],
                                    'validation': json.loads(report['validation'])}, context=context)
         return {'context': context, 'original_report_digest': report['report_digest'],
                 'stored_report_digest': digest(json.loads(report['raw_report'])),

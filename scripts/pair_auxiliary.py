@@ -590,7 +590,8 @@ class AuxiliaryMixin:
         reviewer=db.execute('SELECT proof FROM auxiliary_sessions WHERE id=?',(execution['reviewer_id'],)).fetchone()
         identity=reviewer_identity(json.loads(reviewer['proof']))
         provider=identity['modelProvider']
-        evidence=dict(evidence, reviewer_provider=provider, review_service='third_party' if provider=='apinebula' else 'openai_official')
+        evidence=dict(evidence, reviewer_provider=provider, review_service='third_party' if provider=='apinebula' else 'openai_official',
+                      stored_report_digest=digest(raw), adapted_report_digest=digest(adapted))
         db.execute('INSERT INTO auxiliary_reports VALUES(?,?,?,?,?,?,?)',
                    (execution['id'], fingerprint, encoded(raw), encoded(adapted), encoded(validation), encoded(evidence), time.time()))
         self._end_auxiliary(db, execution, 'completed', evidence)
