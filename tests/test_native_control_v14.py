@@ -292,3 +292,15 @@ class OriginalWebSocketTests(unittest.TestCase):
         observer.__exit__()
         observer.socket.shutdown.assert_called_once_with()
         observer.socket.close.assert_not_called()
+
+    def test_invalid_account_and_boolean_response_id_are_rejected(self):
+        from unittest.mock import Mock
+        from scripts.pair_native_capabilities import OriginalWebSocket
+        for response, message in [({'id':1,'result':{'account':['invalid']}},'account response'),
+                                  ({'id':True,'result':{}},'response ID')]:
+            with self.subTest(response=response):
+                observer=OriginalWebSocket.__new__(OriginalWebSocket)
+                observer.sequence=0;observer.socket=Mock()
+                observer.socket.recv.return_value=json.dumps(response)
+                with self.assertRaisesRegex(TransportError,message):
+                    observer.rpc('account/read',{})

@@ -148,10 +148,15 @@ class OriginalWebSocket:
                 if not isinstance(response,dict):raise TransportError('Invalid original WebSocket response')
                 if 'method' in response and 'id' in response:
                     raise TransportError('Unexpected request on read-only WebSocket')
+                if 'id' in response and type(response['id']) is not int:
+                    raise TransportError('Invalid original WebSocket response ID')
                 if response.get('id')==self.sequence:
                     if 'error' in response:raise TransportError('Original WebSocket metadata RPC failed')
                     if not isinstance(response.get('result'),dict):raise TransportError('Invalid original WebSocket result')
-                    return response['result']
+                    result=response['result']
+                    if method=='account/read' and result.get('account') is not None and not isinstance(result['account'],dict):
+                        raise TransportError('Invalid original account response')
+                    return result
         except (websocket.WebSocketException,OSError) as error:
             raise TransportError('Original WebSocket metadata result unknown') from error
         finally:
