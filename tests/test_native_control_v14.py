@@ -183,6 +183,18 @@ class CapabilityDefinitionTests(unittest.TestCase):
         self.assertEqual(requests[0],('hooks/list',{'threadId':'fixture-session'}))
         self.assertEqual(requests[-1][1]['cursor'],'page-2')
 
+    def test_invalid_top_level_hook_entries_remain_unobservable(self):
+        actor={'session_uuid':'fixture-session','codex_home':'fixture-home','cwd':'fixture-cwd','binding_version':1}
+        from unittest.mock import MagicMock
+        for listing in ({'hooks':[1]},{'hooks':None},[]):
+            client=MagicMock()
+            client.__enter__.return_value=client
+            client.validate.return_value={'status':{'type':'idle'}}
+            client.rpc.return_value=listing
+            with patch('scripts.pair_native_capabilities.AppServer',return_value=client):
+                result=inspect_original_runtime(actor,None,'fixture-exe')
+            self.assertFalse(result['available'])
+
     def test_repeating_terminal_cursor_remains_unknown(self):
         actor={'session_uuid':'fixture-session','codex_home':'fixture-home','cwd':'fixture-cwd','binding_version':1}
         class OriginalDaemon:

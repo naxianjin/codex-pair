@@ -50,6 +50,8 @@ def inspect_original_runtime(actor,configured,executable,*,connection_file=None)
         with client:
             thread=client.validate(actor)
             listing=client.rpc('hooks/list',{'threadId':actor['session_uuid']})
+            if not isinstance(listing,dict):raise TransportError('Invalid original hook listing')
+            if not isinstance(listing.get('hooks',[]),list) or any(not isinstance(hook,dict) for hook in listing.get('hooks',[])):raise TransportError('Invalid original hook listing')
             if not isinstance(listing.get('data',[]),list) or any(not isinstance(entry,dict) or not isinstance(entry.get('hooks',[]),list) or any(not isinstance(hook,dict) for hook in entry.get('hooks',[])) for entry in listing.get('data',[])):
                 raise TransportError('Invalid original hook listing')
             terminals=[];cursor=None;seen=set()
