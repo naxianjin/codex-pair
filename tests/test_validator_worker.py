@@ -98,6 +98,18 @@ class ValidatorWorkerTests(unittest.TestCase):
         self.assertTrue(result.stdout.isascii())
         self.assertTrue(report['validators_succeeded'])
         self.assertFalse(report['formal_checks_verified'])
+        (self.root / 'coverage_ledger.json').write_text(json.dumps([{'status': '诊断字段'}]), encoding='utf-8')
+        self.request['files']['coverage_ledger.json'] = hashlib.sha256((self.root / 'coverage_ledger.json').read_bytes()).hexdigest()
+        request_path.write_text(json.dumps(self.request), encoding='utf-8')
+        rejected = subprocess.run([sys.executable, '-X', 'utf8=0', '-I', '-B', str(worker),
+                                   '--root', str(self.root), '--request', str(request_path), '--node', self.node],
+                                  capture_output=True, text=True, timeout=40)
+        self.assertEqual(rejected.returncode, 0, rejected.stderr)
+        self.assertTrue(rejected.stdout.isascii())
+        artifact = json.loads(rejected.stdout)
+        self.assertIn('诊断字段', artifact['results'][1]['stderr'])
+        native = {'ExitCode': 0, 'ActiveProcesses': 0, 'TimedOut': False}
+        self.assertFalse(verify_validator_result(self.request, native, artifact)['validators_succeeded'])
         request_path.write_bytes(b' ' * 65537)
         oversized = subprocess.run([sys.executable, '-I', '-B', str(worker), '--root', str(self.root),
                                     '--request', str(request_path), '--node', self.node],
