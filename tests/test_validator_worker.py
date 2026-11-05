@@ -53,7 +53,9 @@ class ValidatorWorkerTests(unittest.TestCase):
         preload.write_text('process.exit(0)', encoding='utf-8')
         (self.root / 'findings.json').write_bytes(b'{}')
         self.request['files']['findings.json'] = hashlib.sha256(b'{}').hexdigest()
-        with patch.dict('os.environ', {'NODE_OPTIONS': '--require=' + str(preload)}):
+        with patch.dict('os.environ', {'NODE_OPTIONS': '--require=' + str(preload),
+                                      'SYSTEMROOT': str(self.root / 'fake-windows'),
+                                      'WINDIR': str(self.root / 'fake-windows')}):
             result = run_validators(self.root, self.request, node=self.node)
         self.assertFalse(result['validators_succeeded'])
 

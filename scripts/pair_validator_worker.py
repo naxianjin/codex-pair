@@ -1,5 +1,6 @@
 """可信隔离执行器调用的固定 CJS 工作入口；自身不提供隔离或正式放行证明。"""
 import hashlib
+import ctypes
 import os
 from pathlib import Path
 import stat
@@ -57,7 +58,13 @@ def run_validators(root, request, *, node):
             raise ValueError('Validator input digest mismatch')
     results = []
     environment = {key: value for key, value in os.environ.items()
-                   if key.upper() in ('SYSTEMROOT', 'WINDIR', 'TEMP', 'TMP')}
+                   if key.upper() in ('TEMP', 'TMP')}
+    if os.name == 'nt':
+        directory = ctypes.create_unicode_buffer(32768)
+        length = ctypes.windll.kernel32.GetWindowsDirectoryW(directory, len(directory))
+        if not length or length >= len(directory):
+            raise OSError('Windows system directory unavailable')
+        environment.update(SYSTEMROOT=directory.value, WINDIR=directory.value)
     for name, field in zip(names, ('findings', 'coverage_ledger')):
         process = subprocess.run([str(node), str(root / name), str(root / (field + '.json'))],
                                  cwd=root, env=environment, capture_output=True, timeout=30)

@@ -108,3 +108,5 @@
 45a1e2a独立复核发现继承NODE_OPTIONS可预加载契约外代码。已限制Node子进程环境仅SYSTEMROOT/WINDIR/TEMP/TMP，补真实预加载process.exit(0)对非法findings不得伪造成功测试；执行后复核Node摘要。3项worker测试通过，待准确新版本复审。
 
 bd7456c复审发现相对root可能使核对路径和子进程执行路径不一致。已将root及Node固定为绝对路径，新增相对目录下嵌套伪校验器对非法输入不得成功回归。4项worker测试通过；该问题修复前版本不予接受。
+
+244e41f复核指出SYSTEMROOT值仍可污染PowerShell定位。已改Windows GetWindowsDirectoryW获取系统目录，测试同时污染NODE_OPTIONS/SYSTEMROOT/WINDIR后非法输入仍拒绝；4项worker测试通过。最新修复尚待独立复审，先前75项回归仅对应244e41f，不沿用为新版本通过。
