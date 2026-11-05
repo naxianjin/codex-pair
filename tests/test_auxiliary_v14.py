@@ -363,6 +363,26 @@ class AuxiliaryTests(unittest.TestCase):
         request = validator_request(result, node_sha256='a' * 64)
         self.assertEqual(len(request['files']), 8)
         self.assertEqual(request['binding']['context'], context)
+        # 固定报告之外，候选、契约和执行终态也必须仍属于本次执行。
+        for table, field, changed, key, value, error in (
+                ('auxiliary_candidates', 'candidate_digest', 'changed', 'id', candidate['id'], 'Stale audit candidate'),
+                ('auxiliary_candidates', 'contract_digest', 'changed', 'id', candidate['id'], 'Audit contract changed'),
+                ('auxiliary_executions', 'state', 'unknown', 'id', ticket['execution_id'], 'Validator source unavailable')):
+            with self.subTest(binding=field):
+                with self.store.transaction() as db:
+                    original = db.execute(f'SELECT {field} FROM {table} WHERE {key}=?', (value,)).fetchone()[0]
+                    db.execute(f'UPDATE {table} SET {field}=? WHERE {key}=?', (changed, value))
+                try:
+                    with self.assertRaisesRegex(PairError, error):
+                        saved_validator_inputs(self.store, *self.actor(), ticket['execution_id'], ticket['lease'])
+                    if table == 'auxiliary_candidates':
+                        with self.assertRaisesRegex(PairError, error):
+                            self.store.settle_audit(*self.actor(), candidate['id'])
+                    else:
+                        self.assertEqual(self.store.settle_audit(*self.actor(), candidate['id'])['verdict'], 'needs_validation')
+                finally:
+                    with self.store.transaction() as db:
+                        db.execute(f'UPDATE {table} SET {field}=? WHERE {key}=?', (original, value))
         result['inputs'][0]['input_bytes'] = b'{}'
         with self.assertRaisesRegex(ValueError, 'bytes changed'):
             validator_request(result, node_sha256='a' * 64)
