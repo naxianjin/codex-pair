@@ -116,3 +116,5 @@ bd7456c复审发现相对root可能使核对路径和子进程执行路径不一
 7b64924复核指出请求stat后无界读取不兑现64KiB边界，现改同句柄最多读取65537字节，超限拒绝，并补真实CLI超限回归。5项worker测试通过；完整正式链路仍未完成。
 
 2026-11-05 Hyper-V真实诊断正负例成功：受限账户/private desktop/Job、无网卡、只读输入，两个运行均13总进程/0活动/无超时。正例两退出0，非法findings负例1/0。仅合成绑定诊断，非正式执行器验收。新增verify_validator_result核对请求绑定、8文件摘要、两项结果、终态与汇总一致性，仍formal_checks_verified=false；5项worker测试及本轮真实提取artifact验收通过。持久unknown、宿主hard deadline、全控制链身份、独立run回执、Store正式消费仍待实现。
+
+e9c7aad复核发现native计数字段接受bool/float及results元素非对象的异常类型问题，已严格整数/对象校验；增加文件映射、顺序、摘要、超时等拒绝回归，5项worker通过。前版76项回归不沿用为新版本，最新待复审。

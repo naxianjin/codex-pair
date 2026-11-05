@@ -37,7 +37,7 @@ class ValidatorWorkerTests(unittest.TestCase):
         self.assertFalse(result['formal_checks_verified'])
         native = {'ExitCode': 0, 'ActiveProcesses': 0, 'TimedOut': False}
         self.assertTrue(verify_validator_result(self.request, native, result)['validators_succeeded'])
-        for kind in ('binding', 'missing', 'active', 'forged'):
+        for kind in ('binding', 'missing', 'active', 'forged', 'boolean', 'float', 'null', 'files', 'order', 'digest', 'timeout'):
             changed = copy.deepcopy(result)
             terminal = dict(native)
             if kind == 'binding':
@@ -46,6 +46,20 @@ class ValidatorWorkerTests(unittest.TestCase):
                 changed['results'].pop()
             elif kind == 'active':
                 terminal['ActiveProcesses'] = 1
+            elif kind == 'boolean':
+                terminal['ExitCode'] = False
+            elif kind == 'float':
+                terminal['ActiveProcesses'] = 0.0
+            elif kind == 'null':
+                changed['results'] = [None, None]
+            elif kind == 'files':
+                changed['files'] = {}
+            elif kind == 'order':
+                changed['results'].reverse()
+            elif kind == 'digest':
+                changed['results'][0]['stdout_sha256'] = 'invalid'
+            elif kind == 'timeout':
+                terminal['TimedOut'] = True
             else:
                 changed['validators_succeeded'] = False
             with self.subTest(kind=kind), self.assertRaises(ValueError):

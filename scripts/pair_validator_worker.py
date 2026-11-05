@@ -39,7 +39,8 @@ def validator_request(prepared, *, node_sha256):
 
 def verify_validator_result(request, native, artifact):
     """宿主验收同次隔离结果；不替代控制链身份和官方工具回执核验。"""
-    if (native.get('ExitCode') != 0 or native.get('ActiveProcesses') != 0
+    if (type(native.get('ExitCode')) is not int or type(native.get('ActiveProcesses')) is not int
+            or native['ExitCode'] != 0 or native['ActiveProcesses'] != 0
             or native.get('TimedOut') is not False):
         raise ValueError('Validator execution terminal state unverified')
     if (artifact.get('binding') != request['binding'] or artifact.get('files') != request['files']
@@ -47,7 +48,7 @@ def verify_validator_result(request, native, artifact):
         raise ValueError('Validator result binding mismatch')
     results = artifact.get('results')
     names = ['validate-findings.cjs', 'validate-coverage-ledger.cjs']
-    if (not isinstance(results, list) or len(results) != 2
+    if (not isinstance(results, list) or len(results) != 2 or any(not isinstance(item, dict) for item in results)
             or [item.get('validator') for item in results] != names):
         raise ValueError('Validator results incomplete')
     for item in results:
