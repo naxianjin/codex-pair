@@ -115,7 +115,7 @@
     "scripts/pair_stages.py": "d7ab9497bdc153d5f8f6d4f3e2108082c3516fcc44b8fe39aedb6772658477c2",
     "scripts/pair_team.py": "f93c255b5c75905828fe22dd42b2cef847821595ca0072efed0707ea661d74b5",
     "scripts/pair_transport.py": "54955ce8ca1d55206b0ef3cd40188dcce7041803a39ee7d82ec156894224277b",
-    "scripts/pair_validator_worker.py": "562f565c707f9a4ec0fa1201da0c16253c157c8032297d8c5f9f3241f22447d9",
+    "scripts/pair_validator_worker.py": "6a644576462d8904cd3bafd3e37120438acf55da2a3bd889454576b1c74456ea",
     "scripts/pair_watchdog.py": "61e375364d347f998608c822510216916f5fad8824e3225071815243e2b7dfcd",
     "scripts/pair_windows.py": "539cc3b64c6a6e092caaf1932815fcaecfa358661456a36af4d41476bcb48527",
     "scripts/pair_workspace.py": "2739ac69156832bb01eba11a55d6a0e8810dadd127c2a4a7dedf42918f9c3717"

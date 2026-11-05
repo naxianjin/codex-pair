@@ -92,7 +92,9 @@ if __name__ == '__main__':
     parser.add_argument('--node', required=True)
     args = parser.parse_args()
     request_path = Path(args.request)
-    if request_path.stat().st_size > 65536:
+    with request_path.open('rb') as stream:
+        data = stream.read(65537)
+    if len(data) > 65536:
         raise ValueError('Validator request exceeded limit')
-    request = json.loads(request_path.read_text(encoding='utf-8'))
+    request = json.loads(data.decode('utf-8'))
     print(json.dumps(run_validators(args.root, request, node=args.node), ensure_ascii=False, sort_keys=True))

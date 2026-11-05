@@ -51,6 +51,12 @@ class ValidatorWorkerTests(unittest.TestCase):
         self.assertEqual(report['binding'], self.request['binding'])
         self.assertTrue(report['validators_succeeded'])
         self.assertFalse(report['formal_checks_verified'])
+        request_path.write_bytes(b' ' * 65537)
+        oversized = subprocess.run([sys.executable, '-I', '-B', str(worker), '--root', str(self.root),
+                                    '--request', str(request_path), '--node', self.node],
+                                   capture_output=True, text=True, timeout=10)
+        self.assertNotEqual(oversized.returncode, 0)
+        self.assertIn('Validator request exceeded limit', oversized.stderr)
 
     def test_reject_changed_input_tool_and_extra_command(self):
         for kind in ('input', 'node', 'extra'):
