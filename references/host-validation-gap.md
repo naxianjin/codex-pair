@@ -124,3 +124,5 @@ e9c7aad复核发现native计数字段接受bool/float及results元素非对象�
 2026-11-05继续：worker结果增加有界stderr文本并由宿主核对UTF-8摘要，补findings/ledger顶层对象负例的具体array拒绝原因及诊断篡改拒绝；5项worker测试通过。输出仍为捕获后限额，外层Job资源限制仍必要；旧artifact缺stderr保持旧证据不追写。
 
 3b7e46b复核发现非UTF8控制台输出Unicode诊断风险，CLI改ASCII转义JSON，增加utf8=0下Unicode绑定往返回归；5项worker通过。HyperV ledger负例新artifact包含expected a top-level array具体拒绝原因，宿主验收false，旧证据不改；启动后首次PSDirect连接失败且尚未派发，客体就绪后运行成功。
+
+2026-11-05冻结全量1206项暴露发行清单错误：pair_audit_adapter.py工作树CRLF摘要与Git LF快照不同，导致37个错误和桥启动失败。已从Git固定字节重新生成清单并规范本地该文件换行；不修改校验规则。修复后须重新全量验证。
