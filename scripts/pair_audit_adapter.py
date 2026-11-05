@@ -289,7 +289,7 @@ def adapt_report(raw, *, context, expected_units, root=None):
             for key, item in by_id.items():
                 if key in units and units[key].get('required', True) and item.get('status') != 'covered':
                     gaps.append('cloudflare_required_unit_incomplete:' + str(key))
-        validators = _validator_contracts(report, assets)
+        validators = _validator_contracts(report, assets, context['track'])
     confirmed = any(isinstance(item, dict) and item.get('verdict') == 'confirmed' for item in findings)
     failed = any(isinstance(item, dict) and item.get('status') == 'failed'
                  for item in (checks if isinstance(checks, list) else []))
@@ -307,13 +307,15 @@ def adapt_report(raw, *, context, expected_units, root=None):
                 'upstream_unmodified_schema_passed': False}}
 
 
-def validator_inputs(adapted, *, root=None):
+def validator_inputs(adapted, *, context, root=None):
     """从固定适配报告生成校验输入；仅准备字节，不代表执行或正式通过。"""
     assets = load_assets(root)
     report = adapted['adapted_report']
+    if _json_digest(report.get('context')) != _json_digest(context):
+        raise AuditAdapterError('Validator context changed / 报告与登记上下文不符')
     if _json_digest(report) != adapted['adapted_sha256']:
         raise AuditAdapterError('Validator report changed / 固定报告已变化')
-    expected = _validator_contracts(report, assets)
+    expected = _validator_contracts(report, assets, context['track'])
     if adapted['validation']['required_validations'] != expected:
         raise AuditAdapterError('Validator contract changed / 校验契约与当前资产或报告不符')
     return [{'contract': entry, 'input_bytes': json.dumps(report[entry['input_field']],
@@ -321,9 +323,9 @@ def validator_inputs(adapted, *, root=None):
              'digest_format': 'json-utf8-sorted-compact-v1'} for entry in expected]
 
 
-def _validator_contracts(report, assets):
+def _validator_contracts(report, assets, track):
     expected = []
-    if report['context']['track'] == 'cloudflare':
+    if track == 'cloudflare':
         for field, name in (('findings', 'validate-findings.cjs'),
                             ('coverage_ledger', 'validate-coverage-ledger.cjs')):
             path = 'assets/audit/' + name

@@ -63,7 +63,7 @@ class AuditAdapterTests(unittest.TestCase):
         self.raw['coverage_ledger'] = [{'coverage_id': 'unit-1', 'status': 'covered'}]
         adapted = self.adapt()
         original = copy.deepcopy(adapted)
-        inputs = validator_inputs(adapted, root=self.root)
+        inputs = validator_inputs(adapted, context=self.context, root=self.root)
         self.assertEqual(len(inputs), 2)
         for item in inputs:
             self.assertEqual(hashlib.sha256(item['input_bytes']).hexdigest(), item['contract']['input_sha256'])
@@ -82,10 +82,24 @@ class AuditAdapterTests(unittest.TestCase):
             else:
                 changed['validation']['required_validations'].pop()
             with self.subTest(mutation=mutation), self.assertRaises(AuditAdapterError):
-                validator_inputs(changed, root=self.root)
+                validator_inputs(changed, context=self.context, root=self.root)
 
     def test_ocr_report_does_not_invent_cjs_validation_inputs(self):
-        self.assertEqual(validator_inputs(self.adapt(), root=self.root), [])
+        self.assertEqual(validator_inputs(self.adapt(), context=self.context, root=self.root), [])
+
+    def test_registered_cloudflare_track_keeps_validators_for_invalid_report_context(self):
+        self.context['track'] = 'cloudflare'
+        self.raw['coverage_ledger'] = []
+        for context in ({'track': 'ocr'}, {}, None, 'invalid'):
+            with self.subTest(context=context):
+                self.raw['context'] = context
+                adapted = self.adapt()
+                self.assertIn('report_context_mismatch', adapted['validation']['errors'])
+                self.assertEqual(len(adapted['validation']['required_validations']), 2)
+                with self.assertRaises(AuditAdapterError):
+                    validator_inputs(adapted, context=self.context, root=self.root)
+        self.raw.pop('context')
+        self.assertEqual(len(self.adapt()['validation']['required_validations']), 2)
 
     def test_wrong_binary_is_not_accepted_by_name(self):
         binary = self.root / 'ocr.exe'
