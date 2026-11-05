@@ -177,3 +177,8 @@
 附件为 codex-pair.zip 和 SHA256SUMS.txt。旧Release与标签不覆盖；四份已安装技能的运行文件保持本轮已验证版本。本次不重跑历史原窗口业务，测试协作保持暂停。
 
 尚未验证：allowed已返回未消费时的撤销竞争、完整真实额度耗尽/接管/恢复、DeepSeek双窗口及反向组合、完整跨分支Git矩阵。详细结果见 [测试汇总](references/validation-summary-20261019.md)，不能把本次发布理解为这些场景通过。
+
+## 2026-11-05 candidate materialization repair
+
+- Pin text checkout to LF and regenerate package hashes from committed bytes; fresh candidate materialization previously failed package validation on 43 line-ending-only differences.
+- Package/install checks: 5 passed on isolated committed-byte materialization and repaired source. Live query RPC diagnostic passed separately; full handle_tool and final independent acceptance remain pending.
