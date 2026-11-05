@@ -132,4 +132,4 @@ if __name__ == '__main__':
     if len(data) > 65536:
         raise ValueError('Validator request exceeded limit')
     request = json.loads(data.decode('utf-8'))
-    print(json.dumps(run_validators(args.root, request, node=args.node), ensure_ascii=False, sort_keys=True))
+    print(json.dumps(run_validators(args.root, request, node=args.node), ensure_ascii=True, sort_keys=True))

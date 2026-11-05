@@ -122,3 +122,5 @@ e9c7aad复核发现native计数字段接受bool/float及results元素非对象�
 38494ea复审发现binding字典相等会混同epoch整数与bool/float，现改规范JSON保留类型比较，补epoch=true/1.0拒绝回归，5项worker通过，待复审。
 
 2026-11-05继续：worker结果增加有界stderr文本并由宿主核对UTF-8摘要，补findings/ledger顶层对象负例的具体array拒绝原因及诊断篡改拒绝；5项worker测试通过。输出仍为捕获后限额，外层Job资源限制仍必要；旧artifact缺stderr保持旧证据不追写。
+
+3b7e46b复核发现非UTF8控制台输出Unicode诊断风险，CLI改ASCII转义JSON，增加utf8=0下Unicode绑定往返回归；5项worker通过。HyperV ledger负例新artifact包含expected a top-level array具体拒绝原因，宿主验收false，旧证据不改；启动后首次PSDirect连接失败且尚未派发，客体就绪后运行成功。

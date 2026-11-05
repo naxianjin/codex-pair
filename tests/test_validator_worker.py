@@ -85,15 +85,17 @@ class ValidatorWorkerTests(unittest.TestCase):
             verify_validator_result(self.request, native, ledger)
 
     def test_isolated_python_cli_returns_bound_results(self):
+        self.request['binding']['unicode'] = '诊断😀'
         request_path = self.root / 'request.json'
         request_path.write_text(json.dumps(self.request), encoding='utf-8')
         worker = Path(__file__).resolve().parents[1] / 'scripts/pair_validator_worker.py'
-        result = subprocess.run([sys.executable, '-I', '-B', str(worker), '--root', str(self.root),
+        result = subprocess.run([sys.executable, '-X', 'utf8=0', '-I', '-B', str(worker), '--root', str(self.root),
                                  '--request', str(request_path), '--node', self.node],
                                 capture_output=True, text=True, timeout=40)
         self.assertEqual(result.returncode, 0, result.stderr)
         report = json.loads(result.stdout)
         self.assertEqual(report['binding'], self.request['binding'])
+        self.assertTrue(result.stdout.isascii())
         self.assertTrue(report['validators_succeeded'])
         self.assertFalse(report['formal_checks_verified'])
         request_path.write_bytes(b' ' * 65537)
