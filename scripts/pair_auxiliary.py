@@ -619,6 +619,9 @@ class AuxiliaryMixin:
                 if not report or not execution or execution['state'] != 'completed':
                     reasons.append('task_unresolved:' + task['id'])
                     continue
+                if any(execution[key] != candidate[key] for key in ('candidate_digest', 'contract_digest')):
+                    reasons.append('execution_binding_mismatch:' + task['id'])
+                    continue
                 result = json.loads(report['adapted_report'])
                 validation = json.loads(report['validation'])
                 evidence = json.loads(report['evidence'])

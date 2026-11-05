@@ -425,6 +425,46 @@ class AuxiliaryTests(unittest.TestCase):
         with self.assertRaisesRegex(PairError, 'Stale auxiliary execution'):
             saved_validator_inputs(self.store, *self.actor(), ticket['execution_id'], ticket['lease'])
 
+    def test_settlement_rejects_execution_digest_drift_after_saved_report(self):
+        candidate = self.candidate()
+        self.assertEqual(self.settled_auxiliary_fixture(candidate)['verdict'], 'passed')
+        for field in ('candidate_digest', 'contract_digest'):
+            with self.subTest(field=field):
+                with self.store.transaction() as db:
+                    original = db.execute(f'SELECT {field} FROM auxiliary_executions').fetchone()[0]
+                    db.execute(f'UPDATE auxiliary_executions SET {field}=?', ('changed',))
+                try:
+                    result = self.store.settle_audit(*self.actor(), candidate['id'])
+                    self.assertEqual(result['verdict'], 'needs_validation')
+                    self.assertIn('execution_binding_mismatch:final-fixture', result['reasons'])
+                    self.assertEqual(result['report_digests'], [])
+                finally:
+                    with self.store.transaction() as db:
+                        db.execute(f'UPDATE auxiliary_executions SET {field}=?', (original,))
+
+    def test_settlement_keeps_valid_report_when_another_execution_drifts(self):
+        candidate = self.candidate()
+        self.settled_auxiliary_fixture(candidate)
+        self.queue('second-final', candidate=candidate, role='final_verification')
+        ticket = self.reserve('second-final')
+        self.start_fixture(ticket)
+        with self.store.transaction() as db:
+            execution = self.store._auxiliary_execution(db, ticket['execution_id'], ticket['lease'])
+            report = {'verdict': 'passed', 'findings': [], 'checks': [], 'fixture': 'second'}
+            self.store._save_auxiliary_report(db, execution, report, report,
+                {'errors': [], 'coverage_complete': True}, {'formal_checks_verified': True, 'fixture_only': True})
+        valid = self.store.settle_audit(*self.actor(), candidate['id'])
+        self.assertEqual(valid['verdict'], 'passed')
+        self.assertEqual(len(valid['report_digests']), 2)
+        with self.store.transaction() as db:
+            rejected_digest = db.execute('SELECT report_digest FROM auxiliary_reports WHERE execution_id=?', (ticket['execution_id'],)).fetchone()[0]
+            db.execute('UPDATE auxiliary_executions SET contract_digest=? WHERE id=?', ('changed', ticket['execution_id']))
+        result = self.store.settle_audit(*self.actor(), candidate['id'])
+        self.assertEqual(result['verdict'], 'needs_validation')
+        self.assertIn('execution_binding_mismatch:second-final', result['reasons'])
+        self.assertEqual(len(result['report_digests']), 1)
+        self.assertNotIn(rejected_digest, result['report_digests'])
+
     def test_no_live_hyperv_claim_from_task_flag(self):
         self.queue(requires_dynamic=True)
         ticket = self.reserve()
