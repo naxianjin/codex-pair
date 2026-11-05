@@ -295,6 +295,7 @@ class RealRequirementReceiptTests(unittest.TestCase):
         self.fixture = FinalSettlementTests()
         self.fixture.setUp()
         self.addCleanup(self.fixture.tearDown)
+        self.addCleanup(self.fixture.doCleanups)
         f = self.fixture
         self.binding = dict(pair=f.store.pair_id, stage=f.stage['id'], digest=f.stage['digest'],
                             epoch=f.ticket['epoch'], session=f.proof['id'], execution=f.lease['execution_id'])

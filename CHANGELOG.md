@@ -182,3 +182,5 @@
 
 - Pin text checkout to LF and regenerate package hashes from committed bytes; fresh candidate materialization previously failed package validation on 43 line-ending-only differences.
 - Package/install checks: 5 passed on isolated committed-byte materialization and repaired source. Live query RPC diagnostic passed separately; full handle_tool and final independent acceptance remain pending.
+
+- Test repair: run nested receipt fixture cleanups to prevent process_identity mock leakage into the native-process suite; 82 focused tests pass. Windows input validation passes with its required isolated seeded symlink fixture.
