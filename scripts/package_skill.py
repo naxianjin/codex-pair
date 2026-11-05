@@ -33,7 +33,8 @@ REQUIRED={'SKILL.md','agents/openai.yaml','references/onboarding.md','references
     'assets/audit/read-windows-input.cjs','assets/audit/read-windows-input.ps1','assets/audit/WindowsSafeInput.cs',
     'references/audit-adapter.md','references/upstream-notices.md',
     'licenses/open-code-review-Apache-2.0.txt','licenses/cloudflare-security-audit-MIT.txt',
-    'assets/upstream/ocr/WORKFLOW.md','assets/upstream/ocr/system_rules.json'}
+    'assets/upstream/ocr/WORKFLOW.md','assets/upstream/ocr/system_rules.json',
+    'scripts/pair_validator_worker.py'}
 REQUIRED.update('assets/upstream/cloudflare/'+name for name in CLOUDFLARE_ASSETS)
 
 

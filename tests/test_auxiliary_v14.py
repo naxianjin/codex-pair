@@ -9,6 +9,7 @@ from scripts.pair_core import PairError
 from scripts.pair_auxiliary import upgrade_auxiliary_v14
 from scripts.pair_auxiliary_runtime import STATIC_OVERRIDES, verify_static_controls, read_source_page, saved_validator_inputs, _context
 from scripts.pair_audit_adapter import adapt_report
+from scripts.pair_validator_worker import validator_request
 from tests import test_core
 
 
@@ -359,6 +360,12 @@ class AuxiliaryTests(unittest.TestCase):
         self.assertEqual(len(result['inputs']), 2)
         self.assertEqual(json.loads(result['inputs'][0]['input_bytes']), [])
         self.assertEqual(json.loads(result['inputs'][1]['input_bytes']), raw['coverage_ledger'])
+        request = validator_request(result, node_sha256='a' * 64)
+        self.assertEqual(len(request['files']), 8)
+        self.assertEqual(request['binding']['context'], context)
+        result['inputs'][0]['input_bytes'] = b'{}'
+        with self.assertRaisesRegex(ValueError, 'bytes changed'):
+            validator_request(result, node_sha256='a' * 64)
         with self.assertRaisesRegex(PairError, 'lease mismatch'):
             saved_validator_inputs(self.store, *self.actor(), ticket['execution_id'], 'wrong-lease')
         self.assertFalse(result['execution_started'])

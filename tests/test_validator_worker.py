@@ -1,0 +1,47 @@
+"""固定工作入口的真实 Node 校验；不作为隔离或正式回执证明。"""
+import copy
+import hashlib
+from pathlib import Path
+import shutil
+import tempfile
+import unittest
+
+from scripts.pair_validator_worker import run_validators
+
+
+@unittest.skipUnless(shutil.which('node'), 'Node required')
+class ValidatorWorkerTests(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.root = Path(self.temp.name)
+        source = Path(__file__).resolve().parents[1] / 'assets/audit'
+        for name in ('validate-findings.cjs', 'validate-coverage-ledger.cjs', 'report-schema.json',
+                     'read-windows-input.cjs', 'read-windows-input.ps1', 'WindowsSafeInput.cs'):
+            shutil.copyfile(source / name, self.root / name)
+        for name in ('findings.json', 'coverage_ledger.json'):
+            (self.root / name).write_bytes(b'[]')
+        self.node = shutil.which('node')
+        self.request = {'binding': {'execution': 'fixture', 'report': 'fixed'},
+                        'node_sha256': hashlib.sha256(Path(self.node).read_bytes()).hexdigest(),
+                        'files': {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in self.root.iterdir()}}
+
+    def test_real_validators_and_invalid_input(self):
+        result = run_validators(self.root, self.request, node=self.node)
+        self.assertTrue(result['validators_succeeded'])
+        self.assertFalse(result['formal_checks_verified'])
+        (self.root / 'findings.json').write_bytes(b'{}')
+        self.request['files']['findings.json'] = hashlib.sha256(b'{}').hexdigest()
+        self.assertFalse(run_validators(self.root, self.request, node=self.node)['validators_succeeded'])
+
+    def test_reject_changed_input_tool_and_extra_command(self):
+        for kind in ('input', 'node', 'extra'):
+            request = copy.deepcopy(self.request)
+            if kind == 'input':
+                request['files']['findings.json'] = '0' * 64
+            elif kind == 'node':
+                request['node_sha256'] = '0' * 64
+            else:
+                request['command'] = 'unexpected'
+            with self.subTest(kind=kind), self.assertRaises(ValueError):
+                run_validators(self.root, request, node=self.node)

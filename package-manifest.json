@@ -78,7 +78,7 @@
     "references/wokey.md": "28c18d65d5357797448a61eaf5688d3315697d39d8cea0632a4f42779197ec0a",
     "scripts/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "scripts/install_skill.py": "141252c8504270901f24fae64e96229973a075ae458a59695a986d9ea71d23eb",
-    "scripts/package_skill.py": "bfe42f23076795726901fa846c7c02878a866af89b25e00fb5a2a4f829c3e098",
+    "scripts/package_skill.py": "fc2d6f1be6b5b20986e8926f823b378e61b25df8959d7d3013ef835c5c58b100",
     "scripts/pair.py": "f33e948656643163e795cc914cc8c6337589f8d626dff2169ec15abb96297938",
     "scripts/pair_approvals.py": "50368ea75c768baefe43b0af7f80765da80c140ef8677e77efc41434ee695f59",
     "scripts/pair_assistance.py": "634413e594b75270cd9f92e0196dda295ba282ef31c3ce3a739bf4052e87dad3",
@@ -115,6 +115,7 @@
     "scripts/pair_stages.py": "d7ab9497bdc153d5f8f6d4f3e2108082c3516fcc44b8fe39aedb6772658477c2",
     "scripts/pair_team.py": "f93c255b5c75905828fe22dd42b2cef847821595ca0072efed0707ea661d74b5",
     "scripts/pair_transport.py": "54955ce8ca1d55206b0ef3cd40188dcce7041803a39ee7d82ec156894224277b",
+    "scripts/pair_validator_worker.py": "b094f0b0b1a5bdc8adbfc5768f11cce757dd3101f0b0a213bfeb29dab04073a9",
     "scripts/pair_watchdog.py": "61e375364d347f998608c822510216916f5fad8824e3225071815243e2b7dfcd",
     "scripts/pair_windows.py": "539cc3b64c6a6e092caaf1932815fcaecfa358661456a36af4d41476bcb48527",
     "scripts/pair_workspace.py": "2739ac69156832bb01eba11a55d6a0e8810dadd127c2a4a7dedf42918f9c3717"
