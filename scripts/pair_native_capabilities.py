@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import time
 from pathlib import Path
 from urllib.parse import urlsplit
 
@@ -49,6 +50,8 @@ def inspect_original_runtime(actor,configured,executable,*,connection_file=None)
         with client:
             thread=client.validate(actor)
             listing=client.rpc('hooks/list',{'threadId':actor['session_uuid']})
+            if not isinstance(listing.get('data',[]),list) or any(not isinstance(entry,dict) or not isinstance(entry.get('hooks',[]),list) or any(not isinstance(hook,dict) for hook in entry.get('hooks',[])) for entry in listing.get('data',[])):
+                raise TransportError('Invalid original hook listing')
             terminals=[];cursor=None;seen=set()
             while True:
                 params={'threadId':actor['session_uuid'],'limit':100}
@@ -99,7 +102,10 @@ class OriginalWebSocket:
             raise ValueError('Invalid local capability token')
         try:
             self.socket=websocket.create_connection(record['endpoint'],header=['Authorization: Bearer '+token],
-                suppress_origin=True,timeout=15)
+                suppress_origin=True,timeout=15,redirect_limit=0,http_no_proxy=['127.0.0.1'])
+            if self.socket.getstatus()!=101:
+                self.socket.close()
+                raise TransportError('Original WebSocket redirect refused')
         except (websocket.WebSocketException,OSError) as error:
             raise TransportError('Original WebSocket connection failed') from error
         self.sequence=0
@@ -123,12 +129,18 @@ class OriginalWebSocket:
         self.sequence+=1
         try:
             self.socket.send(json.dumps({'id':self.sequence,'method':method,'params':params}))
+            deadline=time.monotonic()+15
             while True:
+                remaining=deadline-time.monotonic()
+                if remaining<=0:raise TransportError('Original WebSocket RPC deadline exceeded')
+                self.socket.settimeout(remaining)
                 response=json.loads(self.socket.recv())
+                if not isinstance(response,dict):raise TransportError('Invalid original WebSocket response')
                 if 'method' in response and 'id' in response:
                     raise TransportError('Unexpected request on read-only WebSocket')
                 if response.get('id')==self.sequence:
                     if 'error' in response:raise TransportError('Original WebSocket metadata RPC failed')
+                    if not isinstance(response.get('result'),dict):raise TransportError('Invalid original WebSocket result')
                     return response['result']
         except (websocket.WebSocketException,OSError) as error:
             raise TransportError('Original WebSocket metadata result unknown') from error

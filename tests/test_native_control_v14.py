@@ -217,3 +217,17 @@ class OriginalWebSocketTests(unittest.TestCase):
         for method in ('thread/resume','turn/start','turn/interrupt','item/commandExecution/requestApproval'):
             with self.assertRaisesRegex(TransportError,'read-only'):
                 observer.rpc(method,{})
+
+
+    def test_malformed_response_and_notification_deadline_fail_closed(self):
+        from unittest.mock import Mock
+        from scripts.pair_native_capabilities import OriginalWebSocket
+        observer=OriginalWebSocket.__new__(OriginalWebSocket)
+        observer.sequence=0;observer.socket=Mock()
+        observer.socket.recv.return_value='[]'
+        with self.assertRaisesRegex(TransportError,'Invalid original'):
+            observer.rpc('thread/read',{})
+        observer.socket.recv.return_value='{"method":"notice"}'
+        with patch('scripts.pair_native_capabilities.time.monotonic',side_effect=[0,1,16]):
+            with self.assertRaisesRegex(TransportError,'deadline'):
+                observer.rpc('thread/read',{})
