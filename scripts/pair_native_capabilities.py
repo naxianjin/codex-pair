@@ -61,4 +61,6 @@ def inspect_original_runtime(actor,configured,executable):
                 'new_session_created':False,'processes_terminated':False}
     except (TransportError,OSError,ValueError,KeyError,TypeError) as error:
         return {'available':False,'source':'original_shared_daemon','reason':redact_diagnostic(str(error))[:1000],
-            'background_terminals':None,'full_tool_control':False,'new_session_created':False,'processes_terminated':False}
+            'background_terminals':None,'full_tool_control':False,'new_session_created':False,'processes_terminated':False,
+            'blocker':'original_runtime_unobservable',
+            'next_action':'核对原窗口是否由可连接的共享daemon承载；独立新app-server或单纯信任Hook不能证明原执行器空闲。'}

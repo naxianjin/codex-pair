@@ -4,6 +4,8 @@
 
 修复 check-approval-hook 在 trusted 时仍要求用户信任的问题，按已信任、待信任、未查询到分别提示。待信任提示补充原窗口 Installed=0 时恢复原会话重新加载的步骤；active_verified 保持 false，不把配置受信当作真实审批通过。39项审批/授权测试通过。原 B 已恢复原 UUID，真实 hooks/list 确认 trusted；原共享控制连接和 Windows AF_UNIX 创建均报10050，原执行器查询与完整恢复仍待实现或验证。未修改安装副本、活动桥或放宽恢复门禁，候选待独立审核。
 
+原运行时不可观察时新增明确 blocker 和下一步说明，保留原错误与 unknown，不再把信任Hook误当恢复办法。真实独立连接返回原B notLoaded，后台查询返回 thread not found，不能代替原执行器。57项控制回归与5项打包安装检查通过；修改后首次控制回归因尚未重生成发行清单出现5项摘要错误，重生成后重跑。
+
 ## 2026-11-05 — RQ-REQ-SOURCE-1 第一轮返修候选
 
 修正动态回执查询从不存在的 collaborations.requirements_version 取值的问题，改读阶段关联 tasks 的实际需求版本和审核等待状态，并纳入前后快照。保留 revise_requirements 的 affected 语义，无关任务不与全局新版本盲比。删除人为添加生产列的测试，使用真实 Store schema 和正式需求变更入口覆盖受影响拒绝、无关继续及读取中变化。原候选和缺陷历史保留，真实动态协议、受限审核及清单物化仍待验证，未修改活动安装或桥。

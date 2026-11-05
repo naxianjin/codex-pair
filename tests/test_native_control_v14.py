@@ -135,6 +135,8 @@ class CapabilityDefinitionTests(unittest.TestCase):
         with patch('scripts.pair_native_capabilities.AppServer',side_effect=TransportError('Original daemon unavailable')) as factory:
             result=inspect_original_runtime(actor,None,'fixture-exe')
         self.assertFalse(result['available']);self.assertIsNone(result['background_terminals'])
+        self.assertEqual(result['blocker'],'original_runtime_unobservable')
+        self.assertIn('不能证明',result['next_action'])
         self.assertEqual(factory.call_count,1);self.assertEqual(factory.call_args.kwargs['backend'],'shared')
 
     def test_new_managed_process_cannot_serve_as_original_runtime_observer(self):
@@ -171,3 +173,5 @@ class CapabilityDefinitionTests(unittest.TestCase):
         with patch('scripts.pair_native_capabilities.AppServer',return_value=OriginalDaemon()):
             result=inspect_original_runtime(actor,None,'fixture-exe')
         self.assertFalse(result['available']);self.assertIsNone(result['background_terminals'])
+        self.assertEqual(result['blocker'],'original_runtime_unobservable')
+        self.assertIn('不能证明',result['next_action'])
