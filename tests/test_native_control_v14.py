@@ -219,7 +219,7 @@ class OriginalWebSocketTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as root:
             path=Path(root)/'connection.json'
             for session,endpoint in [('wrong','ws://127.0.0.1:1234'),('original','ws://example.com:1234')]:
-                path.write_text(json.dumps({'session':session,'codex_home':actor['codex_home'],'endpoint':endpoint}),encoding='utf-8')
+                path.write_text(json.dumps({'session':session,'codex_home':actor['codex_home'],'endpoint':endpoint,'token_file':'unused'}),encoding='utf-8')
                 with self.assertRaisesRegex(ValueError,'binding mismatch'):
                     OriginalWebSocket(actor,path)
 
@@ -304,3 +304,27 @@ class OriginalWebSocketTests(unittest.TestCase):
                 observer.socket.recv.return_value=json.dumps(response)
                 with self.assertRaisesRegex(TransportError,message):
                     observer.rpc('account/read',{})
+
+    def test_invalid_connection_field_types_fail_before_connect(self):
+        import tempfile
+        from pathlib import Path
+        from scripts.pair_native_capabilities import OriginalWebSocket
+        with tempfile.TemporaryDirectory() as root:
+            path=Path(root)/'connection.json'
+            for record in ([], {'endpoint':123}):
+                path.write_text(json.dumps(record),encoding='utf-8')
+                with self.assertRaisesRegex(ValueError,'connection record'):
+                    OriginalWebSocket({},path)
+
+    def test_invalid_false_cursors_remain_unobservable(self):
+        from unittest.mock import MagicMock
+        actor={'session_uuid':'original','binding_version':1,'codex_home':'unused','cwd':'unused'}
+        for cursor in (0,False,[],{},''):
+            with self.subTest(cursor=cursor):
+                client=MagicMock();client.__enter__.return_value=client
+                client.validate.return_value={'status':{'type':'idle'}}
+                client.rpc.side_effect=[{'data':[]},{'data':[],'nextCursor':cursor}]
+                with patch('scripts.pair_native_capabilities.OriginalWebSocket',return_value=client):
+                    result=inspect_original_runtime(actor,None,'unused',connection_file='explicit')
+                self.assertFalse(result['available'])
+                self.assertIsNone(result['background_terminals'])

@@ -66,8 +66,8 @@ def inspect_original_runtime(actor,configured,executable,*,connection_file=None)
                         raise TransportError('Incomplete background terminal identity')
                     terminals.append({key:item.get(key) for key in ('processId','itemId','osPid')})
                 cursor=page.get('nextCursor')
-                if not cursor:break
-                if not isinstance(cursor,str) or cursor in seen:raise TransportError('Repeated background terminal cursor')
+                if cursor is None:break
+                if not isinstance(cursor,str) or not cursor or cursor in seen:raise TransportError('Repeated background terminal cursor')
                 seen.add(cursor)
             return {'available':True,'source':source,'thread_status':thread.get('status'),
                 'background_terminals':terminals,'capabilities':hook_capabilities(configured,listing),
@@ -89,6 +89,8 @@ class OriginalWebSocket:
         try:from .pair_transport import canonical_path
         except ImportError:from pair_transport import canonical_path
         record=json.loads(Path(connection_file).read_text(encoding='utf-8-sig'))
+        if not isinstance(record,dict) or any(not isinstance(record.get(key),str) or not record[key] for key in ('endpoint','session','codex_home','token_file')):
+            raise ValueError('Invalid original WebSocket connection record')
         endpoint=urlsplit(record['endpoint'])
         if (record['session']!=actor['session_uuid']
                 or canonical_path(record['codex_home'])!=canonical_path(actor['codex_home'])
