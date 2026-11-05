@@ -235,7 +235,15 @@ class DelegationTests(unittest.TestCase):
         report=self.store.record_hook_status({'data':[{'hooks':[base],'errors':[]}]})
         self.assertTrue(report['trust_required']);self.assertFalse(report['active_verified'])
         base['trustStatus']='trusted'
-        self.assertEqual(self.store.record_hook_status({'data':[{'hooks':[base],'errors':[]}]})['status'],'trusted')
+        trusted=self.store.record_hook_status({'data':[{'hooks':[base],'errors':[]}]})
+        self.assertEqual(trusted['status'],'trusted')
+        self.assertFalse(trusted['trust_required'])
+        self.assertFalse(trusted['active_verified'])
+        self.assertIn('配置已信任',trusted['detail'])
+        self.assertNotIn('请在',trusted['detail'])
+        missing=self.store.record_hook_status({'data':[{'hooks':[],'errors':[]}]})
+        self.assertEqual(missing['status'],'missing_or_unsupported')
+        self.assertIn('未查询到',missing['detail'])
         base['trustStatus']='modified'
         self.assertTrue(self.store.record_hook_status({'data':[{'hooks':[base],'errors':[]}]})['trust_required'])
 

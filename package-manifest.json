@@ -1,6 +1,6 @@
 {
   "files": {
-    "CHANGELOG.md": "e1f6b4e23d8d93bd4214f6e8fdbc64e63df4209328af707621b52eabd434cfea",
+    "CHANGELOG.md": "418ce163a0d1bd278dd3f42b794072f25ac1b161b6cd25d922d31071ebde74e7",
     "POST_RELEASE_TESTS.md": "20f930df316b42d6fca4c8cf7b86e7c2e80a22d5a517a5a826342a6e469d7a42",
     "README.md": "86d6476f8802724aea2eeb32270bc5512b40938cb275c763a3efa4b8b8e09b5b",
     "SKILL.md": "be24fa14bd5748cec7252e8668c21191aeb9c0f464994d5592ccba3f966fe1ac",
@@ -80,7 +80,7 @@
     "scripts/install_skill.py": "141252c8504270901f24fae64e96229973a075ae458a59695a986d9ea71d23eb",
     "scripts/package_skill.py": "bfe42f23076795726901fa846c7c02878a866af89b25e00fb5a2a4f829c3e098",
     "scripts/pair.py": "f33e948656643163e795cc914cc8c6337589f8d626dff2169ec15abb96297938",
-    "scripts/pair_approvals.py": "b0826d3322be499f26fb52d66879cd11d45a16b10017866941ee61e00e35e531",
+    "scripts/pair_approvals.py": "50368ea75c768baefe43b0af7f80765da80c140ef8677e77efc41434ee695f59",
     "scripts/pair_assistance.py": "634413e594b75270cd9f92e0196dda295ba282ef31c3ce3a739bf4052e87dad3",
     "scripts/pair_audit_adapter.py": "bd316d6e460294ab4021a1ed60e7f0399719ace92114f199e638f4c2f80af239",
     "scripts/pair_autoscale.py": "e9501bd3d69bc0a10896f85a914fe43d829929f9bf4a8a4ee209a7f9d0ba37d3",

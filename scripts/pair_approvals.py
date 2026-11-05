@@ -365,8 +365,12 @@ class ApprovalMixin:
             configured.update(status=status,checked_at=time.time(),hooks=[{k:h.get(k) for k in ('key','enabled','trustStatus','currentHash')} for h in hooks])
             self._put(db,'approval_hook:'+target,configured)
             if target=='B':self._put(db,'approval_hook',configured)
+            details={
+                'trusted':'Hook 配置已信任；原窗口实际加载和审批回调仍须分别验证。',
+                'installed_requires_trust':f'请在原 {target} 窗口输入 /hooks，审阅并信任本轮对应项；若 Installed 为0，先在空闲时退出并恢复原会话以重新加载配置。',
+                'missing_or_unsupported':'未查询到本轮 Hook；先核对目标配置目录、CLI支持及加载错误。'}
             return {'status':status,'trust_required':bool(hooks) and not trusted,'active_verified':False,
-                    'detail':'较低权限的 B 请在 Hook 安装后输入 /hooks，审阅并信任 codex-pair 对应项；通信成功不代表自动审批就绪。'}
+                    'detail':details[status]}
 
     def install_approval_hook(self,member,session,cwd,*,python,script,timeout=180,target='B'):
         """同配置目录也按精确会话隔离；配置写入加锁，只替换本轮自有处理器。"""
