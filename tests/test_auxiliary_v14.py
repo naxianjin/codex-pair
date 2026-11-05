@@ -7,7 +7,8 @@ from unittest.mock import patch
 
 from scripts.pair_core import PairError
 from scripts.pair_auxiliary import upgrade_auxiliary_v14
-from scripts.pair_auxiliary_runtime import STATIC_OVERRIDES, verify_static_controls, read_source_page
+from scripts.pair_auxiliary_runtime import STATIC_OVERRIDES, verify_static_controls, read_source_page, saved_validator_inputs, _context
+from scripts.pair_audit_adapter import adapt_report
 from tests import test_core
 
 
@@ -330,6 +331,34 @@ class AuxiliaryTests(unittest.TestCase):
         ticket = self.reserve()
         with self.assertRaisesRegex(PairError, 'receipt unavailable'):
             self.store.finish_auxiliary(*self.actor(), ticket['execution_id'], ticket['lease'], {'verdict': 'passed', 'checks': [], 'findings': []})
+
+    def test_saved_validator_inputs_use_fixed_store_report_and_reject_stale_execution(self):
+        candidate = self.queue()
+        ticket = self.reserve()
+        self.start_fixture(ticket)
+        with self.assertRaisesRegex(PairError, 'Validator source unavailable'):
+            saved_validator_inputs(self.store, *self.actor(), ticket['execution_id'], ticket['lease'])
+        with self.store.transaction() as db:
+            execution = dict(self.store._auxiliary_execution(db, ticket['execution_id'], ticket['lease']))
+            task = dict(self.store._auxiliary_task(db, execution['task_id']))
+            fixed = dict(self.store._auxiliary_candidate(db, task['candidate_id']))
+            context = _context(self.store, {'execution': execution, 'task': task, 'candidate': fixed})
+            raw = {'context': context, 'verdict': 'needs_validation', 'findings': [], 'checks': [],
+                   'coverage': [{'unit_id': 'source', 'status': 'reviewed', 'evidence_refs': ['fixture']}],
+                   'unverified_candidates': []}
+            adapted = adapt_report(raw, context=context, expected_units=[{'id': 'source', 'required': True}])
+            self.store._save_auxiliary_report(db, execution, raw, adapted['adapted_report'],
+                                             adapted['validation'], {'formal_checks_verified': False})
+        result = saved_validator_inputs(self.store, *self.actor(), ticket['execution_id'], ticket['lease'])
+        self.assertEqual(result['context'], context)
+        self.assertEqual(result['inputs'], [])
+        self.assertFalse(result['execution_started'])
+        self.assertFalse(result['formal_checks_verified'])
+        self.assertEqual(self.store.settle_audit(*self.actor(), candidate['id'])['verdict'], 'needs_validation')
+        with self.store.transaction() as db:
+            db.execute('UPDATE auxiliary_tasks SET last_execution=NULL WHERE id=?', (task['id'],))
+        with self.assertRaisesRegex(PairError, 'Stale auxiliary execution'):
+            saved_validator_inputs(self.store, *self.actor(), ticket['execution_id'], ticket['lease'])
 
     def test_no_live_hyperv_claim_from_task_flag(self):
         self.queue(requires_dynamic=True)

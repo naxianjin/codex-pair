@@ -19,7 +19,7 @@ try:
     from .pair_review_runtime import prepare_review_tree, materialize_snapshot, verify_review_bytes, tree_stamp, git, _terminal_review_report
     from .pair_reviewer import reviewer_identity, verify_review_service, fail
     from .pair_stages import encoded, digest
-    from .pair_audit_adapter import adapt_report, load_assets
+    from .pair_audit_adapter import adapt_report, load_assets, validator_inputs
     from . import pair_hidden_handoff as hidden_handoff
 except ImportError:
     from pair_transport import AppServer, TransportError, canonical_path, command_matches, receipt_cwd, rollout_command_items, redact_diagnostic
@@ -28,7 +28,7 @@ except ImportError:
     from pair_review_runtime import prepare_review_tree, materialize_snapshot, verify_review_bytes, tree_stamp, git, _terminal_review_report
     from pair_reviewer import reviewer_identity, verify_review_service, fail
     from pair_stages import encoded, digest
-    from pair_audit_adapter import adapt_report, load_assets
+    from pair_audit_adapter import adapt_report, load_assets, validator_inputs
     import pair_hidden_handoff as hidden_handoff
 
 
@@ -476,6 +476,29 @@ def finish_execution(store, member, session, cwd, execution_id, lease, report, *
         if any(current[k] != before['execution'][k] for k in ('state', 'turn_id', 'candidate_digest', 'contract_digest', 'session_uuid', 'producer')):
             fail('Auxiliary receipt changed / 查询期间执行或候选改变')
         return store._save_auxiliary_report(db, current, sanitized, adapted['adapted_report'], adapted['validation'], evidence)
+
+
+def saved_validator_inputs(store, member, session, cwd, execution_id, lease):
+    """只准备当前已保存报告的输入，不启动工具或补发旧执行。"""
+    with store.transaction() as db:
+        store._a_actor(db, member, session, cwd)
+        execution = dict(store._auxiliary_execution(db, execution_id, lease))
+        task = dict(store._auxiliary_task(db, execution['task_id']))
+        candidate = dict(store._auxiliary_candidate(db, task['candidate_id']))
+        report = db.execute('SELECT * FROM auxiliary_reports WHERE execution_id=?', (execution_id,)).fetchone()
+        if (not report or execution['state'] != 'completed' or task['last_execution'] != execution_id
+                or candidate['candidate_digest'] != execution['candidate_digest']
+                or candidate['contract_digest'] != execution['contract_digest']):
+            fail('Validator source unavailable / 缺当前准确执行的固定报告')
+        view = {'execution': execution, 'task': task, 'candidate': candidate}
+        context = _context(store, view)
+        adapted = json.loads(report['adapted_report'])
+        inputs = validator_inputs({'adapted_report': adapted, 'adapted_sha256': digest(adapted),
+                                   'validation': json.loads(report['validation'])}, context=context)
+        return {'context': context, 'original_report_digest': report['report_digest'],
+                'stored_report_digest': digest(json.loads(report['raw_report'])),
+                'adapted_report_digest': digest(adapted), 'inputs': inputs,
+                'execution_started': False, 'formal_checks_verified': False}
 
 
 def reconcile_execution(store, member, session, cwd, execution_id, lease, *, executable=None):
