@@ -135,6 +135,7 @@ class OriginalWebSocket:
                 if remaining<=0:raise TransportError('Original WebSocket RPC deadline exceeded')
                 self.socket.settimeout(remaining)
                 response=json.loads(self.socket.recv())
+                if time.monotonic()>=deadline:raise TransportError('Original WebSocket RPC deadline exceeded')
                 if not isinstance(response,dict):raise TransportError('Invalid original WebSocket response')
                 if 'method' in response and 'id' in response:
                     raise TransportError('Unexpected request on read-only WebSocket')

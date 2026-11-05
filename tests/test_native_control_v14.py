@@ -228,6 +228,17 @@ class OriginalWebSocketTests(unittest.TestCase):
         with self.assertRaisesRegex(TransportError,'Invalid original'):
             observer.rpc('thread/read',{})
         observer.socket.recv.return_value='{"method":"notice"}'
+        with patch('scripts.pair_native_capabilities.time.monotonic',side_effect=[0,1,2,16]):
+            with self.assertRaisesRegex(TransportError,'deadline'):
+                observer.rpc('thread/read',{})
+
+
+    def test_response_received_after_deadline_is_not_accepted(self):
+        from unittest.mock import Mock
+        from scripts.pair_native_capabilities import OriginalWebSocket
+        observer=OriginalWebSocket.__new__(OriginalWebSocket)
+        observer.sequence=0;observer.socket=Mock()
+        observer.socket.recv.return_value='{"id":1,"result":{}}'
         with patch('scripts.pair_native_capabilities.time.monotonic',side_effect=[0,1,16]):
             with self.assertRaisesRegex(TransportError,'deadline'):
                 observer.rpc('thread/read',{})
