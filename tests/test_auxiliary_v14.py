@@ -391,16 +391,35 @@ class AuxiliaryTests(unittest.TestCase):
         self.assertFalse(result['execution_started'])
         self.assertFalse(result['formal_checks_verified'])
         self.assertEqual(self.store.settle_audit(*self.actor(), candidate['id'])['verdict'], 'needs_validation')
-        for field in ('raw_report', 'adapted_report'):
+        for field in ('raw_report', 'adapted_report', 'evidence'):
             with self.store.transaction() as db:
                 original = db.execute('SELECT '+field+' FROM auxiliary_reports WHERE execution_id=?', (ticket['execution_id'],)).fetchone()[0]
                 changed = json.loads(original)
-                changed['verdict'] = 'passed'
+                if field == 'evidence':
+                    changed.pop('stored_report_digest')
+                else:
+                    changed['verdict'] = 'passed'
                 db.execute('UPDATE auxiliary_reports SET '+field+'=? WHERE execution_id=?', (json.dumps(changed), ticket['execution_id']))
             with self.assertRaisesRegex(PairError, 'Validator report integrity unavailable'):
                 saved_validator_inputs(self.store, *self.actor(), ticket['execution_id'], ticket['lease'])
+            settled = self.store.settle_audit(*self.actor(), candidate['id'])
+            self.assertIn('report_integrity_mismatch:aux', settled['reasons'])
+            self.assertEqual(settled['report_digests'], [])
+            self.assertEqual(settled['verdict'], 'needs_validation')
             with self.store.transaction() as db:
                 db.execute('UPDATE auxiliary_reports SET '+field+'=? WHERE execution_id=?', (original, ticket['execution_id']))
+        with self.store.transaction() as db:
+            original = db.execute('SELECT evidence FROM auxiliary_reports WHERE execution_id=?', (ticket['execution_id'],)).fetchone()[0]
+            changed = json.loads(original)
+            changed.pop('adapted_report_digest')
+            db.execute('UPDATE auxiliary_reports SET evidence=? WHERE execution_id=?', (json.dumps(changed), ticket['execution_id']))
+        try:
+            with self.assertRaisesRegex(PairError, 'Validator report integrity unavailable'):
+                saved_validator_inputs(self.store, *self.actor(), ticket['execution_id'], ticket['lease'])
+            self.assertIn('report_integrity_mismatch:aux', self.store.settle_audit(*self.actor(), candidate['id'])['reasons'])
+        finally:
+            with self.store.transaction() as db:
+                db.execute('UPDATE auxiliary_reports SET evidence=? WHERE execution_id=?', (original, ticket['execution_id']))
         with self.store.transaction() as db:
             db.execute('UPDATE auxiliary_tasks SET last_execution=NULL WHERE id=?', (task['id'],))
         with self.assertRaisesRegex(PairError, 'Stale auxiliary execution'):

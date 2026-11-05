@@ -622,6 +622,10 @@ class AuxiliaryMixin:
                 result = json.loads(report['adapted_report'])
                 validation = json.loads(report['validation'])
                 evidence = json.loads(report['evidence'])
+                if (evidence.get('stored_report_digest') != digest(json.loads(report['raw_report']))
+                        or evidence.get('adapted_report_digest') != digest(result)):
+                    reasons.append('report_integrity_mismatch:' + task['id'])
+                    continue
                 self._auxiliary_independent(db, candidate, task, execution['session_uuid'])
                 if validation.get('errors') or not validation.get('coverage_complete'):
                     reasons.append('report_validation_incomplete:' + task['id'])
