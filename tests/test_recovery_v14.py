@@ -382,6 +382,15 @@ class RecoveryV14Tests(unittest.TestCase):
         self.assertEqual(contributor['provider'], 'wokey')
         self.assertEqual(contributor['model'], 'gpt-6.1-sol')
 
+    def test_apinebula_remaining_work_keeps_original_contributor(self):
+        source, kwargs, _ = self.remaining_fixture(provider='apinebula')
+        result = self.store.continue_remaining_work(*self.actor(), 'saved', 'remaining', source['source_digest'], **kwargs)
+        self.assertEqual(result['state'], 'registered')
+        with self.store.transaction() as db:
+            contributor = self.store._continuation_contributors(db, 'remaining')[0]
+        self.assertEqual(contributor['provider'], 'apinebula')
+        self.assertEqual(contributor['model'], 'gpt-6.1-sol')
+
     def test_safe_recovery_cannot_enable_policy_or_duplicate_remaining_work(self):
         source, kwargs, _ = self.remaining_fixture(enabled=False)
         waiting = self.store.continue_remaining_work(*self.actor(), 'saved', 'remaining', source['source_digest'], **kwargs)

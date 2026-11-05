@@ -391,7 +391,7 @@ def _expected_binding(value):
     required = ('session_uuid', 'codex_home', 'cwd', 'model', 'modelProvider')
     if any(not isinstance(value.get(k), str) or not value[k] for k in required):
         raise ValueError('Incomplete expected CLI binding')
-    if value['modelProvider'] not in ('openai', 'deepseek', 'wokey'):
+    if value['modelProvider'] not in ('openai', 'deepseek', 'wokey', 'apinebula'):
         raise ValueError('Unsupported expected model provider')
     return {'session_uuid': session_uuid(value['session_uuid']), 'codex_home': canonical_path(value['codex_home']),
             'cwd': canonical_path(value['cwd']), 'model': value['model'], 'modelProvider': value['modelProvider'],

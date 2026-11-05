@@ -16,10 +16,10 @@ except ImportError:
 
 try:
     from .pair_transport import AppServer, command_receipt, merge_command_receipts, receipt_cwd, redact_diagnostic, rollout_command_items, same_review_directory
-    from .pair_reviewer import official_identity
+    from .pair_reviewer import reviewer_identity
 except ImportError:
     from pair_transport import AppServer, command_receipt, merge_command_receipts, receipt_cwd, redact_diagnostic, rollout_command_items, same_review_directory
-    from pair_reviewer import official_identity
+    from pair_reviewer import reviewer_identity
 
 
 def current_binding(directory, expected):
@@ -45,6 +45,8 @@ def current_binding(directory, expected):
         stage = dict(db.execute('SELECT * FROM review_stages WHERE id=?', (expected['stage'],)).fetchone() or {})
         runtime = dict(db.execute('SELECT * FROM reviewer_runtime').fetchone() or {})
         parent = dict(db.execute("SELECT * FROM members WHERE id='A'").fetchone() or {})
+        provider_row = db.execute("SELECT value FROM pair_settings WHERE key='reviewer_provider'").fetchone()
+        provider = json.loads(provider_row[0]) if provider_row else 'openai'
         producer_row = db.execute("SELECT value FROM pair_settings WHERE key=?", (KEY+expected['execution'],)).fetchone()
     if (collaboration['id'] != expected['pair'] or collaboration['status'] != 'running'
             or directory != Path(collaboration['project']).absolute() / '.codex-pair' / 'state' / expected['pair']
@@ -66,8 +68,10 @@ def current_binding(directory, expected):
     snapshot['state_file'] = (identity.st_dev, identity.st_ino)
     snapshot['stage'] = {k: stage[k] for k in ('id', 'digest', 'status', 'turn_id', 'requirements_version', 'payload')}
     snapshot['collaboration'] = collaboration
+    runtime['modelProvider'] = provider
+    snapshot['reviewer_provider'] = provider
     proof = json.loads(parent['proof'])
-    if (proof.get('modelProvider') != 'openai' or proof.get('model') != runtime.get('model')
+    if (provider not in ('openai','apinebula') or proof.get('modelProvider') != provider or proof.get('model') != runtime.get('model')
             or not same_review_directory(runtime['codex_home'], parent['codex_home'])):
         raise ValueError('Reviewer parent identity mismatch')
     record = json.loads(producer_row[0]) if producer_row else None
@@ -123,8 +127,9 @@ def verified_turn(directory, expected, *, observer_factory=AppServer):
     if before['producer'] is not None:options['executable']=before['producer']['launch']['file']['path']
     with observer_factory(**options) as observer:
         thread = observer.read_thread(runtime['session_uuid'])
-        official_identity(thread)
-        if (thread.get('id') != runtime['session_uuid'] or thread.get('model') != runtime['model']
+        reviewer_identity(thread)
+        if (thread.get('modelProvider') != runtime['modelProvider']
+                or thread.get('id') != runtime['session_uuid'] or thread.get('model') != runtime['model']
                 or receipt_cwd(thread.get('cwd')) != receipt_cwd(runtime['cwd'])):
             raise ValueError('Official receipt thread mismatch')
         matches = [t for t in observer.turns(runtime['session_uuid'], items_view='full') if t.get('id') == stage['turn_id']]

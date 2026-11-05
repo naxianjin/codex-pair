@@ -22,17 +22,38 @@ def fail(message):
     raise PairError(message)
 
 
-def official_identity(proof):
-    # 此处校验经官方 API 取得的白名单；不从目录名或模型自述推断资格。
-    if not isinstance(proof, dict) or proof.get('modelProvider') != 'openai':
-        fail('Official GPT required / 隐藏审核者要求已核验的 OpenAI 官方 GPT')
+def reviewer_identity(proof):
+    # apinebula按用户授权替代审核，实际提供方始终保留，不伪称官方服务。
+    if not isinstance(proof, dict) or proof.get('modelProvider') not in ('openai', 'apinebula'):
+        fail('Official GPT or authorized third-party GPT required / 要求官方GPT或获准的apinebula第三方GPT')
     model = proof.get('model')
     if not isinstance(model, str) or not model.startswith('gpt-') or proof.get('ephemeral'):
         fail('Persistent GPT required / 要求可恢复的 GPT 会话')
     if not isinstance(proof.get('id'), str) or not isinstance(proof.get('cwd'), str):
         fail('Incomplete identity / 缺少经 API 核验的会话或目录')
     return {'id': session_uuid(proof['id']), 'cwd': canonical_path(proof['cwd']),
-            'modelProvider': 'openai', 'model': model}
+            'modelProvider': proof['modelProvider'], 'model': model}
+
+
+def official_identity(proof):
+    if not isinstance(proof, dict) or proof.get('modelProvider') != 'openai':
+        fail('Official GPT required / 此入口只认定OpenAI官方GPT身份')
+    return reviewer_identity(proof)
+
+
+def verify_review_service(client, proof, home, *, require_account_id=False):
+    identity = reviewer_identity(proof)
+    try:from .pair_balance import pool_key
+    except ImportError:from pair_balance import pool_key
+    if identity['modelProvider'] == 'apinebula':
+        return pool_key({}, canonical_path(home))
+    account = client.rpc('account/read', {'refreshToken': False})
+    if (account.get('account') or {}).get('type') != 'chatgpt':
+        fail('Official account unverified / 要求核验原官方账号，不切换账号')
+    identity = account.get('account') or {}
+    if require_account_id and not (identity.get('accountId') or identity.get('id') or identity.get('email')):
+        fail('Official account unavailable / 无法核验当前官方账号及真实共享池')
+    return pool_key(account, canonical_path(home))
 
 
 def safe_evidence(evidence):
@@ -151,7 +172,7 @@ class ReviewerMixin:
         if member != 'A':
             fail('Original A required / 仅原 A 可管理隐藏审核者')
         proof = json.loads(parent['proof'])
-        identity = official_identity(proof)
+        identity = reviewer_identity(proof)
         if identity['id'] != parent['session_uuid']:
             fail('Parent identity mismatch / A 的实际身份与绑定不符')
         return parent, identity
@@ -171,6 +192,8 @@ class ReviewerMixin:
             # 运行令牌只交给持有者，不在普通状态查询中暴露。
             row.pop('owner', None)
             row.pop('attempt', None)
+            row['modelProvider'] = self._option(db, 'reviewer_provider', 'openai')
+            row['review_service'] = 'third_party' if row['modelProvider'] == 'apinebula' else 'openai_official'
         return {'reviewer': row, 'visible_seat': False,
                 'approval_authority': False, 'release_gate_implemented': self._option(db,'review_required',False),
                 'checkpoint':self._option(db,'reviewer_checkpoint')}
@@ -201,12 +224,13 @@ class ReviewerMixin:
                 VALUES(1,?,'starting',?,?,?,?,?,?,?,?)''',
                 (epoch, attempt, parent['codex_home'], canonical_path(cwd), proof['model'],
                  parent['session_uuid'], now, now, now))
-            self.event(db, 'reviewer_reserved', epoch=epoch, replacement=replacement)
+            self._put(db, 'reviewer_provider', proof['modelProvider'])
+            self.event(db, 'reviewer_reserved', epoch=epoch, replacement=replacement, provider=proof['modelProvider'])
             return {'epoch': epoch, 'attempt': attempt, 'codex_home': parent['codex_home'],
-                    'model': proof['model'], 'modelProvider': 'openai'}
+                    'model': proof['model'], 'modelProvider': proof['modelProvider']}
 
     def bind_reviewer(self, member, session, cwd, *, epoch, attempt, proof, reviewer_cwd):
-        actual = official_identity(proof)
+        actual = reviewer_identity(proof)
         with self.transaction() as db:
             parent, expected = self._reviewer_parent(db, member, session, cwd)
             row = self._reviewer_row(db)
@@ -216,7 +240,9 @@ class ReviewerMixin:
             if (db.execute('SELECT status FROM collaborations').fetchone()[0] != 'running'
                     or self._option(db, 'goal_completed', False)):
                 fail('Collaboration not running / 保留迟到创建证据，不激活审核者')
-            if (actual['id'] == parent['session_uuid'] or actual['model'] != row['model']
+            if (actual['modelProvider'] != expected['modelProvider']
+                    or actual['modelProvider'] != self._option(db, 'reviewer_provider', 'openai')
+                    or actual['id'] == parent['session_uuid'] or actual['model'] != row['model']
                     or expected['model'] != row['model'] or parent['session_uuid'] != row['parent_session']
                     or canonical_path(parent['codex_home']) != canonical_path(row['codex_home'])
                     or actual['cwd'] != canonical_path(reviewer_cwd)):
@@ -239,17 +265,18 @@ class ReviewerMixin:
 
     def _check_reviewer(self, db, epoch, session, proof):
         row = self._reviewer_row(db)
-        actual = official_identity(proof)
+        actual = reviewer_identity(proof)
         if (not row or row['epoch'] != epoch or row['session_uuid'] != session_uuid(session)
                 or row['state'] in ('starting', 'unknown', 'retired')
                 or actual['id'] != row['session_uuid'] or actual['cwd'] != canonical_path(row['cwd'])
-                or actual['model'] != row['model']):
+                or actual['model'] != row['model']
+                or actual['modelProvider'] != self._option(db, 'reviewer_provider', 'openai')):
             fail('Stale reviewer identity / 审核身份、配置或运行代次已失效')
         if db.execute('SELECT 1 FROM members WHERE session_uuid=?', (row['session_uuid'],)).fetchone():
             fail('Hidden reviewer cannot join visible members / 审核者不再具有独立身份')
         parent = self._member(db, 'A')
-        current = official_identity(json.loads(parent['proof']))
-        if (current['model'] != row['model'] or parent['session_uuid'] != row['parent_session']
+        current = reviewer_identity(json.loads(parent['proof']))
+        if (current['modelProvider'] != actual['modelProvider'] or current['model'] != row['model'] or parent['session_uuid'] != row['parent_session']
                 or canonical_path(parent['codex_home']) != canonical_path(row['codex_home'])):
             fail('Parent configuration changed / A 配置变化后必须重新核验审核者')
         return row

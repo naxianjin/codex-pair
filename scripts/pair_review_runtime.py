@@ -18,13 +18,13 @@ except ImportError:
 
 try:
     from .pair_transport import AppServer,DeliveryUnknown,TransportError,binding_proof,redact_diagnostic,canonical_path,command_receipt,command_matches,receipt_cwd,rollout_command_items,merge_command_receipts,same_review_directory
-    from .pair_reviewer import official_identity,fail,safe_evidence
+    from .pair_reviewer import reviewer_identity,verify_review_service,fail,safe_evidence
     from .pair_managed import permission_response
     from .pair_stages import encoded,digest
     from . import pair_hidden_handoff as hidden_handoff
 except ImportError:
     from pair_transport import AppServer,DeliveryUnknown,TransportError,binding_proof,redact_diagnostic,canonical_path,command_receipt,command_matches,receipt_cwd,rollout_command_items,merge_command_receipts,same_review_directory
-    from pair_reviewer import official_identity,fail,safe_evidence
+    from pair_reviewer import reviewer_identity,verify_review_service,fail,safe_evidence
     from pair_managed import permission_response
     from pair_stages import encoded,digest
     import pair_hidden_handoff as hidden_handoff
@@ -253,9 +253,7 @@ class ReviewerController:
         a=self.store.member('A')
         with AppServer(codex_home=a['codex_home'],cwd=a['cwd'],executable=self.executable,metadata_only=True,account_metadata=True) as observer:
             actual=observer.validate(a)
-            official_identity(actual)
-            account=observer.rpc('account/read',{'refreshToken':False})
-            if account.get('account',{}).get('type')!='chatgpt':fail('Official account unverified / 要求核验原 A 官方账号，不切换账号')
+            verify_review_service(observer, actual, a['codex_home'])
         return a,actual
 
     def _session(self,head):
@@ -275,12 +273,12 @@ class ReviewerController:
             thread=self.client.read_thread(response['thread']['id'])
             if not same_review_directory(thread.get('cwd'),root):fail('Reviewer directory changed / 原审核目录不符')
             proof=binding_proof(thread,require_provider=True)
-            official_identity(proof)
+            reviewer_identity(proof)
             with self.store.transaction() as db:self.store._check_reviewer(db,public['epoch'],proof['id'],proof)
         else:
             ticket=self.store.reserve_reviewer('A',a['session_uuid'],a['cwd'],replacement=replacement,evidence=self.store.setting('reviewer_replacement_evidence') or '')
             try:
-                response=self.client.rpc('thread/start',{'cwd':root,'model':actual['model'],'modelProvider':'openai',
+                response=self.client.rpc('thread/start',{'cwd':root,'model':actual['model'],'modelProvider':actual['modelProvider'],
                     'serviceName':'codex-pair:'+self.store.pair_id+':reviewer:'+ticket['attempt'],
                     'sandbox':'workspace-write','approvalPolicy':'on-request','ephemeral':False,
                     'dynamicTools':[hidden_handoff.HANDOFF_TOOL],
@@ -370,8 +368,9 @@ class ReviewerController:
             stage=db.execute('SELECT * FROM review_stages WHERE execution_id=? AND turn_id=?',(state['execution_id'],turn_id)).fetchone()
             version=stored_context(self.store,db,before,stage) if stage else None
         if not pending:return
-        thread=self.client.read_thread(state['session']);official_identity(thread)
-        if (thread.get('id')!=state['session'] or thread.get('model')!=before['model']
+        thread=self.client.read_thread(state['session']);reviewer_identity(thread)
+        if (thread.get('modelProvider')!=json.loads(parent['proof']).get('modelProvider')
+                or thread.get('id')!=state['session'] or thread.get('model')!=before['model']
                 or receipt_cwd(thread.get('cwd'))!=receipt_cwd(before['cwd'])):
             fail('Reviewer identity mismatch / 核实前项时审核身份不符')
         turns=[t for t in self.client.turns(state['session'],items_view='full') if t.get('id')==turn_id]
@@ -524,7 +523,7 @@ class ReviewerController:
         state=self.state
         self._parent()
         fresh=binding_proof(self.client.read_thread(state['session']),require_provider=True)
-        official_identity(fresh)
+        reviewer_identity(fresh)
         lease=self.store.acquire_reviewer(state['epoch'],state['session'],fresh)
         state.update(owner=lease['owner'],execution_id=lease['execution_id'])
         state.pop('turn_id',None)
@@ -676,7 +675,7 @@ def settle_permissions(store,epoch,execution_id,turn,*,active_turn=None,binding_
                     and same_review_directory(binding.get('home'),current['home']))
             if (version is not None and binding_ok and parent['session_uuid']==runtime['parent_session']
                     and canonical_path(parent['codex_home'])==canonical_path(runtime['codex_home'])
-                    and proof.get('modelProvider')=='openai' and proof.get('model')==runtime['model']
+                    and proof.get('modelProvider')==store._option(db,'reviewer_provider','openai') and proof.get('model')==runtime['model']
                     and (runtime['state'] in ('running','unknown') or runtime['state']=='idle' and not runtime['owner'] and row['status'] in ('unknown','granted'))
                     and row['session']==runtime['session_uuid']==params.get('threadId')==turn.get('threadId')
                     and (turn.get('status') in ('completed','failed','interrupted') or
@@ -715,8 +714,8 @@ def reconcile_review(store,member,session,cwd,stage_id,evidence):
     observer_options=dict(codex_home=runtime['codex_home'],cwd=runtime['cwd'],metadata_only=True)
     if producer_record:observer_options['executable']=producer_record['launch']['file']['path']
     with AppServer(**observer_options) as observer:
-        thread=observer.read_thread(runtime['session_uuid']);official_identity(thread)
-        if thread.get('id')!=runtime['session_uuid'] or thread.get('model')!=runtime['model'] or receipt_cwd(thread.get('cwd'))!=receipt_cwd(runtime['cwd']):fail('Reviewer identity mismatch / 原审核会话、模型或目录不符')
+        thread=observer.read_thread(runtime['session_uuid']);reviewer_identity(thread)
+        if thread.get('modelProvider')!=json.loads(parent['proof']).get('modelProvider') or thread.get('id')!=runtime['session_uuid'] or thread.get('model')!=runtime['model'] or receipt_cwd(thread.get('cwd'))!=receipt_cwd(runtime['cwd']):fail('Reviewer identity mismatch / 原审核会话、模型或目录不符')
         # 惰性分页必须在连接仍打开时消费；完整视图仅用于原审核对账。
         turns=observer.turns(runtime['session_uuid'],items_view='full')
         matches=[t for t in turns if t.get('id')==stage['turn_id']]

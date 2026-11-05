@@ -319,13 +319,13 @@ class ProductionRecoveryAdapter:
             if reviewer:
                 subjects.append({'id':'@reviewer','trust_member':'A','session_uuid':reviewer['session_uuid'],
                     'codex_home':reviewer['codex_home'],'cwd':reviewer['cwd'],'binding_version':reviewer['epoch'],
-                    'proof':encoded({'id':reviewer['session_uuid'],'cwd':reviewer['cwd'],'model':reviewer['model'],'modelProvider':'openai'}),
+                    'proof':encoded({'id':reviewer['session_uuid'],'cwd':reviewer['cwd'],'model':reviewer['model'],'modelProvider':store._option(db,'reviewer_provider','openai')}),
                     'unknown':reviewer['state'] in ('starting','unknown')})
             for row in db.execute("SELECT s.*,c.member AS source_member FROM auxiliary_sessions s JOIN auxiliary_configs c ON c.id=s.config_id WHERE s.state<>'retired'"):
                 parent=store._member(db,row['source_member'])
                 subjects.append({'id':'@aux:'+row['id'],'trust_member':row['source_member'],'session_uuid':row['session_uuid'],
                     'codex_home':parent['codex_home'],'cwd':row['cwd'],'binding_version':row['epoch'],
-                    'proof':row['proof'] or encoded({'id':row['session_uuid'],'cwd':row['cwd'],'model':row['model'],'modelProvider':'openai'}),
+                    'proof':row['proof'] or encoded({'id':row['session_uuid'],'cwd':row['cwd'],'model':row['model'],'modelProvider':json.loads(parent['proof']).get('modelProvider')}),
                     'unknown':row['state'] in ('starting','unknown')})
             settings={row['key']:json.loads(row['value']) for row in db.execute("SELECT key,value FROM pair_settings WHERE key LIKE 'control_%' OR key LIKE 'user_control%' OR key LIKE 'cli_trusted_executable:%'")}
             messages=[dict(row) for row in db.execute('SELECT id,recipient,turn_id,delivery_status,remote_status,task_id FROM messages')]

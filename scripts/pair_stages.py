@@ -54,7 +54,7 @@ class StageMixin:
         if not isinstance(artifact,dict) or artifact.get('kind') not in ('commit','snapshot'): fail('Fixed artifact required / 必须固定提交或快照')
         if artifact['kind']=='commit' and (not isinstance(artifact.get('head'),str) or not re.fullmatch(r'[0-9a-f]{40}|[0-9a-f]{64}',artifact['head'])): fail('Full SHA required / 要求完整候选SHA')
         if artifact['kind']=='snapshot' and not artifact.get('manifest'): fail('Snapshot manifest required / 非提交成果必须固定快照清单')
-        if not contributors or not all(isinstance(c,dict) and c.get('member') and c.get('model') and c.get('provider') in ('openai','deepseek','wokey') for c in contributors): fail('Provenance required / 保留每位实际贡献者模型及提供方')
+        if not contributors or not all(isinstance(c,dict) and c.get('member') and c.get('model') and c.get('provider') in ('openai','deepseek','wokey','apinebula') for c in contributors): fail('Provenance required / 保留每位实际贡献者模型及提供方')
         if not isinstance(checks,list) or not isinstance(payload,dict): fail('Review material required / 检查、环境、目标、允许范围与验收材料必须结构化')
         for field in ('objective','acceptance','environment','lockfiles','baseline'):
             if field not in payload: fail('Missing review material / 缺少送审字段: '+field)
@@ -307,6 +307,8 @@ class StageMixin:
                 except ImportError:from pair_review_runtime import validate_final_snapshot
                 validate_final_snapshot(self,db,receipt_snapshot)
             reviewer=self._check_reviewer(db,epoch,session,proof)
+            provider=self._option(db,'reviewer_provider','openai')
+            report=dict(report, reviewer_provider=provider, review_service='third_party' if provider=='apinebula' else 'openai_official')
             row=db.execute('SELECT * FROM review_stages WHERE id=?',(stage_id,)).fetchone()
             if (not row or row['status']!='running' or row['reviewer_epoch']!=epoch or row['reviewer_session']!=session
                     or row['execution_id']!=execution_id or reviewer['owner']!=owner or reviewer['execution_id']!=execution_id): fail('Stale review / 审核者、代次、执行或版本已失效')

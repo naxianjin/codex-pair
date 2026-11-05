@@ -9,12 +9,12 @@ import sys
 try:
     from .pair_json import read_json
     from .pair_transport import AppServer,binding_proof
-    from .pair_reviewer import fail,official_identity,safe_evidence
+    from .pair_reviewer import fail,verify_review_service,safe_evidence
     from . import pair_workspace
 except ImportError:
     from pair_json import read_json
     from pair_transport import AppServer,binding_proof
-    from pair_reviewer import fail,official_identity,safe_evidence
+    from pair_reviewer import fail,verify_review_service,safe_evidence
     import pair_workspace
 
 
@@ -178,8 +178,7 @@ def execute(store,args,cli):
             if checkpoint and checkpoint.get('status')=='saved':fail('Reviewer checkpoint pending / 先完整读取、核实并持久化恢复计划')
             a=store.member('A')
             with AppServer(codex_home=a['codex_home'],cwd=a['cwd'],executable=getattr(args,'codex',None),metadata_only=True,account_metadata=True) as observer:
-                official_identity(observer.validate(a))
-                if observer.rpc('account/read',{'refreshToken':False}).get('account',{}).get('type')!='chatgpt':fail('Official account required / 原 A 官方账号未核实')
+                verify_review_service(observer, observer.validate(a), a['codex_home'])
         store.setting('reviewer_auto',bool(p['enabled']))
         return {'enabled':bool(p['enabled']),'same_verified_configuration':True,'permissions_unchanged':True}
     if name=='reviewer-reconcile':

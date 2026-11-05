@@ -7,12 +7,12 @@ import time
 import uuid
 
 try:
-    from .pair_reviewer import fail, official_identity, safe_evidence
+    from .pair_reviewer import fail, reviewer_identity, safe_evidence
     from .pair_stages import digest, encoded
     from .pair_transport import canonical_path, session_uuid
     from . import pair_balance
 except ImportError:
-    from pair_reviewer import fail, official_identity, safe_evidence
+    from pair_reviewer import fail, reviewer_identity, safe_evidence
     from pair_stages import digest, encoded
     from pair_transport import canonical_path, session_uuid
     import pair_balance
@@ -134,9 +134,9 @@ class AuxiliaryMixin:
         with self.transaction() as db:
             self._a_actor(db, member, session, cwd)
             source = self._member(db, source_member)
-            official_identity(json.loads(source['proof']))
+            reviewer_identity(json.loads(source['proof']))
             if source['lifecycle'] != 'active' or not source['verified']:
-                fail('Verified config required / 只登记本轮已核验的官方GPT配置')
+                fail('Verified config required / 只登记本轮已核验的GPT审核配置')
             binding = _config_binding(source)
             old = db.execute('SELECT * FROM auxiliary_configs WHERE id=?', (config_id,)).fetchone()
             if old and old['binding'] != encoded(binding):
@@ -453,8 +453,9 @@ class AuxiliaryMixin:
         reviewer = dict(db.execute('SELECT * FROM auxiliary_sessions WHERE id=?', (execution['reviewer_id'],)).fetchone())
         config, source = self._auxiliary_config(db, reviewer['config_id'])
         self._auxiliary_quota(db, config, source)
-        actual = official_identity(identity)
-        if (actual['model'] != reviewer['model'] or actual['cwd'] != canonical_path(reviewer['cwd'])
+        actual = reviewer_identity(identity)
+        if (actual['modelProvider'] != json.loads(config['binding'])['provider']
+                or actual['model'] != reviewer['model'] or actual['cwd'] != canonical_path(reviewer['cwd'])
                 or execution['config_binding'] != config['binding']
                 or reviewer['session_uuid'] not in (None, actual['id'])
                 or db.execute('SELECT 1 FROM members WHERE session_uuid=?', (actual['id'],)).fetchone()):
@@ -586,6 +587,10 @@ class AuxiliaryMixin:
         candidate = self._auxiliary_candidate(db, task['candidate_id'])
         if task['last_execution'] != execution['id'] or candidate['candidate_digest'] != execution['candidate_digest']:
             fail('Stale auxiliary report / 迟到报告不能覆盖新执行或候选')
+        reviewer=db.execute('SELECT proof FROM auxiliary_sessions WHERE id=?',(execution['reviewer_id'],)).fetchone()
+        identity=reviewer_identity(json.loads(reviewer['proof']))
+        provider=identity['modelProvider']
+        evidence=dict(evidence, reviewer_provider=provider, review_service='third_party' if provider=='apinebula' else 'openai_official')
         db.execute('INSERT INTO auxiliary_reports VALUES(?,?,?,?,?,?,?)',
                    (execution['id'], fingerprint, encoded(raw), encoded(adapted), encoded(validation), encoded(evidence), time.time()))
         self._end_auxiliary(db, execution, 'completed', evidence)
@@ -706,11 +711,11 @@ class AuxiliaryMixin:
     def _auxiliary_config(self, db, config_id):
         row = db.execute('SELECT * FROM auxiliary_configs WHERE id=?', (config_id,)).fetchone()
         if not row or not row['enabled']:
-            fail('Auxiliary config not allowed / 未登记允许的官方配置')
+            fail('Auxiliary config not allowed / 未登记允许的审核配置')
         source = self._member(db, row['member'])
         if row['binding'] != encoded(_config_binding(source)) or source['lifecycle'] != 'active' or not source['verified']:
             fail('Auxiliary config changed / 账号、模型或绑定变化后必须重新授权核验')
-        official_identity(json.loads(source['proof']))
+        reviewer_identity(json.loads(source['proof']))
         return row, source
 
     def _auxiliary_quota(self, db, config, source):
@@ -802,7 +807,7 @@ def _identifier(value):
 
 
 def _config_binding(member):
-    proof = official_identity(json.loads(member['proof']))
+    proof = reviewer_identity(json.loads(member['proof']))
     return {'member': member['id'], 'session': member['session_uuid'], 'version': member['binding_version'],
             'home': canonical_path(member['codex_home']), 'cwd': canonical_path(member['cwd']),
             'model': proof['model'], 'provider': proof['modelProvider']}

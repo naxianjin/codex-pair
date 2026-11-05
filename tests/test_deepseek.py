@@ -66,7 +66,7 @@ class DeepSeekTests(unittest.TestCase):
         return client
 
     def test_current_window_uses_account_rpc_only_for_openai_fingerprint(self):
-        for provider in ('openai', 'deepseek', 'wokey'):
+        for provider in ('openai', 'deepseek', 'wokey', 'apinebula'):
             with self.subTest(provider=provider):
                 client = self.observer(provider=provider)
                 client.rpc = (Mock(return_value={'account':{'id':'test-account','type':'chatgpt'}}) if provider=='openai'

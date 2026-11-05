@@ -17,20 +17,18 @@ try:
     from .pair_producer import verify_launch, producer_context
     from .pair_review_receipts import receipt_items
     from .pair_review_runtime import prepare_review_tree, materialize_snapshot, verify_review_bytes, tree_stamp, git, _terminal_review_report
-    from .pair_reviewer import official_identity, fail
+    from .pair_reviewer import reviewer_identity, verify_review_service, fail
     from .pair_stages import encoded, digest
     from .pair_audit_adapter import adapt_report, load_assets
-    from .pair_balance import pool_key
     from . import pair_hidden_handoff as hidden_handoff
 except ImportError:
     from pair_transport import AppServer, TransportError, canonical_path, command_matches, receipt_cwd, rollout_command_items, redact_diagnostic
     from pair_producer import verify_launch, producer_context
     from pair_review_receipts import receipt_items
     from pair_review_runtime import prepare_review_tree, materialize_snapshot, verify_review_bytes, tree_stamp, git, _terminal_review_report
-    from pair_reviewer import official_identity, fail
+    from pair_reviewer import reviewer_identity, verify_review_service, fail
     from pair_stages import encoded, digest
     from pair_audit_adapter import adapt_report, load_assets
-    from pair_balance import pool_key
     import pair_hidden_handoff as hidden_handoff
 
 
@@ -124,15 +122,12 @@ def _static_client(source, cwd, executable):
     try:
         config = client.rpc('config/read', {'cwd': cwd, 'includeLayers': False})['config']
         controls = verify_static_controls(config, overrides)
-        actual = official_identity(client.read_thread(source['session_uuid']))
-        expected = official_identity(json.loads(source['proof']))
+        actual = reviewer_identity(client.read_thread(source['session_uuid']))
+        expected = reviewer_identity(json.loads(source['proof']))
         if actual != expected:
             fail('Auxiliary source changed / 原允许配置的真实身份已改变')
-        account = client.rpc('account/read', {'refreshToken': False})
-        identity = account.get('account', {})
-        if identity.get('type') != 'chatgpt' or not (identity.get('accountId') or identity.get('id') or identity.get('email')):
-            fail('Official account unavailable / 无法核验当前官方账号及真实共享池')
-        return client, controls, pool_key(account, source['codex_home'])
+        account_pool = verify_review_service(client, actual, source['codex_home'], require_account_id=True)
+        return client, controls, account_pool
     except BaseException:
         client.close()
         raise
@@ -232,7 +227,7 @@ def begin_execution(store, member, session, cwd, execution_id, lease, *, executa
             db.execute("UPDATE auxiliary_sessions SET state='starting',updated=? WHERE id=? AND epoch=?", (time.time(), reviewer_id, current['epoch']))
             db.execute('UPDATE auxiliary_executions SET producer=?,updated=? WHERE id=?',
                        (encoded({'launch': client.producer_launch, 'controls': controls}), time.time(), execution_id))
-        params = {'cwd': root, 'model': view['reviewer']['model'], 'modelProvider': 'openai',
+        params = {'cwd': root, 'model': view['reviewer']['model'], 'modelProvider': json.loads(view['config']['binding'])['provider'],
                   'sandbox': 'read-only', 'approvalPolicy': 'never', 'ephemeral': False,
                   'dynamicTools': [READ_TOOL, ASSET_TOOL, hidden_handoff.HANDOFF_TOOL], 'developerInstructions':
                   '你是独立静态审核者。仅用pair_read_source阅读固定候选及给定材料；不执行候选，不修改产品，不提交、合并、安装、发布或委派。'
@@ -250,7 +245,7 @@ def begin_execution(store, member, session, cwd, execution_id, lease, *, executa
         if response.get('sandbox', {}).get('type') != 'readOnly' or response.get('approvalPolicy') != 'never':
             fail('Static sandbox not confirmed / CLI未确认只读及禁止提权策略')
         proof = client.read_thread(response['thread']['id'])
-        identity = official_identity(proof)
+        identity = reviewer_identity(proof)
         preparation=store.setting('auxiliary_preparation_ready:'+execution_id)
         prepared=bool(preparation and preparation['session']==identity['id'] and preparation['epoch']==view['execution']['epoch'])
         if view['task']['role'] in ('validation', 'final_verification', 'conflict_review') and not prepared and next(client.turns(identity['id']),None) is not None:
@@ -410,8 +405,9 @@ def _observe_execution(store, view, *, client=None, executable=None, allow_unver
                            executable=executable or producer['launch']['file']['path'], metadata_only=True)
     try:
         thread = client.read_thread(execution['session_uuid'])
-        identity = official_identity(thread)
-        if (identity['id'] != execution['session_uuid'] or identity['model'] != view['reviewer']['model']
+        identity = reviewer_identity(thread)
+        if (identity['modelProvider'] != json.loads(view['config']['binding'])['provider']
+                or identity['id'] != execution['session_uuid'] or identity['model'] != view['reviewer']['model']
                 or identity['cwd'] != canonical_path(view['reviewer']['cwd'])):
             fail('Auxiliary receipt identity changed / 原准确会话身份不符')
         matches = [t for t in client.turns(execution['session_uuid'], items_view='full') if t.get('id') == execution['turn_id']]

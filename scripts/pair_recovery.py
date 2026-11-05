@@ -12,9 +12,9 @@ import time
 import uuid
 
 try:
-    from .pair_reviewer import fail, official_identity, safe_evidence
+    from .pair_reviewer import fail, reviewer_identity, safe_evidence
 except ImportError:
-    from pair_reviewer import fail, official_identity, safe_evidence
+    from pair_reviewer import fail, reviewer_identity, safe_evidence
 
 
 DOMAINS = ('transport', 'continuation', 'review_recovery', 'patch_application')
@@ -564,7 +564,7 @@ class RecoveryMixin:
                     fail('Original contributor binding unavailable / 原作者绑定历史缺失，不能用新账号覆盖')
                 member = json.loads(historical[0])
             proof = json.loads(member['proof']) if isinstance(member['proof'], str) else member['proof']
-            if proof.get('modelProvider') not in ('openai', 'deepseek', 'wokey') or not proof.get('model'):
+            if proof.get('modelProvider') not in ('openai', 'deepseek', 'wokey', 'apinebula') or not proof.get('model'):
                 fail('Original contributor model unavailable / 原作者实际模型及提供方尚未核验')
             contributor = {'member': task['assignee'], 'provider': proof['modelProvider'], 'model': proof['model'],
                            'session_uuid': member['session_uuid'], 'binding_version': version, 'source_task': task_id}
@@ -1385,9 +1385,9 @@ class RecoveryMixin:
             fail('Recovery binding changed / 恢复许可不属于当前准确成员绑定')
 
     def _independent_recovery_actor(self, db, reviewer, task):
-        proof = official_identity(json.loads(reviewer['proof']))
+        proof = reviewer_identity(json.loads(reviewer['proof']))
         if proof['id'] != reviewer['session_uuid'] or reviewer['lifecycle'] != 'active':
-            fail('Recovery reviewer unavailable / 恢复审核者实际官方身份或生命周期无效')
+            fail('Recovery reviewer unavailable / 恢复审核者实际审核身份或生命周期无效')
         contributors = {task['assignee']}
         for stage in db.execute('SELECT contributors FROM review_stages WHERE task_id=?', (task['id'],)):
             contributors.update(item['member'] for item in json.loads(stage[0]))

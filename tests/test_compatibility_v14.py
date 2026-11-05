@@ -96,6 +96,14 @@ class CompatibilityProbeTests(unittest.TestCase):
         self.assertFalse(record['model_started'])
         self.assertEqual({call[0] for call in self.observer.calls}, {'thread/read', 'thread/turns/list'})
 
+    def test_apinebula_preflight_preserves_provider_without_official_account_query(self):
+        self.binding['modelProvider'] = 'apinebula'
+        self.observer = MetadataObserver(self.binding, self.identity)
+        record = self.probe()
+        self.assertEqual(record['status'], 'preflight_ready')
+        self.assertFalse(record['model_started'])
+        self.assertEqual({call[0] for call in self.observer.calls}, {'thread/read', 'thread/turns/list'})
+
     def test_same_fingerprint_skips_repeated_cli_processes(self):
         first = self.probe()
         with (patch('scripts.pair_compatibility.subprocess.run', side_effect=AssertionError('相同指纹不重跑CLI')),
