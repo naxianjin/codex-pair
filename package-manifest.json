@@ -1,9 +1,9 @@
 {
   "files": {
-    "CHANGELOG.md": "dbc743af198700222b72f2262e287969fcdc564ee2c67df7e8cef6c59d422cd6",
+    "CHANGELOG.md": "5a1df8ba0cec352fcb1096cefc98bd2ab2c7e30cf6805052f3f6b3038fc4942a",
     "POST_RELEASE_TESTS.md": "1089103fefab19434950a269bf9317e9bc667047aebe2fd39c1446e08ba0e613",
-    "README.md": "eee65bf7f06341ebb90a9c9a0e3f5a9eae44d5ec4c2dba8e45b189e73c2d7e42",
-    "SKILL.md": "c1b94fbd737b09445c77c918a206ab65f7b92a37d8e0d3efb2b22f7c370e35a9",
+    "README.md": "a8c6efeda7476763d84e9ee8f8182cc827a463a46eb96225e73162ea57c3d3c8",
+    "SKILL.md": "b6288aa61e5f7886abb8ca04fae49b44ae6af682c73a96f4ae9fdf9713a2a550",
     "agents/openai.yaml": "54e3c0a2e1e0a570e432023137f7747067ed22ac7220c87ab579b85c2a3deb4c",
     "assets/audit/WindowsSafeInput.cs": "cd98023a8a1d832bc947d5a9d12cea93e999e71c52918a468f330e512ec096df",
     "assets/audit/ocr-preview-schema.json": "06dd5cb335adf8085d8f5f3ac4419de25a86dcf9b42638e78942eece6b20c9dc",
@@ -59,8 +59,8 @@
     "references/next-version-matrix.md": "a98c499a59eef20a8ec9e60bcb17210347b4210df51d4152a0c39bacfad34616",
     "references/next-version-status.md": "c09a37ead29cd41ce076fa9dd8693f0dab9eabfb3138fd9fe1a3efdb3523f41d",
     "references/official-cli-control.md": "79f8c31ee2f8b1fcaebf436f70e42e3985950b4ecd6034fd71ea86db19f31bc1",
-    "references/onboarding.md": "9eccd6ee24f04602de78def691ab69ccb49a9a439f50a46c48df7e65ee201abb",
-    "references/protocol.md": "605f8ba8183e6270d4af92002e0389d71aa357924d5dbb6c961564738581b0cb",
+    "references/onboarding.md": "4d91da04785b9b8b4f1982cb999803226af7a1a8ae3cf1925691235254cfab2e",
+    "references/protocol.md": "ee676931fd709759d4e869e1beab4342ecb498e912fbc80da7f06084789f3ed1",
     "references/recovery-v14.md": "1a76a3e94a5dbe39cbc441fc465f4451e5bf8b2de3f38ae7c45e85eb1a6ec681",
     "references/repair-multi-account.md": "0a3b7331259ace4d2fc64c9c8d3be01c404e8c4629a53ed166ce5439ffd65e5d",
     "references/repair-static-findings-20261101.md": "39169c32bf4e13dbf48fc034280d708aaabe23c7f8558fe59bbe3678462baef3",
@@ -74,6 +74,7 @@
     "references/validation-handoff-four-cli.md": "6f10ef12c8594dd3265af8795d2a1bbb3bae17a999025fe52319d26904d41df3",
     "references/validation-summary-20261019.md": "d2cf3a1a51e72cb0eeff5509a134ee847d0890ae7970b38d5da7e6cca92dd552",
     "references/verification.md": "b3026c349c2c16583dfd3b70d9cd9b9783b422cca92569f3a2478bd5e89f4b14",
+    "references/wokey.md": "28c18d65d5357797448a61eaf5688d3315697d39d8cea0632a4f42779197ec0a",
     "scripts/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "scripts/install_skill.py": "cbf342a17cbd562d3bc29ec5823ddf9e7e09bcf1415febca35c9a07e3c9cee68",
     "scripts/package_skill.py": "41452fe3cb8a4fac2b3c6461243ede7b96e672829c2fd61e4dbb13279649e9c3",
@@ -100,7 +101,7 @@
     "scripts/pair_native_capabilities.py": "9b011093a2d65fe3f48e674e22ea43d5f6d3e3abf9b8f2e10a953417953307b1",
     "scripts/pair_next_commands.py": "c06e9e605538b9e6f86b7c219ae5e16da09548426b458c57e6a334e3a4c5bf49",
     "scripts/pair_permission_hook.py": "a6076d7019fdfd2248c67196392a7c767f42d72bc375170147badff1fdd30ee1",
-    "scripts/pair_producer.py": "fbebc5806d69cd9c5c47dcce5c4b7f6f2fa69a8c35511d511cc3ec5f7f241890",
+    "scripts/pair_producer.py": "f8e515951835813143a04c5634ee1b09adfcdab202d71bed2079dff714335487",
     "scripts/pair_quota.py": "20f5cfcef353459dbef28d3ae3919df7ba81cd6567607ee43174baa0c4a55115",
     "scripts/pair_quota_consent.py": "027dcfd2c3d51953f8561aafbca39131da10ffcc62494637c4a90a59e185c0c5",
     "scripts/pair_recovery.py": "99e95c6ae0cd724e42353fadc6d5c0328599a7ad3c371895e9112ca014c73ac9",
@@ -114,9 +115,8 @@
     "scripts/pair_team.py": "f93c255b5c75905828fe22dd42b2cef847821595ca0072efed0707ea661d74b5",
     "scripts/pair_transport.py": "9984f3c8185954485a7efe78ccb09055ec567fee5b030f9ebbe0027bd756ba1b",
     "scripts/pair_watchdog.py": "61e375364d347f998608c822510216916f5fad8824e3225071815243e2b7dfcd",
-    "scripts/pair_windows.py": "72a15c2e31496179c42482d6e144901f8046d3ecdf768d86dbe5f16a8b148d6d",
-    "scripts/pair_workspace.py": "fc74285c8c4bba790bf93a39e5e868ef1ab6c0015564647bc96b8ff382e8b22c",
-    "references/wokey.md": "28c18d65d5357797448a61eaf5688d3315697d39d8cea0632a4f42779197ec0a"
+    "scripts/pair_windows.py": "13b02f399f12537054a0d3d1320c96807a82fff84a6c8be3e4d0d9f53fc33f66",
+    "scripts/pair_workspace.py": "fc74285c8c4bba790bf93a39e5e868ef1ab6c0015564647bc96b8ff382e8b22c"
   },
   "schema_version": 1
 }

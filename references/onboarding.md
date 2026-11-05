@@ -16,7 +16,7 @@
 1. 用户在本窗口调用 $codex-pair 并给出目标时，确认目标仓库，读取适用 AGENTS.md，检查 Git 状态。可发现的信息自行查询，不让用户提供账号目录或 UUID。
 2. 从当前技能的 scripts/pair.py --help 确认接口，选择实际 Python，执行 start --project <仓库绝对路径> --goal <目标> --json；长正文可用 UTF-8 --goal-file。不传固定 codex-home，不另建模型会话。
 3. start 使用本窗口 CODEX_THREAD_ID、有效 CODEX_HOME 与实际 cwd，经 app-server 验证后登记 A。会话 cwd 可在项目外；任务目标另记为 workspace，不虚假登记已改变会话根目录。
-4. 没有 B 时完整输出返回的 join_instruction。它填实 Python、技能路径与邀请路径，用户只需贴到已经打开的另一个窗口，无需修改账号或 UUID。
+4. 没有 B 时完整输出返回的 join_instruction。它填实 Python、邀请路径和共享状态路径；B 使用自己 CODEX_HOME 下的技能副本执行，不使用 A 的安装路径，也无需修改账号或 UUID。
 5. 桥由脚本后台启动，日志在项目内，随机挑战确认存活；已有桥复用。启动未确认时保留 PID、日志并报告，不反复创建 daemon。
 6. 结束当前回合等待 B。收到连接验证问题后先领取、发送关联 reply、complete 问题，再结束回合。两个回合和业务回执均完成后，桥给 A 一条 window-ready 通知；确认 communication=verified 后按原目标分工，不要求用户重复描述项目。
 
@@ -24,8 +24,8 @@
 
 ## 窗口 B
 
-1. 用户粘贴 CODEX_PAIR_JOIN_V1 时，读取邀请指向的最新 SKILL.md，即使 B 自己的环境尚未安装此技能。
-2. 在这个现有 CLI 的自身工具环境执行邀请中的 accept --invite <实际JSON路径> --json。不新建协作或 CLI，不切换 CODEX_HOME。
+1. 用户粘贴 CODEX_PAIR_JOIN_V1 时，确认 B 自己的 CODEX_HOME 已安装当前技能副本；不要使用 A 的技能路径。
+2. 在这个现有 CLI 的自身工具环境执行邀请中的 accept --invite <实际JSON路径> --state-root <共享状态路径> --json。不新建协作或 CLI，不切换 CODEX_HOME。
 3. accept 校验邀请哈希、项目、基准和 A 绑定，再从 B 自身环境验证会话。重复接受会复用绑定及连接验证消息。
 4. 按 after_join 执行。自动模式下结束当前回合，收到 A 的 reply 后领取并完成。手动模式明确需要用户转交消息，不能承诺后台唤醒。
 

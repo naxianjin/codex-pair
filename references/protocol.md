@@ -17,7 +17,7 @@
 
 从 A 的当前 Codex 工具环境执行 `start --project <目标仓库> --goal <用户目标> --json`（长正文用 --goal-file）。它验证自身会话，使用随机 ID、原会话 cwd 与目标 workspace，不创建新 CLI，也不指定两个账号。
 
-A 输出返回的 join_instruction；用户把它交给另一个已打开窗口，B 执行其中 `accept --invite <JSON路径> --json`。B 自动读取自身环境，重复接受复用绑定。invite 文件哈希、项目、基准与发起会话须匹配；B 不在目标仓库也不需要重开窗口，任务目录另存为 workspace。
+A 输出返回的 join_instruction；用户把它交给另一个已打开窗口，B 使用自身 CODEX_HOME 下的技能副本执行其中 `accept --invite <JSON路径> --state-root <共享状态路径> --json`。B 自动读取自身环境，重复接受复用绑定。invite 文件哈希、项目、基准与发起会话须匹配；B 不在目标仓库也不需要重开窗口，任务目录另存为 workspace。
 
 start/accept 自动后台启动或复用本地桥，日志在项目 .codex-pair/logs，无需用户手工跑 daemon。`bridge --pair <ID> --state-root <返回路径> --action start|stop` 管理桥。启动有 OS 锁和随机挑战，存活不明时不重复启动；stop 不关闭原有 CLI。
 

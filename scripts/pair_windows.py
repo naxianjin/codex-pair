@@ -127,6 +127,18 @@ def ps_command(argv):
     return '& '+' '.join("'"+str(arg).replace("'","''")+"'" for arg in argv)
 
 
+def portable_join_command(python_executable, invite_path, state_root):
+    """让 B 从自己的 CODEX_HOME 找技能，避免沿用 A 的安装路径。"""
+    python_arg = "'"+str(python_executable).replace("'", "''")+"'"
+    invite_arg = "'"+str(invite_path).replace("'", "''")+"'"
+    state_arg = "'"+str(state_root).replace("'", "''")+"'"
+    return (
+        "$pairHome = if ($env:CODEX_HOME) { $env:CODEX_HOME } else { Join-Path $HOME '.codex' }\n"
+        +"& "+python_arg+" (Join-Path $pairHome 'skills\\codex-pair\\scripts\\pair.py') accept "
+        +"--invite "+invite_arg+" --state-root "+state_arg+" --json"
+    )
+
+
 def bridge(store, cli, executable=None, *, before_start=None,on_started=None,on_start_failed=None):
     with FileLock(store.directory/'bridge-start.lock',timeout=10):
         try:from .pair_compatibility import safe_preflight
@@ -202,10 +214,11 @@ def invitation(store, cli, goal):
         store.setting('window_flow',flow)
     script=str(Path(cli.__file__).resolve())
     argv=[sys.executable,script,'accept','--invite',str(path),'--json']
+    portable=portable_join_command(sys.executable,path,store.state_root)
     text=('CODEX_PAIR_JOIN_V1\n你是窗口 B，请加入窗口 A 已创建的协作，不新建协作或 CLI。\n'
         +'先读取：'+str(Path(script).parent.parent/'SKILL.md')+'\n'
-        +'在你当前窗口自己的工具环境中执行以下命令，自动读取本窗口会话、cwd 和账号；不用修改 CODEX_HOME。\n'
-        +ps_command(argv)+'\n'
+        +'在你当前窗口自己的工具环境中执行以下命令。命令会从 B 自己的 CODEX_HOME 找到技能脚本，自动读取本窗口会话、cwd 和账号；不用修改 CODEX_HOME。\n'
+        +portable+'\n'
         +'命令成功后按返回的 after_join 执行。只报告绑定与已验证的通信状态，不把入队当成已回复。')
     return {'invite_path':str(path),'join_argv':argv,'join_instruction':text}
 

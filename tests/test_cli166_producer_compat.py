@@ -11,6 +11,7 @@ from scripts import pair_review_receipts as access
 from tests import test_strict_producer as original
 
 NEW = '0.166.0-alpha.5.1'
+CURRENT = '0.166.0-alpha.6'
 
 class FormatTests(unittest.TestCase):
     def setUp(self):
@@ -47,12 +48,15 @@ class FormatTests(unittest.TestCase):
     def test_exact_launch_versions_and_unknown_rejection(self):
         with tempfile.TemporaryDirectory() as d:
             exe=Path(d)/'codex.exe';exe.write_bytes(b'not executable fixture')
-            for version in ['0.163.0',p.ALPHA,NEW]:
+            for version in ['0.163.0',p.ALPHA,NEW,CURRENT]:
                 with patch.object(p.subprocess,'run',return_value=Mock(returncode=0,stdout='codex-cli '+version+'\n')):
                     self.assertEqual(p.prepare_launch([str(exe)])['version'],version)
-            for version in ['0.164.0','0.164.0-alpha.11','0.164.0-alpha.11.2',NEW+'junk']:
+            for version in ['0.164.0','0.164.0-alpha.11','0.164.0-alpha.11.2',NEW+'junk',CURRENT+'junk']:
                 with patch.object(p.subprocess,'run',return_value=Mock(returncode=0,stdout='codex-cli '+version)),self.assertRaises(ValueError):
                     p.prepare_launch([str(exe)])
+
+    def test_current_alpha6_is_strict(self):
+        self.assertTrue(p.strict_version(p.VerifiedProducer(CURRENT, {}, 'fixture')))
 
     def test_launch_file_change_rejected(self):
         with tempfile.TemporaryDirectory() as d:

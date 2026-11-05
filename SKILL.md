@@ -34,7 +34,7 @@ description: 让用户已打开的两个到四个Codex CLI分工、交接和独�
 <Python> <本技能>/scripts/pair.py start --project <仓库> --goal <目标> --codex <原CLI绝对路径> --json
 ```
 
-使用实际Python3.10+，不用WindowsApps占位程序。A输出完整join_instruction供用户贴给原B；B从自身环境accept，不手填别人的UUID或配置目录。C/D用invite-member返回的join_argv加入，不重新start。相同可见会话同一时刻只参加一轮，其他会话可做别的项目。
+使用实际Python3.10+，不用WindowsApps占位程序。A输出完整join_instruction供用户贴给原B；B从自身 CODEX_HOME 的技能副本执行 accept，不手填别人的UUID或配置目录。C/D用invite-member返回的join_argv加入，不重新start。相同可见会话同一时刻只参加一轮，其他会话可做别的项目。
 
 新协作默认在项目 `.codex-pair/worktrees/` 为加入的成员准备独立分支和工作树，返回workspace与原actor_cwd分别使用；已有同项目子目录中的独立工作树可沿用，不移动原会话。原目录脏改动保留，所需改动先形成用户确认的基准提交。确需共用工作树时，A在start显式使用 `--workspace-mode shared --workspace-reason <具体原因>`；创建失败保留意图和已有资源，不自动降级或覆盖。显式恢复旧协作保持原绑定和布局。
 
