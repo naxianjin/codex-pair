@@ -72,6 +72,7 @@ def current_binding(directory, expected):
         db.execute('BEGIN')
         collaboration = dict(db.execute('SELECT * FROM collaborations').fetchone())
         stage = dict(db.execute('SELECT * FROM review_stages WHERE id=?', (expected['stage'],)).fetchone() or {})
+        task = dict(db.execute('SELECT * FROM tasks WHERE id=?', (stage.get('task_id'),)).fetchone() or {})
         runtime = dict(db.execute('SELECT * FROM reviewer_runtime').fetchone() or {})
         parent = dict(db.execute("SELECT * FROM members WHERE id='A'").fetchone() or {})
         provider_row = db.execute("SELECT value FROM pair_settings WHERE key='reviewer_provider'").fetchone()
@@ -80,7 +81,8 @@ def current_binding(directory, expected):
     if (collaboration['id'] != expected['pair'] or collaboration['status'] != 'running'
             or directory != Path(collaboration['project']).absolute() / '.codex-pair' / 'state' / expected['pair']
             or not stage or stage['status'] != 'running' or not stage['turn_id']
-            or collaboration.get('requirements_version', stage['requirements_version']) != stage['requirements_version']
+            or not task or task['requirements_version'] != stage['requirements_version']
+            or task['status'] not in ('review_wait', 'needs_fix', 'needs_validation')
             or stage['digest'] != expected['digest'] or runtime.get('state') != 'running'
             or runtime.get('epoch') != expected['epoch'] or stage['reviewer_epoch'] != expected['epoch']
             or stage['reviewer_session'] != runtime.get('session_uuid') or runtime.get('session_uuid') != expected['session']
@@ -98,6 +100,7 @@ def current_binding(directory, expected):
     snapshot['state_file'] = (identity.st_dev, identity.st_ino)
     snapshot['stage'] = {k: stage[k] for k in ('id', 'digest', 'status', 'turn_id', 'requirements_version', 'payload')}
     snapshot['collaboration'] = collaboration
+    snapshot['task'] = {k: task[k] for k in ('id', 'status', 'requirements_version')}
     runtime['modelProvider'] = provider
     snapshot['reviewer_provider'] = provider
     proof = json.loads(parent['proof'])

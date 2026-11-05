@@ -93,12 +93,14 @@ class ReviewReceiptAccessTests(unittest.TestCase):
             db.executescript('''
                 CREATE TABLE pair_settings(key TEXT PRIMARY KEY,value);
                 CREATE TABLE collaborations(id,project,status);
-                CREATE TABLE review_stages(id,digest,status,turn_id,reviewer_epoch,reviewer_session,execution_id,requirements_version,payload);
+                CREATE TABLE tasks(id,status,requirements_version);
+                CREATE TABLE review_stages(id,digest,status,turn_id,reviewer_epoch,reviewer_session,execution_id,requirements_version,payload,task_id);
                 CREATE TABLE reviewer_runtime(state,epoch,session_uuid,execution_id,turn_id,cwd,codex_home,parent_session,owner,model);
                 CREATE TABLE members(id,session_uuid,binding_version,proof,lifecycle,verified,online,cwd,codex_home);
             ''')
             db.execute('INSERT INTO collaborations VALUES(?,?,?)', ('pair-test', str(self.root), 'running'))
-            db.execute('INSERT INTO review_stages VALUES(?,?,?,?,?,?,?,?,?)', ('stage-one', 'a'*64, 'running', 'turn-one', 1, self.binding['session'], 'exec-one', 1, '{}'))
+            db.execute('INSERT INTO tasks VALUES(?,?,?)', ('task-one', 'review_wait', 1))
+            db.execute('INSERT INTO review_stages VALUES(?,?,?,?,?,?,?,?,?,?)', ('stage-one', 'a'*64, 'running', 'turn-one', 1, self.binding['session'], 'exec-one', 1, '{}', 'task-one'))
             db.execute('INSERT INTO reviewer_runtime VALUES(?,?,?,?,?,?,?,?,?,?)', ('running', 1, self.binding['session'], 'exec-one', None, str(self.root), str(self.root), 'parent', 'owner', 'gpt-6.1-sol'))
             parent = {'modelProvider': 'openai', 'model': 'gpt-6.1-sol', 'cliVersion': '0.163.0'}
             db.execute('INSERT INTO members VALUES(?,?,?,?,?,?,?,?,?)', ('A', 'parent', 1, json.dumps(parent), 'active', 1, 1, str(self.root), str(self.root)))
@@ -211,12 +213,7 @@ class ReviewReceiptAccessTests(unittest.TestCase):
             self.assertFalse(self.tool(**changes)['success'])
         self.assertFalse(self.tool(arguments='{}')['success'])
 
-    def test_dynamic_query_rejects_stale_requirements_and_total_overflow(self):
-        self.update('ALTER TABLE collaborations ADD COLUMN requirements_version INTEGER')
-        self.update('UPDATE collaborations SET requirements_version=2')
-        self.assertFalse(self.tool()['success'])
-        self.update('UPDATE collaborations SET requirements_version=1')
-        self.assertTrue(self.tool()['success'])
+    def test_dynamic_query_rejects_total_overflow(self):
         self.turn['items'] = [dict(self.item, id=str(i), command='x'*9000) for i in range(8)]
         self.assertFalse(self.tool()['success'])
 
@@ -289,6 +286,64 @@ class ReviewReceiptAccessTests(unittest.TestCase):
         self.assertIn('pair_review_receipts', prompt)
         self.assertNotIn('pair_review_receipts.py', prompt)
         self.assertNotIn('--state-directory', prompt)
+
+
+class RealRequirementReceiptTests(unittest.TestCase):
+    """使用真实Store schema和正式需求变更入口，不给生产表虚构字段。"""
+    def setUp(self):
+        from tests.test_final_receipt_settlement import FinalSettlementTests
+        self.fixture = FinalSettlementTests()
+        self.fixture.setUp()
+        self.addCleanup(self.fixture.tearDown)
+        f = self.fixture
+        self.binding = dict(pair=f.store.pair_id, stage=f.stage['id'], digest=f.stage['digest'],
+                            epoch=f.ticket['epoch'], session=f.proof['id'], execution=f.lease['execution_id'])
+        self.params = dict(tool=access.RECEIPTS_TOOL['name'], arguments={},
+                           threadId=f.proof['id'], turnId='turn-one')
+        f.full['status'] = 'inProgress'
+        f.full.pop('completedAt', None)
+
+    def query(self, observer=None):
+        f = self.fixture
+        return access.handle_tool(f.store.directory, self.binding, self.params,
+                                  observer_factory=observer or f.observer)
+
+    def test_affected_revision_rejects_current_query(self):
+        f = self.fixture
+        self.assertTrue(self.query()['success'])
+        change = f.store.revise_requirements(*f.actor(), 'changed API requirement', ['api'])
+        self.assertEqual(change['affected'], ['api'])
+        self.assertFalse(self.query()['success'])
+        self.assertEqual(f.store.task('api')['status'], 'requirements_wait')
+
+    def test_unrelated_revision_allows_original_task_to_continue(self):
+        f = self.fixture
+        f.store.assign('unrelated', 'other task', 'A', ['other.txt'])
+        change = f.store.revise_requirements(*f.actor(), 'only unrelated task changes', ['unrelated'])
+        self.assertEqual(change['version'], 2)
+        self.assertEqual(f.store.task('api')['requirements_version'], 1)
+        before = Path(f.store.path).read_bytes()
+        self.assertTrue(self.query()['success'])
+        self.assertEqual(before, Path(f.store.path).read_bytes())
+
+    def test_affected_revision_during_observer_read_discards_result(self):
+        f = self.fixture
+        original = f.observer
+        def observer(**kwargs):
+            instance = original(**kwargs)
+            read = instance.read_thread
+            def changed(*args):
+                f.store.revise_requirements(*f.actor(), 'requirement changed during lookup', ['api'])
+                return read(*args)
+            instance.read_thread = changed
+            return instance
+        self.assertFalse(self.query(observer)['success'])
+
+    def test_real_task_stage_version_mismatch_is_rejected_even_if_stage_running(self):
+        f = self.fixture
+        with f.store.transaction() as db:
+            db.execute("UPDATE tasks SET requirements_version=requirements_version+1 WHERE id='api'")
+        self.assertFalse(self.query()['success'])
 
 
 if __name__ == '__main__':
