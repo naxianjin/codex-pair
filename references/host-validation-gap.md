@@ -118,3 +118,5 @@ bd7456c复审发现相对root可能使核对路径和子进程执行路径不一
 2026-11-05 Hyper-V真实诊断正负例成功：受限账户/private desktop/Job、无网卡、只读输入，两个运行均13总进程/0活动/无超时。正例两退出0，非法findings负例1/0。仅合成绑定诊断，非正式执行器验收。新增verify_validator_result核对请求绑定、8文件摘要、两项结果、终态与汇总一致性，仍formal_checks_verified=false；5项worker测试及本轮真实提取artifact验收通过。持久unknown、宿主hard deadline、全控制链身份、独立run回执、Store正式消费仍待实现。
 
 e9c7aad复核发现native计数字段接受bool/float及results元素非对象的异常类型问题，已严格整数/对象校验；增加文件映射、顺序、摘要、超时等拒绝回归，5项worker通过。前版76项回归不沿用为新版本，最新待复审。
+
+38494ea复审发现binding字典相等会混同epoch整数与bool/float，现改规范JSON保留类型比较，补epoch=true/1.0拒绝回归，5项worker通过，待复审。

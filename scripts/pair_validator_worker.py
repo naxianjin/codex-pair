@@ -43,7 +43,9 @@ def verify_validator_result(request, native, artifact):
             or native['ExitCode'] != 0 or native['ActiveProcesses'] != 0
             or native.get('TimedOut') is not False):
         raise ValueError('Validator execution terminal state unverified')
-    if (artifact.get('binding') != request['binding'] or artifact.get('files') != request['files']
+    if (json.dumps(artifact.get('binding'), sort_keys=True, separators=(',', ':'), allow_nan=False)
+            != json.dumps(request['binding'], sort_keys=True, separators=(',', ':'), allow_nan=False)
+            or artifact.get('files') != request['files']
             or artifact.get('formal_checks_verified') is not False):
         raise ValueError('Validator result binding mismatch')
     results = artifact.get('results')

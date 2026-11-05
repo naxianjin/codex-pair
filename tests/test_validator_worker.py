@@ -27,7 +27,7 @@ class ValidatorWorkerTests(unittest.TestCase):
         for name in ('findings.json', 'coverage_ledger.json'):
             (self.root / name).write_bytes(b'[]')
         self.node = shutil.which('node')
-        self.request = {'binding': {'execution': 'fixture', 'report': 'fixed'},
+        self.request = {'binding': {'execution': 'fixture', 'report': 'fixed', 'context': {'epoch': 1}},
                         'node_sha256': hashlib.sha256(Path(self.node).read_bytes()).hexdigest(),
                         'files': {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in self.root.iterdir()}}
 
@@ -37,11 +37,13 @@ class ValidatorWorkerTests(unittest.TestCase):
         self.assertFalse(result['formal_checks_verified'])
         native = {'ExitCode': 0, 'ActiveProcesses': 0, 'TimedOut': False}
         self.assertTrue(verify_validator_result(self.request, native, result)['validators_succeeded'])
-        for kind in ('binding', 'missing', 'active', 'forged', 'boolean', 'float', 'null', 'files', 'order', 'digest', 'timeout'):
+        for kind in ('binding', 'epoch_bool', 'epoch_float', 'missing', 'active', 'forged', 'boolean', 'float', 'null', 'files', 'order', 'digest', 'timeout'):
             changed = copy.deepcopy(result)
             terminal = dict(native)
             if kind == 'binding':
                 changed['binding'] = {}
+            elif kind in ('epoch_bool', 'epoch_float'):
+                changed['binding']['context']['epoch'] = True if kind == 'epoch_bool' else 1.0
             elif kind == 'missing':
                 changed['results'].pop()
             elif kind == 'active':
