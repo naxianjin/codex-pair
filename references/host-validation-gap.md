@@ -104,3 +104,5 @@
 独立复核98eebcc指出读取时自算摘要不能替代保存时绑定。已在原保存入口固定 stored_report_digest/adapted_report_digest，读取时拒绝缺失或不符，不追写旧报告。新增原报告与适配报告verdict篡改拒绝、错误租约拒绝，Store测试改用Cloudflare两份输入。58项相关回归通过，新增Cloudflare路径后35项辅助池测试通过；准确最终候选仍待复审。
 
 2026-11-05：新增 pair_validator_worker.py 内部固定工作入口和 validator_request()，将Store两份规范输入及报告绑定转为固定8文件契约，校验Node摘要，仅运行两项CJS并核对输入前后摘要。真实Node正例、非法findings、输入/Node摘要不符及额外命令拒绝，连同辅助池/清单共44项测试通过。工作入口自身不提供隔离、子进程整体终态或正式回执证明；须由外层只读快照、资源/进程/磁盘限制保护。尚无Hyper-V接入与生产调用，不放行父阶段。
+
+45a1e2a独立复核发现继承NODE_OPTIONS可预加载契约外代码。已限制Node子进程环境仅SYSTEMROOT/WINDIR/TEMP/TMP，补真实预加载process.exit(0)对非法findings不得伪造成功测试；执行后复核Node摘要。3项worker测试通过，待准确新版本复审。

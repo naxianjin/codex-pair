@@ -1,5 +1,6 @@
 """可信隔离执行器调用的固定 CJS 工作入口；自身不提供隔离或正式放行证明。"""
 import hashlib
+import os
 from pathlib import Path
 import stat
 import subprocess
@@ -54,9 +55,11 @@ def run_validators(root, request, *, node):
         if hashlib.sha256(path.read_bytes()).hexdigest() != files[name]:
             raise ValueError('Validator input digest mismatch')
     results = []
+    environment = {key: value for key, value in os.environ.items()
+                   if key.upper() in ('SYSTEMROOT', 'WINDIR', 'TEMP', 'TMP')}
     for name, field in zip(names, ('findings', 'coverage_ledger')):
         process = subprocess.run([str(node), str(root / name), str(root / (field + '.json'))],
-                                 cwd=root, capture_output=True, timeout=30)
+                                 cwd=root, env=environment, capture_output=True, timeout=30)
         if len(process.stdout) + len(process.stderr) > 1024 * 1024:
             raise ValueError('Validator output exceeded limit')
         results.append({'validator': name, 'exit_code': process.returncode,
@@ -65,6 +68,8 @@ def run_validators(root, request, *, node):
     for name in expected:
         if hashlib.sha256((root / name).read_bytes()).hexdigest() != files[name]:
             raise ValueError('Validator input changed during execution')
+    if hashlib.sha256(Path(node).read_bytes()).hexdigest() != request['node_sha256']:
+        raise ValueError('Validator Node changed during execution')
     return {'binding': request['binding'], 'files': files, 'results': results,
             'validators_succeeded': all(item['exit_code'] == 0 for item in results),
             'formal_checks_verified': False}

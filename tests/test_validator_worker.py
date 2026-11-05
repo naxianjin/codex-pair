@@ -5,6 +5,7 @@ from pathlib import Path
 import shutil
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from scripts.pair_validator_worker import run_validators
 
@@ -45,3 +46,12 @@ class ValidatorWorkerTests(unittest.TestCase):
                 request['command'] = 'unexpected'
             with self.subTest(kind=kind), self.assertRaises(ValueError):
                 run_validators(self.root, request, node=self.node)
+
+    def test_node_options_cannot_preload_code_and_claim_success(self):
+        preload = self.root / 'preload.cjs'
+        preload.write_text('process.exit(0)', encoding='utf-8')
+        (self.root / 'findings.json').write_bytes(b'{}')
+        self.request['files']['findings.json'] = hashlib.sha256(b'{}').hexdigest()
+        with patch.dict('os.environ', {'NODE_OPTIONS': '--require=' + str(preload)}):
+            result = run_validators(self.root, self.request, node=self.node)
+        self.assertFalse(result['validators_succeeded'])
