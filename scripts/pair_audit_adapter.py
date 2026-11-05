@@ -289,14 +289,7 @@ def adapt_report(raw, *, context, expected_units, root=None):
             for key, item in by_id.items():
                 if key in units and units[key].get('required', True) and item.get('status') != 'covered':
                     gaps.append('cloudflare_required_unit_incomplete:' + str(key))
-        for field, name in (('findings', 'validate-findings.cjs'), ('coverage_ledger', 'validate-coverage-ledger.cjs')):
-            asset = 'assets/audit/' + name
-            validators.append({'name': name, 'validator_path': asset,
-                'validator_sha256': assets['manifest'][asset], 'input_field': field,
-                'reader_assets': {path: assets['manifest'][path] for path in WINDOWS_INPUT_ASSETS},
-                'input_sha256': _json_digest(report.get(field)),
-                'schema_path': 'assets/audit/report-schema.json' if field == 'findings' else None,
-                'schema_sha256': assets['manifest']['assets/audit/report-schema.json'] if field == 'findings' else None})
+        validators = _validator_contracts(report, assets)
     confirmed = any(isinstance(item, dict) and item.get('verdict') == 'confirmed' for item in findings)
     failed = any(isinstance(item, dict) and item.get('status') == 'failed'
                  for item in (checks if isinstance(checks, list) else []))
@@ -312,6 +305,35 @@ def adapt_report(raw, *, context, expected_units, root=None):
                 'needs_validation': gaps + ['official_receipt_and_independence_verification_required']
                     + (['cloudflare_validators_not_executed'] if validators else []),
                 'upstream_unmodified_schema_passed': False}}
+
+
+def validator_inputs(adapted, *, root=None):
+    """从固定适配报告生成校验输入；仅准备字节，不代表执行或正式通过。"""
+    assets = load_assets(root)
+    report = adapted['adapted_report']
+    if _json_digest(report) != adapted['adapted_sha256']:
+        raise AuditAdapterError('Validator report changed / 固定报告已变化')
+    expected = _validator_contracts(report, assets)
+    if adapted['validation']['required_validations'] != expected:
+        raise AuditAdapterError('Validator contract changed / 校验契约与当前资产或报告不符')
+    return [{'contract': entry, 'input_bytes': json.dumps(report[entry['input_field']],
+                ensure_ascii=False, sort_keys=True, separators=(',', ':'), allow_nan=False).encode('utf-8'),
+             'digest_format': 'json-utf8-sorted-compact-v1'} for entry in expected]
+
+
+def _validator_contracts(report, assets):
+    expected = []
+    if report['context']['track'] == 'cloudflare':
+        for field, name in (('findings', 'validate-findings.cjs'),
+                            ('coverage_ledger', 'validate-coverage-ledger.cjs')):
+            path = 'assets/audit/' + name
+            expected.append({'name': name, 'validator_path': path,
+                'validator_sha256': assets['manifest'][path], 'input_field': field,
+                'reader_assets': {p: assets['manifest'][p] for p in WINDOWS_INPUT_ASSETS},
+                'input_sha256': _json_digest(report.get(field)),
+                'schema_path': 'assets/audit/report-schema.json' if field == 'findings' else None,
+                'schema_sha256': assets['manifest']['assets/audit/report-schema.json'] if field == 'findings' else None})
+    return expected
 
 
 def _json_digest(value):

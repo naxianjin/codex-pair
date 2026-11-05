@@ -10,7 +10,7 @@ import tempfile
 import unittest
 
 from scripts.pair_audit_adapter import (AuditAdapterError, adapt_ocr_preview, adapt_ocr_rules,
-    adapt_report, dependency_status, load_assets)
+    adapt_report, dependency_status, load_assets, validator_inputs)
 
 
 SOURCE = Path(__file__).resolve().parents[1]
@@ -56,6 +56,36 @@ class AuditAdapterTests(unittest.TestCase):
         self.assertEqual(result['reason'], 'ocr_dependency_missing')
         self.assertFalse(result['capability_verified'])
         self.assertFalse(result['executed'])
+
+    def test_validator_inputs_bind_exact_report_bytes_and_assets(self):
+        self.context['track'] = 'cloudflare'
+        self.raw['context'] = copy.deepcopy(self.context)
+        self.raw['coverage_ledger'] = [{'coverage_id': 'unit-1', 'status': 'covered'}]
+        adapted = self.adapt()
+        original = copy.deepcopy(adapted)
+        inputs = validator_inputs(adapted, root=self.root)
+        self.assertEqual(len(inputs), 2)
+        for item in inputs:
+            self.assertEqual(hashlib.sha256(item['input_bytes']).hexdigest(), item['contract']['input_sha256'])
+            self.assertEqual(json.loads(item['input_bytes']),
+                             adapted['adapted_report'][item['contract']['input_field']])
+        self.assertEqual(adapted, original)
+        self.assertFalse(adapted['validation']['eligible_for_settlement'])
+        for mutation in ('report', 'input', 'reader', 'missing'):
+            changed = copy.deepcopy(adapted)
+            if mutation == 'report':
+                changed['adapted_report']['findings'] = [{'title': 'changed'}]
+            elif mutation == 'input':
+                changed['validation']['required_validations'][0]['input_sha256'] = '0' * 64
+            elif mutation == 'reader':
+                changed['validation']['required_validations'][0]['reader_assets'] = {}
+            else:
+                changed['validation']['required_validations'].pop()
+            with self.subTest(mutation=mutation), self.assertRaises(AuditAdapterError):
+                validator_inputs(changed, root=self.root)
+
+    def test_ocr_report_does_not_invent_cjs_validation_inputs(self):
+        self.assertEqual(validator_inputs(self.adapt(), root=self.root), [])
 
     def test_wrong_binary_is_not_accepted_by_name(self):
         binary = self.root / 'ocr.exe'
