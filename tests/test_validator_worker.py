@@ -57,7 +57,12 @@ class ValidatorWorkerTests(unittest.TestCase):
                                       'SYSTEMROOT': str(self.root / 'fake-windows'),
                                       'WINDIR': str(self.root / 'fake-windows')}):
             result = run_validators(self.root, self.request, node=self.node)
+            (self.root / 'findings.json').write_bytes(b'[]')
+            self.request['files']['findings.json'] = hashlib.sha256(b'[]').hexdigest()
+            valid = run_validators(self.root, self.request, node=self.node)
         self.assertFalse(result['validators_succeeded'])
+        self.assertTrue(valid['validators_succeeded'])
+        self.assertEqual([item['exit_code'] for item in valid['results']], [0, 0])
 
     def test_relative_root_runs_checked_scripts_instead_of_nested_scripts(self):
         nested = self.root / self.root.name
