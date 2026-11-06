@@ -1,0 +1,30 @@
+{
+  "Methods": [
+    {
+      "ILSHA256": "25518cc2da9594e4f8ca0cec40d4393629911c0dd047f30f0afc2ba681fc2964",
+      "Name": "IntPtr OpenRoot(System.String)",
+      "Token": 100663303,
+      "ILBytes": 116
+    },
+    {
+      "ILSHA256": "5ee5d7383ab9fed7f0a769247e410617469abc308f062cae2b0da29c69f5ff93",
+      "Name": "Byte[] Read(System.String)",
+      "Token": 100663304,
+      "ILBytes": 630
+    },
+    {
+      "ILSHA256": "3995ba3481d5ae939ad06ba487344ebb8105e26e196d4ae9f23666de0b34b8ab",
+      "Name": "Byte[] ReadBytes(IntPtr, System.String)",
+      "Token": 100663305,
+      "ILBytes": 756
+    }
+  ],
+  "ReadPassed": true,
+  "Formal": false,
+  "SourceWriterRejected": true,
+  "MVID": "c4d51746-525a-4fd7-a620-5a4d8871cf9f",
+  "Scope": "Current local diagnostic compilation only",
+  "Limit": "Reflection IL does not prove JIT native bytes, historical dynamic modules or official host identity.",
+  "SourceSHA256": "6f1e2e716c5e7922b59a33b2a4e5570018b213469bf5a90ec48256b813d7003b",
+  "Assembly": "deb1bjh3, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"
+}
