@@ -473,8 +473,18 @@ class WindowTests(unittest.TestCase):
             self.assertEqual(result.returncode,0,result.stdout+result.stderr)
             return json.loads(result.stdout)['result']
         store=Store(started['pair'],state_root=started['state_root'])
+        process_handle=None
         try:
-            first=invoke('bridge');second=invoke('bridge')
+            first=invoke('bridge')
+            if os.name=='nt':
+                import ctypes
+                kernel=ctypes.WinDLL('kernel32',use_last_error=True)
+                kernel.OpenProcess.restype=ctypes.c_void_p
+                kernel.WaitForSingleObject.argtypes=[ctypes.c_void_p,ctypes.c_ulong]
+                kernel.CloseHandle.argtypes=[ctypes.c_void_p]
+                process_handle=kernel.OpenProcess(0x00100000,False,first['pid'])
+                self.assertTrue(process_handle,ctypes.get_last_error())
+            second=invoke('bridge')
             self.assertEqual(first['pid'],second['pid']);self.assertTrue(second['reused'])
             self.assertTrue(store.status(probe_timeout=1)['runtime']['probe_confirmed'])
         finally:
@@ -482,6 +492,11 @@ class WindowTests(unittest.TestCase):
             deadline=time.monotonic()+10
             while store.status()['runtime']['lock_held'] and time.monotonic()<deadline:time.sleep(.05)
             self.assertFalse(store.status()['runtime']['lock_held'])
+            if process_handle:
+                try:
+                    # 锁释放早于进程退出；等日志句柄关闭后才能删除测试目录。
+                    self.assertEqual(kernel.WaitForSingleObject(process_handle,10000),0)
+                finally:kernel.CloseHandle(process_handle)
 
 
 if __name__=='__main__':unittest.main()

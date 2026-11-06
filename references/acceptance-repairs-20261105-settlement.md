@@ -173,3 +173,11 @@ IL文件续测取得21个绝对路径的磁盘SHA256及Windows签名观察，全
 在398d73f复测组合正例及六负例、原始CLR小探针正例及三负例、受限原始模块正例、原生PowerShell5.1来源持锁正常/失败清理、根身份正例及八负例，全部通过。新增check-restricted-raw-negative-cases.py保存可重跑破坏测试，覆盖缺属性、错程序集、错CLR、缺事件、重复完整对及未知版本，六项均拒绝；执行真实检查器，未复制业务判断。三份当前来源清单逐项同时匹配磁盘和HEAD字节。证据restricted-raw-replay-results.json和current-source-replay-results.json。
 
 本轮未修改生产实现、未启动VM或联系B，未重复此前1212项全量测试；动态模块内容、加载瞬间身份、独立可信基线和正式Host→Store仍未通过，formal=false。历史未跟踪日志原样保留，不纳入提交。
+
+## 完整本地回归与Windows测试清理修复
+
+当前源码先分组复测辅助池38、核心26（跳过1）、适配器16、控制等111（跳过1）、辅助审批等329、原生控制等260、其余290、集成11（跳过1），均通过。初次适配器缺预置reader-symlink夹具，补本地夹具后通过；几次误指定不存在模块产生ImportError，未计为产品失败或通过。
+
+首次完整1212项发现Windows bridge生存测试清理触发WinError32：daemon锁已释放但进程仍持stderr日志句柄。仅修测试，启动后持有准确进程句柄，清理目录前等待该进程退出并关闭句柄；未改生产bridge或活动实例。定向及Windows组36项通过。首次用stdin包装全量触发multiprocessing无法重载<stdin>，该运行无效并停止；改标准模块入口，最终1212项206.698秒，0失败0错误3跳过。结果current-standard-regression.json及log，不沿用错误包装日志。标准运行期间曾误读旧日志错误标记，最终已按准确日志核清。
+
+本轮未启动真实B或VM。三个跳过项目未记通过，生产正式认证、动态模块内容及原窗口验收仍未完成。formal=false。

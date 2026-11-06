@@ -1,0 +1,13 @@
+{
+  "tests": 1212,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 3,
+  "seconds": 206.698,
+  "passed": true,
+  "formal": false,
+  "base_commit": "7da98bd2de568fd9acabd336fd7e7f864c64acf9",
+  "test_windows_sha256": "81d21190fdc2f4ba32a73e3f9e04f6d6675f9fc99bbe6de841aa47841b65c1f6",
+  "command": "python -X utf8 -m unittest discover -s tests -p test_*.py",
+  "limitation": "Real CLI and original B gated checks were skipped; formal host provenance not established."
+}
