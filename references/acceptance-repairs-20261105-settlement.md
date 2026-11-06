@@ -115,3 +115,27 @@ Test-RootTrace接到native保存后、terminal receipt及pending清理前；无�
 准确543b8a1控制器及最终Provider/唯一零计数/XML丢事件检查实跑VM成功，run 00968f4359f64fc7bb7542d9edbb3fca。ExitCode0、ActiveProcesses0、TotalProcesses13、未超时，两验证器成功；门槛执行后生成terminal诊断回执。回执native摘要和控制器摘要实际核对一致，5份源码实跑前后无变化；8负例复测通过，来源核对脚本5个单文件摘要错配均拒绝。VM Off、无pending，未联系B。
 
 新增来源清单仅供离线复核，未把helper/baseline摘要接成运行门禁，未声称独立可信能力。完整映像与托管程序集身份、正式Host→Store认证仍未完成，formal=false。
+
+## 连续来源、程序集及Store续测
+
+来源清单接到helper加载前校验及receipt前复核，五文件集合固定，请求/回执记录SourceInventorySHA256。5个真实入口单文件错配在VM派发前拒绝；首轮原生PSModulePath缺Get-FileHash，补测试环境后通过。独立官方GPT复审指出清单双读取，改为同一sourceBytes解析及计算SHA256；限定静态复审通过，helper加载替换窗口、ETW工具认证及独立可信基线仍未解决。
+
+最终同字节修复真实Store联测run 6ae08ee4ec21432386dca2f612b183b3通过：固定请求→真实VM→根身份及来源门槛→Store保存→父引用；SourceInventorySHA256与请求/回执/当前清单一致。合成actor及报告夹具，父仍needs_validation、formal=false。记录source_head及overlay摘要，不将基础HEAD冒充工作区修订。
+
+双Provider命令初次ETW启动失败，未运行测试进程；改为单独.NET Loader采集后成功，21加载/21卸载按PID+AssemblyID+CLR实例全部匹配，丢失0，包含动态程序集；缺一卸载负例被识别。此轮无kernel映像事件，不能称映像摘要已完成。provider文件形式的组合采集继续验证。
+
+组合Provider改用-pf文件后成功：kernel映像与CLR Loader事件同次存在，零丢事件，110个映像路径全部取得运行后磁盘SHA256。仅提升诊断观察，不是加载瞬间文件绑定或可信基线认证；受限验证器组合采集继续运行。
+
+受限验证器组合实跑run fdfe011361bf45fc802cb22690a946ad成功：13进程与作业总数一致，46程序集加载/46卸载按PID+AssemblyID+CLR实例全部匹配，缺一卸载负例识别，零丢事件；验证器树106映像均取得运行后磁盘SHA256。观察器事件已按树PID排除。该摘要不是加载瞬间文件绑定，没有独立可信系统基线或程序集内容摘要，正式认证仍未通过。
+
+组合诊断独立复审确认46对生命周期及106映像观察，但发现组合入口清单误绑原root启动器，已改为run-combined-etw；修订后未实跑。组合终态只强制根身份及零丢事件，树筛选/程序集配对仍属离线核对，不将terminal receipt称为组合验证门禁通过。保留审核阻塞；后续须将组合检查接线。规范化新控制器换行后重生成清单，历史实跑证据保留原字节摘要，不能冒充当前检出版本。
+
+## 组合门槛最终真实续测
+
+修复后的六项来源清单和组合检查器已在真实VM运行，run 18408ceca21b432f89efd6361d3dee09。检查器在terminal receipt之前实际通过：13进程、46个程序集身份配对键、106个映像摘要记录；回执的NativeSHA256、ControllerSHA256、SourceInventorySHA256及六项来源摘要均重新核对一致。独立openai/gpt-6.1-sol第二轮只读复审确认原两阻塞修复，限定诊断范围内无新阻塞；该复审未执行VM，本段真实运行由统筹方另行核验。初审报告保留为修复历史。
+
+check-combined-negative-cases.py使用此次真实证据，正例和六负例通过：缺卸载、错CLR实例、错AssemblyID、缺全部映像摘要、短摘要、错根PID均拒绝。VM已关闭（Hyper-V State=3），无vm-pending.json。控制器成功输出包含检查器文字和JSON两行，当前launcher仅输出、不解析该流；未将其宣称为纯JSON接口。
+
+全部formal=false。配对只证明事件计数平衡，不证明时序完整；摘要只为运行后磁盘观察，门槛仅检查覆盖及64字符长度，不构成加载时内容认证。helper校验后加载窗口、调用者自选基线、ETW工具独立可信来源、程序集内容digest、正式Host→Store身份认证及依赖原B窗口的控制验收仍未完成。未联系B，未改活动安装、活动pair库或桥。本轮为诊断脚本和证据补充，产品实现未变，沿用此前1212项全量结果，未重复运行或声称本轮重跑。
+
+发布前发现Git换行转换使清单与暂存字节不符；为清单引用的诊断源码设置精确字节保留及CRLF空白识别，重新暂存后两份清单全部逐项匹配，未修改实跑源码字节。git diff --cached --check通过。

@@ -1,0 +1,1371 @@
+{
+  "formal": false,
+  "scope": "Elevated diagnostic compilation process; not restricted validator",
+  "assembly_loads": 21,
+  "assembly_unloads": 21,
+  "all_assembly_ids_matched": true,
+  "events_lost": 0,
+  "events": [
+    {
+      "event_id": 187,
+      "pid": "4124",
+      "fields": {
+        "ClrInstanceID": "8",
+        "Sku": "1",
+        "BclMajorVersion": "4",
+        "BclMinorVersion": "0",
+        "BclBuildNumber": "0",
+        "BclQfeNumber": "0",
+        "VMMajorVersion": "4",
+        "VMMinorVersion": "0",
+        "VMBuildNumber": "30319",
+        "VMQfeNumber": "0",
+        "StartupFlags": "4",
+        "StartupMode": "2",
+        "CommandLine": "",
+        "ComObjectGuid": "{00000000-0000-0000-0000-000000000000}",
+        "RuntimeDllPath": "C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\clr.dll"
+      }
+    },
+    {
+      "event_id": 156,
+      "pid": "4124",
+      "fields": {
+        "AppDomainID": "0x7FFFBC5D4C80",
+        "AppDomainFlags": "4",
+        "AppDomainName": "SharedDomain",
+        "AppDomainIndex": "0",
+        "ClrInstanceID": "8"
+      }
+    },
+    {
+      "event_id": 154,
+      "pid": "4124",
+      "fields": {
+        "AssemblyID": "0x22F41ADF240",
+        "AppDomainID": "0x7FFFBC5D4C80",
+        "BindingID": "0x0",
+        "AssemblyFlags": "5",
+        "FullyQualifiedAssemblyName": "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+        "ClrInstanceID": "8"
+      }
+    },
+    {
+      "event_id": 152,
+      "pid": "4124",
+      "fields": {
+        "ModuleID": "0x7FFFBA5D1000",
+        "AssemblyID": "0x22F41ADF240",
+        "ModuleFlags": "27",
+        "ModuleILPath": "0",
+        "ModuleNativePath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_64\\mscorlib\\v4.0_4.0.0.0__b77a5c561934e089\\mscorlib.dll",
+        "ClrInstanceID": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\mscorlib\\ca4838b4fee6fda983bf8ca7c1b41582\\mscorlib.ni.dll",
+        "ManagedPdbSignature": "8",
+        "ManagedPdbAge": "{2b6b4259-de16-4518-9fd5-cf8cb1a5ad4a}",
+        "ManagedPdbBuildPath": "2",
+        "NativePdbSignature": "mscorlib.pdb",
+        "NativePdbAge": "{ca4838b4-fee6-fda9-83bf-8ca7c1b41582}",
+        "NativePdbBuildPath": "1"
+      }
+    },
+    {
+      "event_id": 156,
+      "pid": "4124",
+      "fields": {
+        "AppDomainID": "0x22F41B09680",
+        "AppDomainFlags": "536870915",
+        "AppDomainName": "DefaultDomain",
+        "AppDomainIndex": "1",
+        "ClrInstanceID": "8"
+      }
+    },
+    {
+      "event_id": 154,
+      "pid": "4124",
+      "fields": {
+        "AssemblyID": "0x22F41B8AF90",
+        "AppDomainID": "0x7FFFBC5D4C80",
+        "BindingID": "0x0",
+        "AssemblyFlags": "5",
+        "FullyQualifiedAssemblyName": "Microsoft.PowerShell.ConsoleHost, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35",
+        "ClrInstanceID": "8"
+      }
+    },
+    {
+      "event_id": 152,
+      "pid": "4124",
+      "fields": {
+        "ModuleID": "0x7FFFB8E71000",
+        "AssemblyID": "0x22F41B8AF90",
+        "ModuleFlags": "11",
+        "ModuleILPath": "0",
+        "ModuleNativePath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\Microsoft.PowerShell.ConsoleHost\\v4.0_3.0.0.0__31bf3856ad364e35\\Microsoft.PowerShell.ConsoleHost.dll",
+        "ClrInstanceID": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\Microsoft.Pb378ec07#\\860f036fdb796eaa38d52d7c8f912562\\Microsoft.PowerShell.ConsoleHost.ni.dll",
+        "ManagedPdbSignature": "8",
+        "ManagedPdbAge": "{1ac6c6e3-6635-4a99-9ec4-78bbb813305c}",
+        "ManagedPdbBuildPath": "1",
+        "NativePdbSignature": "Microsoft.PowerShell.ConsoleHost.pdb",
+        "NativePdbAge": "{860f036f-db79-6eaa-38d5-2d7c8f912562}",
+        "NativePdbBuildPath": "1"
+      }
+    },
+    {
+      "event_id": 154,
+      "pid": "4124",
+      "fields": {
+        "AssemblyID": "0x22F41B8AD50",
+        "AppDomainID": "0x7FFFBC5D4C80",
+        "BindingID": "0x0",
+        "AssemblyFlags": "5",
+        "FullyQualifiedAssemblyName": "System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+        "ClrInstanceID": "8"
+      }
+    },
+    {
+      "event_id": 152,
+      "pid": "4124",
+      "fields": {
+        "ModuleID": "0x7FFFB99B1000",
+        "AssemblyID": "0x22F41B8AD50",
+        "ModuleFlags": "27",
+        "ModuleILPath": "0",
+        "ModuleNativePath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System\\v4.0_4.0.0.0__b77a5c561934e089\\System.dll",
+        "ClrInstanceID": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System\\45689b966cb35d73224432bacf80da91\\System.ni.dll",
+        "ManagedPdbSignature": "8",
+        "ManagedPdbAge": "{bae346b2-f711-48b1-b3d6-1f3f400f2134}",
+        "ManagedPdbBuildPath": "2",
+        "NativePdbSignature": "System.pdb",
+        "NativePdbAge": "{45689b96-6cb3-5d73-2244-32bacf80da91}",
+        "NativePdbBuildPath": "1"
+      }
+    },
+    {
+      "event_id": 154,
+      "pid": "4124",
+      "fields": {
+        "AssemblyID": "0x22F41B8AE70",
+        "AppDomainID": "0x7FFFBC5D4C80",
+        "BindingID": "0x0",
+        "AssemblyFlags": "5",
+        "FullyQualifiedAssemblyName": "System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+        "ClrInstanceID": "8"
+      }
+    },
+    {
+      "event_id": 152,
+      "pid": "4124",
+      "fields": {
+        "ModuleID": "0x7FFFB8F21000",
+        "AssemblyID": "0x22F41B8AE70",
+        "ModuleFlags": "27",
+        "ModuleILPath": "0",
+        "ModuleNativePath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.Core\\v4.0_4.0.0.0__b77a5c561934e089\\System.Core.dll",
+        "ClrInstanceID": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Core\\2d550862ce4c9745f1ec2785d34258ac\\System.Core.ni.dll",
+        "ManagedPdbSignature": "8",
+        "ManagedPdbAge": "{913f5254-14a0-461f-8c7c-99da2651f143}",
+        "ManagedPdbBuildPath": "2",
+        "NativePdbSignature": "System.Core.pdb",
+        "NativePdbAge": "{2d550862-ce4c-9745-f1ec-2785d34258ac}",
+        "NativePdbBuildPath": "1"
+      }
+    },
+    {
+      "event_id": 154,
+      "pid": "4124",
+      "fields": {
+        "AssemblyID": "0x22F41B8A9F0",
+        "AppDomainID": "0x7FFFBC5D4C80",
+        "BindingID": "0x0",
+        "AssemblyFlags": "5",
+        "FullyQualifiedAssemblyName": "System.Management.Automation, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35",
+        "ClrInstanceID": "8"
+      }
+    },
+    {
+      "event_id": 152,
+      "pid": "4124",
+      "fields": {
+        "ModuleID": "0x7FFFB6B81000",
+        "AssemblyID": "0x22F41B8A9F0",
+        "ModuleFlags": "11",
+        "ModuleILPath": "0",
+        "ModuleNativePath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.Management.Automation\\v4.0_3.0.0.0__31bf3856ad364e35\\System.Management.Automation.dll",
+        "ClrInstanceID": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Manaa57fc8cc#\\021537811b25d09909593f37faf9e713\\System.Management.Automation.ni.dll",
+        "ManagedPdbSignature": "8",
+        "ManagedPdbAge": "{52131ed9-2a81-4789-b73e-5b86ec97365a}",
+        "ManagedPdbBuildPath": "1",
+        "NativePdbSignature": "System.Management.Automation.pdb",
+        "NativePdbAge": "{02153781-1b25-d099-0959-3f37faf9e713}",
+        "NativePdbBuildPath": "1"
+      }
+    },
+    {
+      "event_id": 154,
+      "pid": "4124",
+      "fields": {
+        "AssemblyID": "0x22F41B89FD0",
+        "AppDomainID": "0x7FFFBC5D4C80",
+        "BindingID": "0x0",
+        "AssemblyFlags": "1",
+        "FullyQualifiedAssemblyName": "System.Management.Automation.resources, Version=3.0.0.0, Culture=zh-Hans, PublicKeyToken=31bf3856ad364e35",
+        "ClrInstanceID": "8"
+      }
+    },
+    {
+      "event_id": 152,
+      "pid": "4124",
+      "fields": {
+        "ModuleID": "0x7FFF5C5559A0",
+        "AssemblyID": "0x22F41B89FD0",
+        "ModuleFlags": "9",
+        "ModuleILPath": "0",
+        "ModuleNativePath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.Management.Automation.resources\\v4.0_3.0.0.0_zh-Hans_31bf3856ad364e35\\System.Management.Automation.resources.dll",
+        "ClrInstanceID": "",
+        "ManagedPdbSignature": "8",
+        "ManagedPdbAge": "{00000000-0000-0000-0000-000000000000}",
+        "ManagedPdbBuildPath": "0",
+        "NativePdbSignature": "",
+        "NativePdbAge": "{00000000-0000-0000-0000-000000000000}",
+        "NativePdbBuildPath": "0"
+      }
+    },
+    {
+      "event_id": 154,
+      "pid": "4124",
+      "fields": {
+        "AssemblyID": "0x22F41B8B1D0",
+        "AppDomainID": "0x7FFFBC5D4C80",
+        "BindingID": "0x0",
+        "AssemblyFlags": "5",
+        "FullyQualifiedAssemblyName": "Microsoft.Management.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35",
+        "ClrInstanceID": "8"
+      }
+    },
+    {
+      "event_id": 152,
+      "pid": "4124",
+      "fields": {
+        "ModuleID": "0x7FFFB6A81000",
+        "AssemblyID": "0x22F41B8B1D0",
+        "ModuleFlags": "11",
+        "ModuleILPath": "0",
+        "ModuleNativePath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\Microsoft.Management.Infrastructure\\v4.0_1.0.0.0__31bf3856ad364e35\\Microsoft.Management.Infrastructure.dll",
+        "ClrInstanceID": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\Microsoft.Mf49f6405#\\08ab12cea70c2d02df7073fa6f73703e\\Microsoft.Management.Infrastructure.ni.dll",
+        "ManagedPdbSignature": "8",
+        "ManagedPdbAge": "{2c5db641-47fd-4c66-a9bf-e7541c7491ba}",
+        "ManagedPdbBuildPath": "1",
+        "NativePdbSignature": "Microsoft.Management.Infrastructure.pdb",
+        "NativePdbAge": "{08ab12ce-a70c-2d02-df70-73fa6f73703e}",
+        "NativePdbBuildPath": "1"
+      }
+    },
+    {
+      "event_id": 154,
+      "pid": "4124",
+      "fields": {
+        "AssemblyID": "0x22F41B8B650",
+        "AppDomainID": "0x7FFFBC5D4C80",
+        "BindingID": "0x0",
+        "AssemblyFlags": "5",
+        "FullyQualifiedAssemblyName": "System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+        "ClrInstanceID": "8"
+      }
+    },
+    {
+      "event_id": 152,
+      "pid": "4124",
+      "fields": {
+        "ModuleID": "0x7FFFB61C1000",
+        "AssemblyID": "0x22F41B8B650",
+        "ModuleFlags": "27",
+        "ModuleILPath": "0",
+        "ModuleNativePath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.Xml\\v4.0_4.0.0.0__b77a5c561934e089\\System.Xml.dll",
+        "ClrInstanceID": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Xml\\9f5174b58465a67acb58ccaa54a46f15\\System.Xml.ni.dll",
+        "ManagedPdbSignature": "8",
+        "ManagedPdbAge": "{60efed85-5fff-46b8-ab6b-f371e363f68a}",
+        "ManagedPdbBuildPath": "2",
+        "NativePdbSignature": "System.Xml.pdb",
+        "NativePdbAge": "{9f5174b5-8465-a67a-cb58-ccaa54a46f15}",
+        "NativePdbBuildPath": "1"
+      }
+    },
+    {
+      "event_id": 154,
+      "pid": "4124",
+      "fields": {
+        "AssemblyID": "0x22F5A755620",
+        "AppDomainID": "0x7FFFBC5D4C80",
+        "BindingID": "0x0",
+        "AssemblyFlags": "5",
+        "FullyQualifiedAssemblyName": "System.Management, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a",
+        "ClrInstanceID": "8"
+      }
+    },
+    {
+      "event_id": 152,
+      "pid": "4124",
+      "fields": {
+        "ModuleID": "0x7FFFB6051000",
+        "AssemblyID": "0x22F5A755620",
+        "ModuleFlags": "27",
+        "ModuleILPath": "0",
+        "ModuleNativePath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.Management\\v4.0_4.0.0.0__b03f5f7f11d50a3a\\System.Management.dll",
+        "ClrInstanceID": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Management\\8a454799ab5bbc2b2fe2b22e64c1f06c\\System.Management.ni.dll",
+        "ManagedPdbSignature": "8",
+        "ManagedPdbAge": "{49d13828-8c5e-417b-b8c7-f47c89b84e3f}",
+        "ManagedPdbBuildPath": "1",
+        "NativePdbSignature": "System.Management.pdb",
+        "NativePdbAge": "{8a454799-ab5b-bc2b-2fe2-b22e64c1f06c}",
+        "NativePdbBuildPath": "1"
+      }
+    },
+    {
+      "event_id": 154,
+      "pid": "4124",
+      "fields": {
+        "AssemblyID": "0x22F5A7541E0",
+        "AppDomainID": "0x7FFFBC5D4C80",
+        "BindingID": "0x0",
+        "AssemblyFlags": "1",
+        "FullyQualifiedAssemblyName": "Microsoft.PowerShell.ConsoleHost.resources, Version=3.0.0.0, Culture=zh-Hans, PublicKeyToken=31bf3856ad364e35",
+        "ClrInstanceID": "8"
+      }
+    },
+    {
+      "event_id": 152,
+      "pid": "4124",
+      "fields": {
+        "ModuleID": "0x7FFF5C556F58",
+        "AssemblyID": "0x22F5A7541E0",
+        "ModuleFlags": "9",
+        "ModuleILPath": "0",
+        "ModuleNativePath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\Microsoft.PowerShell.ConsoleHost.resources\\v4.0_3.0.0.0_zh-Hans_31bf3856ad364e35\\Microsoft.PowerShell.ConsoleHost.resources.dll",
+        "ClrInstanceID": "",
+        "ManagedPdbSignature": "8",
+        "ManagedPdbAge": "{00000000-0000-0000-0000-000000000000}",
+        "ManagedPdbBuildPath": "0",
+        "NativePdbSignature": "",
+        "NativePdbAge": "{00000000-0000-0000-0000-000000000000}",
+        "NativePdbBuildPath": "0"
+      }
+    },
+    {
+      "event_id": 154,
+      "pid": "4124",
+      "fields": {
+        "AssemblyID": "0x22F5A753E80",
+        "AppDomainID": "0x7FFFBC5D4C80",
+        "BindingID": "0x0",
+        "AssemblyFlags": "5",
+        "FullyQualifiedAssemblyName": "System.DirectoryServices, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a",
+        "ClrInstanceID": "8"
+      }
+    },
+    {
+      "event_id": 152,
+      "pid": "4124",
+      "fields": {
+        "ModuleID": "0x7FFFB5EE1000",
+        "AssemblyID": "0x22F5A753E80",
+        "ModuleFlags": "27",
+        "ModuleILPath": "0",
+        "ModuleNativePath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.DirectoryServices\\v4.0_4.0.0.0__b03f5f7f11d50a3a\\System.DirectoryServices.dll",
+        "ClrInstanceID": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Dired13b18a9#\\8896ee2a874b493fefecca12bdc2097d\\System.DirectoryServices.ni.dll",
+        "ManagedPdbSignature": "8",
+        "ManagedPdbAge": "{daef7bd6-3053-4f5c-8314-d3b270139d9e}",
+        "ManagedPdbBuildPath": "1",
+        "NativePdbSignature": "System.DirectoryServices.pdb",
+        "NativePdbAge": "{8896ee2a-874b-493f-efec-ca12bdc2097d}",
+        "NativePdbBuildPath": "1"
+      }
+    },
+    {
+      "event_id": 154,
+      "pid": "4124",
+      "fields": {
+        "AssemblyID": "0x22F5A754780",
+        "AppDomainID": "0x7FFFBC5D4C80",
+        "BindingID": "0x0",
+        "AssemblyFlags": "1",
+        "FullyQualifiedAssemblyName": "System.Numerics, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+        "ClrInstanceID": "8"
+      }
+    },
+    {
+      "event_id": 152,
+      "pid": "4124",
+      "fields": {
+        "ModuleID": "0x7FFF5C557710",
+        "AssemblyID": "0x22F5A754780",
+        "ModuleFlags": "9",
+        "ModuleILPath": "0",
+        "ModuleNativePath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.Numerics\\v4.0_4.0.0.0__b77a5c561934e089\\System.Numerics.dll",
+        "ClrInstanceID": "",
+        "ManagedPdbSignature": "8",
+        "ManagedPdbAge": "{660f08b0-a060-4f48-829c-78a083850e11}",
+        "ManagedPdbBuildPath": "2",
+        "NativePdbSignature": "System.Numerics.pdb",
+        "NativePdbAge": "{00000000-0000-0000-0000-000000000000}",
+        "NativePdbBuildPath": "0"
+      }
+    },
+    {
+      "event_id": 154,
+      "pid": "4124",
+      "fields": {
+        "AssemblyID": "0x22F5A755860",
+        "AppDomainID": "0x7FFFBC5D4C80",
+        "BindingID": "0x0",
+        "AssemblyFlags": "5",
+        "FullyQualifiedAssemblyName": "System.Data, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+        "ClrInstanceID": "8"
+      }
+    },
+    {
+      "event_id": 152,
+      "pid": "4124",
+      "fields": {
+        "ModuleID": "0x7FFFB53B1000",
+        "AssemblyID": "0x22F5A755860",
+        "ModuleFlags": "27",
+        "ModuleILPath": "0",
+        "ModuleNativePath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_64\\System.Data\\v4.0_4.0.0.0__b77a5c561934e089\\System.Data.dll",
+        "ClrInstanceID": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Data\\bf9d5e129974ec144d643d259d0f8fd4\\System.Data.ni.dll",
+        "ManagedPdbSignature": "8",
+        "ManagedPdbAge": "{42cfa3e1-5461-4ce5-bbc4-992a49164bb8}",
+        "ManagedPdbBuildPath": "1",
+        "NativePdbSignature": "System.Data.pdb",
+        "NativePdbAge": "{bf9d5e12-9974-ec14-4d64-3d259d0f8fd4}",
+        "NativePdbBuildPath": "1"
+      }
+    },
+    {
+      "event_id": 154,
+      "pid": "4124",
+      "fields": {
+        "AssemblyID": "0x22F5A7553E0",
+        "AppDomainID": "0x7FFFBC5D4C80",
+        "BindingID": "0x0",
+        "AssemblyFlags": "5",
+        "FullyQualifiedAssemblyName": "System.Configuration, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a",
+        "ClrInstanceID": "8"
+      }
+    },
+    {
+      "event_id": 152,
+      "pid": "4124",
+      "fields": {
+        "ModuleID": "0x7FFFB5D41000",
+        "AssemblyID": "0x22F5A7553E0",
+        "ModuleFlags": "27",
+        "ModuleILPath": "0",
+        "ModuleNativePath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.Configuration\\v4.0_4.0.0.0__b03f5f7f11d50a3a\\System.Configuration.dll",
+        "ClrInstanceID": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Configuration\\d4814540c1857595f441988c91150a28\\System.Configuration.ni.dll",
+        "ManagedPdbSignature": "8",
+        "ManagedPdbAge": "{1a14882d-d376-4fe7-95a2-537f37278e89}",
+        "ManagedPdbBuildPath": "1",
+        "NativePdbSignature": "System.Configuration.pdb",
+        "NativePdbAge": "{d4814540-c185-7595-f441-988c91150a28}",
+        "NativePdbBuildPath": "1"
+      }
+    },
+    {
+      "event_id": 154,
+      "pid": "4124",
+      "fields": {
+        "AssemblyID": "0x22F5A7549C0",
+        "AppDomainID": "0x7FFFBC5D4C80",
+        "BindingID": "0x0",
+        "AssemblyFlags": "1",
+        "FullyQualifiedAssemblyName": "mscorlib.resources, Version=4.0.0.0, Culture=zh-Hans, PublicKeyToken=b77a5c561934e089",
+        "ClrInstanceID": "8"
+      }
+    },
+    {
+      "event_id": 152,
+      "pid": "4124",
+      "fields": {
+        "ModuleID": "0x7FFF5C55A2C8",
+        "AssemblyID": "0x22F5A7549C0",
+        "ModuleFlags": "9",
+        "ModuleILPath": "0",
+        "ModuleNativePath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\mscorlib.resources\\v4.0_4.0.0.0_zh-Hans_b77a5c561934e089\\mscorlib.resources.dll",
+        "ClrInstanceID": "",
+        "ManagedPdbSignature": "8",
+        "ManagedPdbAge": "{00000000-0000-0000-0000-000000000000}",
+        "ManagedPdbBuildPath": "0",
+        "NativePdbSignature": "",
+        "NativePdbAge": "{00000000-0000-0000-0000-000000000000}",
+        "NativePdbBuildPath": "0"
+      }
+    },
+    {
+      "event_id": 154,
+      "pid": "4124",
+      "fields": {
+        "AssemblyID": "0x22F5A754420",
+        "AppDomainID": "0x22F41B09680",
+        "BindingID": "0x0",
+        "AssemblyFlags": "2",
+        "FullyQualifiedAssemblyName": "Anonymously Hosted DynamicMethods Assembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null",
+        "ClrInstanceID": "8"
+      }
+    },
+    {
+      "event_id": 152,
+      "pid": "4124",
+      "fields": {
+        "ModuleID": "0x7FFF5C70B010",
+        "AssemblyID": "0x22F5A754420",
+        "ModuleFlags": "12",
+        "ModuleILPath": "0",
+        "ModuleNativePath": "Anonymously Hosted DynamicMethods Assembly",
+        "ClrInstanceID": "",
+        "ManagedPdbSignature": "8",
+        "ManagedPdbAge": "{00000000-0000-0000-0000-000000000000}",
+        "ManagedPdbBuildPath": "0",
+        "NativePdbSignature": "",
+        "NativePdbAge": "{00000000-0000-0000-0000-000000000000}",
+        "NativePdbBuildPath": "0"
+      }
+    },
+    {
+      "event_id": 151,
+      "pid": "4124",
+      "fields": {
+        "ModuleID": "0x7FFF5C70B010",
+        "AssemblyID": "0x22F5A754420",
+        "AppDomainID": "0x22F41B09680",
+        "ModuleFlags": "12",
+        "ModuleILPath": "0",
+        "ModuleNativePath": "Anonymously Hosted DynamicMethods Assembly",
+        "ClrInstanceID": ""
+      }
+    },
+    {
+      "event_id": 154,
+      "pid": "4124",
+      "fields": {
+        "AssemblyID": "0x22F5A9150C0",
+        "AppDomainID": "0x7FFFBC5D4C80",
+        "BindingID": "0x0",
+        "AssemblyFlags": "5",
+        "FullyQualifiedAssemblyName": "Microsoft.PowerShell.Security, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35",
+        "ClrInstanceID": "8"
+      }
+    },
+    {
+      "event_id": 152,
+      "pid": "4124",
+      "fields": {
+        "ModuleID": "0x7FFFB4AE1000",
+        "AssemblyID": "0x22F5A9150C0",
+        "ModuleFlags": "11",
+        "ModuleILPath": "0",
+        "ModuleNativePath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\Microsoft.PowerShell.Security\\v4.0_3.0.0.0__31bf3856ad364e35\\Microsoft.PowerShell.Security.dll",
+        "ClrInstanceID": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\Microsoft.P6f792626#\\9229da9c95d298d7ea0acc0b3d8f25fa\\Microsoft.PowerShell.Security.ni.dll",
+        "ManagedPdbSignature": "8",
+        "ManagedPdbAge": "{de47d298-c841-47d3-92c2-1cf7fc70a833}",
+        "ManagedPdbBuildPath": "1",
+        "NativePdbSignature": "Microsoft.PowerShell.Security.pdb",
+        "NativePdbAge": "{9229da9c-95d2-98d7-ea0a-cc0b3d8f25fa}",
+        "NativePdbBuildPath": "1"
+      }
+    },
+    {
+      "event_id": 154,
+      "pid": "4124",
+      "fields": {
+        "AssemblyID": "0x22F5A915780",
+        "AppDomainID": "0x7FFFBC5D4C80",
+        "BindingID": "0x0",
+        "AssemblyFlags": "5",
+        "FullyQualifiedAssemblyName": "System.Transactions, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+        "ClrInstanceID": "8"
+      }
+    },
+    {
+      "event_id": 152,
+      "pid": "4124",
+      "fields": {
+        "ModuleID": "0x7FFFB4A01000",
+        "AssemblyID": "0x22F5A915780",
+        "ModuleFlags": "11",
+        "ModuleILPath": "0",
+        "ModuleNativePath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_64\\System.Transactions\\v4.0_4.0.0.0__b77a5c561934e089\\System.Transactions.dll",
+        "ClrInstanceID": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Transactions\\e2d002211b727266d0c6289112700897\\System.Transactions.ni.dll",
+        "ManagedPdbSignature": "8",
+        "ManagedPdbAge": "{3467a961-9b63-409b-bf36-ec0c449ab128}",
+        "ManagedPdbBuildPath": "1",
+        "NativePdbSignature": "System.Transactions.pdb",
+        "NativePdbAge": "{e2d00221-1b72-7266-d0c6-289112700897}",
+        "NativePdbBuildPath": "1"
+      }
+    },
+    {
+      "event_id": 154,
+      "pid": "4124",
+      "fields": {
+        "AssemblyID": "0x22F5A9147C0",
+        "AppDomainID": "0x7FFFBC5D4C80",
+        "BindingID": "0x0",
+        "AssemblyFlags": "5",
+        "FullyQualifiedAssemblyName": "Microsoft.PowerShell.Commands.Utility, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35",
+        "ClrInstanceID": "8"
+      }
+    },
+    {
+      "event_id": 152,
+      "pid": "4124",
+      "fields": {
+        "ModuleID": "0x7FFFB3651000",
+        "AssemblyID": "0x22F5A9147C0",
+        "ModuleFlags": "11",
+        "ModuleILPath": "0",
+        "ModuleNativePath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\Microsoft.PowerShell.Commands.Utility\\v4.0_3.0.0.0__31bf3856ad364e35\\Microsoft.PowerShell.Commands.Utility.dll",
+        "ClrInstanceID": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\Microsoft.P521220ea#\\543f75d36bbf6d900552a6a5d24487c1\\Microsoft.PowerShell.Commands.Utility.ni.dll",
+        "ManagedPdbSignature": "8",
+        "ManagedPdbAge": "{1a2e9c40-6906-4b6c-9b8b-a087bf8ecae8}",
+        "ManagedPdbBuildPath": "1",
+        "NativePdbSignature": "Microsoft.PowerShell.Commands.Utility.pdb",
+        "NativePdbAge": "{543f75d3-6bbf-6d90-0552-a6a5d24487c1}",
+        "NativePdbBuildPath": "1"
+      }
+    },
+    {
+      "event_id": 154,
+      "pid": "4124",
+      "fields": {
+        "AssemblyID": "0x22F5A914A00",
+        "AppDomainID": "0x7FFFBC5D4C80",
+        "BindingID": "0x0",
+        "AssemblyFlags": "5",
+        "FullyQualifiedAssemblyName": "System.Configuration.Install, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a",
+        "ClrInstanceID": "8"
+      }
+    },
+    {
+      "event_id": 152,
+      "pid": "4124",
+      "fields": {
+        "ModuleID": "0x7FFFB45F1000",
+        "AssemblyID": "0x22F5A914A00",
+        "ModuleFlags": "11",
+        "ModuleILPath": "0",
+        "ModuleNativePath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.Configuration.Install\\v4.0_4.0.0.0__b03f5f7f11d50a3a\\System.Configuration.Install.dll",
+        "ClrInstanceID": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Confe64a9051#\\43d6670eb9862f8121ada3dbde5632cb\\System.Configuration.Install.ni.dll",
+        "ManagedPdbSignature": "8",
+        "ManagedPdbAge": "{85731060-63f5-45eb-ac0a-65088e5f62b0}",
+        "ManagedPdbBuildPath": "1",
+        "NativePdbSignature": "System.Configuration.Install.pdb",
+        "NativePdbAge": "{43d6670e-b986-2f81-21ad-a3dbde5632cb}",
+        "NativePdbBuildPath": "1"
+      }
+    },
+    {
+      "event_id": 154,
+      "pid": "4124",
+      "fields": {
+        "AssemblyID": "0x22F5A9158A0",
+        "AppDomainID": "0x22F41B09680",
+        "BindingID": "0x0",
+        "AssemblyFlags": "0",
+        "FullyQualifiedAssemblyName": "t22ontrw, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null",
+        "ClrInstanceID": "8"
+      }
+    },
+    {
+      "event_id": 152,
+      "pid": "4124",
+      "fields": {
+        "ModuleID": "0x7FFF5C8C08F0",
+        "AssemblyID": "0x22F5A9158A0",
+        "ModuleFlags": "8",
+        "ModuleILPath": "0",
+        "ModuleNativePath": "t22ontrw",
+        "ClrInstanceID": "",
+        "ManagedPdbSignature": "8",
+        "ManagedPdbAge": "{00000000-0000-0000-0000-000000000000}",
+        "ManagedPdbBuildPath": "0",
+        "NativePdbSignature": "",
+        "NativePdbAge": "{00000000-0000-0000-0000-000000000000}",
+        "NativePdbBuildPath": "0"
+      }
+    },
+    {
+      "event_id": 151,
+      "pid": "4124",
+      "fields": {
+        "ModuleID": "0x7FFF5C8C08F0",
+        "AssemblyID": "0x22F5A9158A0",
+        "AppDomainID": "0x22F41B09680",
+        "ModuleFlags": "8",
+        "ModuleILPath": "0",
+        "ModuleNativePath": "t22ontrw",
+        "ClrInstanceID": ""
+      }
+    },
+    {
+      "event_id": 153,
+      "pid": "4124",
+      "fields": {
+        "ModuleID": "0x7FFF5C70B010",
+        "AssemblyID": "0x22F5A754420",
+        "ModuleFlags": "12",
+        "ModuleILPath": "0",
+        "ModuleNativePath": "Anonymously Hosted DynamicMethods Assembly",
+        "ClrInstanceID": "",
+        "ManagedPdbSignature": "8",
+        "ManagedPdbAge": "{00000000-0000-0000-0000-000000000000}",
+        "ManagedPdbBuildPath": "0",
+        "NativePdbSignature": "",
+        "NativePdbAge": "{00000000-0000-0000-0000-000000000000}",
+        "NativePdbBuildPath": "0"
+      }
+    },
+    {
+      "event_id": 155,
+      "pid": "4124",
+      "fields": {
+        "AssemblyID": "0x22F5A754420",
+        "AppDomainID": "0x22F41B09680",
+        "BindingID": "0x0",
+        "AssemblyFlags": "2",
+        "FullyQualifiedAssemblyName": "Anonymously Hosted DynamicMethods Assembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null",
+        "ClrInstanceID": "8"
+      }
+    },
+    {
+      "event_id": 153,
+      "pid": "4124",
+      "fields": {
+        "ModuleID": "0x7FFF5C8C08F0",
+        "AssemblyID": "0x22F5A9158A0",
+        "ModuleFlags": "8",
+        "ModuleILPath": "0",
+        "ModuleNativePath": "t22ontrw",
+        "ClrInstanceID": "",
+        "ManagedPdbSignature": "8",
+        "ManagedPdbAge": "{00000000-0000-0000-0000-000000000000}",
+        "ManagedPdbBuildPath": "0",
+        "NativePdbSignature": "",
+        "NativePdbAge": "{00000000-0000-0000-0000-000000000000}",
+        "NativePdbBuildPath": "0"
+      }
+    },
+    {
+      "event_id": 155,
+      "pid": "4124",
+      "fields": {
+        "AssemblyID": "0x22F5A9158A0",
+        "AppDomainID": "0x22F41B09680",
+        "BindingID": "0x0",
+        "AssemblyFlags": "0",
+        "FullyQualifiedAssemblyName": "t22ontrw, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null",
+        "ClrInstanceID": "8"
+      }
+    },
+    {
+      "event_id": 157,
+      "pid": "4124",
+      "fields": {
+        "AppDomainID": "0x22F41B09680",
+        "AppDomainFlags": "536870915",
+        "AppDomainName": "DefaultDomain",
+        "AppDomainIndex": "1",
+        "ClrInstanceID": "8"
+      }
+    },
+    {
+      "event_id": 153,
+      "pid": "4124",
+      "fields": {
+        "ModuleID": "0x7FFFB3651000",
+        "AssemblyID": "0x22F5A9147C0",
+        "ModuleFlags": "11",
+        "ModuleILPath": "0",
+        "ModuleNativePath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\Microsoft.PowerShell.Commands.Utility\\v4.0_3.0.0.0__31bf3856ad364e35\\Microsoft.PowerShell.Commands.Utility.dll",
+        "ClrInstanceID": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\Microsoft.P521220ea#\\543f75d36bbf6d900552a6a5d24487c1\\Microsoft.PowerShell.Commands.Utility.ni.dll",
+        "ManagedPdbSignature": "8",
+        "ManagedPdbAge": "{1a2e9c40-6906-4b6c-9b8b-a087bf8ecae8}",
+        "ManagedPdbBuildPath": "1",
+        "NativePdbSignature": "Microsoft.PowerShell.Commands.Utility.pdb",
+        "NativePdbAge": "{543f75d3-6bbf-6d90-0552-a6a5d24487c1}",
+        "NativePdbBuildPath": "1"
+      }
+    },
+    {
+      "event_id": 155,
+      "pid": "4124",
+      "fields": {
+        "AssemblyID": "0x22F5A9147C0",
+        "AppDomainID": "0x7FFFBC5D4C80",
+        "BindingID": "0x0",
+        "AssemblyFlags": "5",
+        "FullyQualifiedAssemblyName": "Microsoft.PowerShell.Commands.Utility, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35",
+        "ClrInstanceID": "8"
+      }
+    },
+    {
+      "event_id": 153,
+      "pid": "4124",
+      "fields": {
+        "ModuleID": "0x7FFFB8E71000",
+        "AssemblyID": "0x22F41B8AF90",
+        "ModuleFlags": "11",
+        "ModuleILPath": "0",
+        "ModuleNativePath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\Microsoft.PowerShell.ConsoleHost\\v4.0_3.0.0.0__31bf3856ad364e35\\Microsoft.PowerShell.ConsoleHost.dll",
+        "ClrInstanceID": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\Microsoft.Pb378ec07#\\860f036fdb796eaa38d52d7c8f912562\\Microsoft.PowerShell.ConsoleHost.ni.dll",
+        "ManagedPdbSignature": "8",
+        "ManagedPdbAge": "{1ac6c6e3-6635-4a99-9ec4-78bbb813305c}",
+        "ManagedPdbBuildPath": "1",
+        "NativePdbSignature": "Microsoft.PowerShell.ConsoleHost.pdb",
+        "NativePdbAge": "{860f036f-db79-6eaa-38d5-2d7c8f912562}",
+        "NativePdbBuildPath": "1"
+      }
+    },
+    {
+      "event_id": 155,
+      "pid": "4124",
+      "fields": {
+        "AssemblyID": "0x22F41B8AF90",
+        "AppDomainID": "0x7FFFBC5D4C80",
+        "BindingID": "0x0",
+        "AssemblyFlags": "5",
+        "FullyQualifiedAssemblyName": "Microsoft.PowerShell.ConsoleHost, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35",
+        "ClrInstanceID": "8"
+      }
+    },
+    {
+      "event_id": 153,
+      "pid": "4124",
+      "fields": {
+        "ModuleID": "0x7FFFB53B1000",
+        "AssemblyID": "0x22F5A755860",
+        "ModuleFlags": "27",
+        "ModuleILPath": "0",
+        "ModuleNativePath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_64\\System.Data\\v4.0_4.0.0.0__b77a5c561934e089\\System.Data.dll",
+        "ClrInstanceID": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Data\\bf9d5e129974ec144d643d259d0f8fd4\\System.Data.ni.dll",
+        "ManagedPdbSignature": "8",
+        "ManagedPdbAge": "{42cfa3e1-5461-4ce5-bbc4-992a49164bb8}",
+        "ManagedPdbBuildPath": "1",
+        "NativePdbSignature": "System.Data.pdb",
+        "NativePdbAge": "{bf9d5e12-9974-ec14-4d64-3d259d0f8fd4}",
+        "NativePdbBuildPath": "1"
+      }
+    },
+    {
+      "event_id": 155,
+      "pid": "4124",
+      "fields": {
+        "AssemblyID": "0x22F5A755860",
+        "AppDomainID": "0x7FFFBC5D4C80",
+        "BindingID": "0x0",
+        "AssemblyFlags": "5",
+        "FullyQualifiedAssemblyName": "System.Data, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+        "ClrInstanceID": "8"
+      }
+    },
+    {
+      "event_id": 153,
+      "pid": "4124",
+      "fields": {
+        "ModuleID": "0x7FFFB5D41000",
+        "AssemblyID": "0x22F5A7553E0",
+        "ModuleFlags": "27",
+        "ModuleILPath": "0",
+        "ModuleNativePath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.Configuration\\v4.0_4.0.0.0__b03f5f7f11d50a3a\\System.Configuration.dll",
+        "ClrInstanceID": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Configuration\\d4814540c1857595f441988c91150a28\\System.Configuration.ni.dll",
+        "ManagedPdbSignature": "8",
+        "ManagedPdbAge": "{1a14882d-d376-4fe7-95a2-537f37278e89}",
+        "ManagedPdbBuildPath": "1",
+        "NativePdbSignature": "System.Configuration.pdb",
+        "NativePdbAge": "{d4814540-c185-7595-f441-988c91150a28}",
+        "NativePdbBuildPath": "1"
+      }
+    },
+    {
+      "event_id": 155,
+      "pid": "4124",
+      "fields": {
+        "AssemblyID": "0x22F5A7553E0",
+        "AppDomainID": "0x7FFFBC5D4C80",
+        "BindingID": "0x0",
+        "AssemblyFlags": "5",
+        "FullyQualifiedAssemblyName": "System.Configuration, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a",
+        "ClrInstanceID": "8"
+      }
+    },
+    {
+      "event_id": 153,
+      "pid": "4124",
+      "fields": {
+        "ModuleID": "0x7FFF5C557710",
+        "AssemblyID": "0x22F5A754780",
+        "ModuleFlags": "9",
+        "ModuleILPath": "0",
+        "ModuleNativePath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.Numerics\\v4.0_4.0.0.0__b77a5c561934e089\\System.Numerics.dll",
+        "ClrInstanceID": "",
+        "ManagedPdbSignature": "8",
+        "ManagedPdbAge": "{660f08b0-a060-4f48-829c-78a083850e11}",
+        "ManagedPdbBuildPath": "2",
+        "NativePdbSignature": "System.Numerics.pdb",
+        "NativePdbAge": "{00000000-0000-0000-0000-000000000000}",
+        "NativePdbBuildPath": "0"
+      }
+    },
+    {
+      "event_id": 155,
+      "pid": "4124",
+      "fields": {
+        "AssemblyID": "0x22F5A754780",
+        "AppDomainID": "0x7FFFBC5D4C80",
+        "BindingID": "0x0",
+        "AssemblyFlags": "1",
+        "FullyQualifiedAssemblyName": "System.Numerics, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+        "ClrInstanceID": "8"
+      }
+    },
+    {
+      "event_id": 153,
+      "pid": "4124",
+      "fields": {
+        "ModuleID": "0x7FFFB4A01000",
+        "AssemblyID": "0x22F5A915780",
+        "ModuleFlags": "11",
+        "ModuleILPath": "0",
+        "ModuleNativePath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_64\\System.Transactions\\v4.0_4.0.0.0__b77a5c561934e089\\System.Transactions.dll",
+        "ClrInstanceID": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Transactions\\e2d002211b727266d0c6289112700897\\System.Transactions.ni.dll",
+        "ManagedPdbSignature": "8",
+        "ManagedPdbAge": "{3467a961-9b63-409b-bf36-ec0c449ab128}",
+        "ManagedPdbBuildPath": "1",
+        "NativePdbSignature": "System.Transactions.pdb",
+        "NativePdbAge": "{e2d00221-1b72-7266-d0c6-289112700897}",
+        "NativePdbBuildPath": "1"
+      }
+    },
+    {
+      "event_id": 155,
+      "pid": "4124",
+      "fields": {
+        "AssemblyID": "0x22F5A915780",
+        "AppDomainID": "0x7FFFBC5D4C80",
+        "BindingID": "0x0",
+        "AssemblyFlags": "5",
+        "FullyQualifiedAssemblyName": "System.Transactions, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+        "ClrInstanceID": "8"
+      }
+    },
+    {
+      "event_id": 153,
+      "pid": "4124",
+      "fields": {
+        "ModuleID": "0x7FFF5C5559A0",
+        "AssemblyID": "0x22F41B89FD0",
+        "ModuleFlags": "9",
+        "ModuleILPath": "0",
+        "ModuleNativePath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.Management.Automation.resources\\v4.0_3.0.0.0_zh-Hans_31bf3856ad364e35\\System.Management.Automation.resources.dll",
+        "ClrInstanceID": "",
+        "ManagedPdbSignature": "8",
+        "ManagedPdbAge": "{00000000-0000-0000-0000-000000000000}",
+        "ManagedPdbBuildPath": "0",
+        "NativePdbSignature": "",
+        "NativePdbAge": "{00000000-0000-0000-0000-000000000000}",
+        "NativePdbBuildPath": "0"
+      }
+    },
+    {
+      "event_id": 155,
+      "pid": "4124",
+      "fields": {
+        "AssemblyID": "0x22F41B89FD0",
+        "AppDomainID": "0x7FFFBC5D4C80",
+        "BindingID": "0x0",
+        "AssemblyFlags": "1",
+        "FullyQualifiedAssemblyName": "System.Management.Automation.resources, Version=3.0.0.0, Culture=zh-Hans, PublicKeyToken=31bf3856ad364e35",
+        "ClrInstanceID": "8"
+      }
+    },
+    {
+      "event_id": 153,
+      "pid": "4124",
+      "fields": {
+        "ModuleID": "0x7FFFB99B1000",
+        "AssemblyID": "0x22F41B8AD50",
+        "ModuleFlags": "27",
+        "ModuleILPath": "0",
+        "ModuleNativePath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System\\v4.0_4.0.0.0__b77a5c561934e089\\System.dll",
+        "ClrInstanceID": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System\\45689b966cb35d73224432bacf80da91\\System.ni.dll",
+        "ManagedPdbSignature": "8",
+        "ManagedPdbAge": "{bae346b2-f711-48b1-b3d6-1f3f400f2134}",
+        "ManagedPdbBuildPath": "2",
+        "NativePdbSignature": "System.pdb",
+        "NativePdbAge": "{45689b96-6cb3-5d73-2244-32bacf80da91}",
+        "NativePdbBuildPath": "1"
+      }
+    },
+    {
+      "event_id": 155,
+      "pid": "4124",
+      "fields": {
+        "AssemblyID": "0x22F41B8AD50",
+        "AppDomainID": "0x7FFFBC5D4C80",
+        "BindingID": "0x0",
+        "AssemblyFlags": "5",
+        "FullyQualifiedAssemblyName": "System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+        "ClrInstanceID": "8"
+      }
+    },
+    {
+      "event_id": 153,
+      "pid": "4124",
+      "fields": {
+        "ModuleID": "0x7FFFB45F1000",
+        "AssemblyID": "0x22F5A914A00",
+        "ModuleFlags": "11",
+        "ModuleILPath": "0",
+        "ModuleNativePath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.Configuration.Install\\v4.0_4.0.0.0__b03f5f7f11d50a3a\\System.Configuration.Install.dll",
+        "ClrInstanceID": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Confe64a9051#\\43d6670eb9862f8121ada3dbde5632cb\\System.Configuration.Install.ni.dll",
+        "ManagedPdbSignature": "8",
+        "ManagedPdbAge": "{85731060-63f5-45eb-ac0a-65088e5f62b0}",
+        "ManagedPdbBuildPath": "1",
+        "NativePdbSignature": "System.Configuration.Install.pdb",
+        "NativePdbAge": "{43d6670e-b986-2f81-21ad-a3dbde5632cb}",
+        "NativePdbBuildPath": "1"
+      }
+    },
+    {
+      "event_id": 155,
+      "pid": "4124",
+      "fields": {
+        "AssemblyID": "0x22F5A914A00",
+        "AppDomainID": "0x7FFFBC5D4C80",
+        "BindingID": "0x0",
+        "AssemblyFlags": "5",
+        "FullyQualifiedAssemblyName": "System.Configuration.Install, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a",
+        "ClrInstanceID": "8"
+      }
+    },
+    {
+      "event_id": 153,
+      "pid": "4124",
+      "fields": {
+        "ModuleID": "0x7FFFBA5D1000",
+        "AssemblyID": "0x22F41ADF240",
+        "ModuleFlags": "27",
+        "ModuleILPath": "0",
+        "ModuleNativePath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_64\\mscorlib\\v4.0_4.0.0.0__b77a5c561934e089\\mscorlib.dll",
+        "ClrInstanceID": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\mscorlib\\ca4838b4fee6fda983bf8ca7c1b41582\\mscorlib.ni.dll",
+        "ManagedPdbSignature": "8",
+        "ManagedPdbAge": "{2b6b4259-de16-4518-9fd5-cf8cb1a5ad4a}",
+        "ManagedPdbBuildPath": "2",
+        "NativePdbSignature": "mscorlib.pdb",
+        "NativePdbAge": "{ca4838b4-fee6-fda9-83bf-8ca7c1b41582}",
+        "NativePdbBuildPath": "1"
+      }
+    },
+    {
+      "event_id": 155,
+      "pid": "4124",
+      "fields": {
+        "AssemblyID": "0x22F41ADF240",
+        "AppDomainID": "0x7FFFBC5D4C80",
+        "BindingID": "0x0",
+        "AssemblyFlags": "5",
+        "FullyQualifiedAssemblyName": "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+        "ClrInstanceID": "8"
+      }
+    },
+    {
+      "event_id": 153,
+      "pid": "4124",
+      "fields": {
+        "ModuleID": "0x7FFFB6051000",
+        "AssemblyID": "0x22F5A755620",
+        "ModuleFlags": "27",
+        "ModuleILPath": "0",
+        "ModuleNativePath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.Management\\v4.0_4.0.0.0__b03f5f7f11d50a3a\\System.Management.dll",
+        "ClrInstanceID": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Management\\8a454799ab5bbc2b2fe2b22e64c1f06c\\System.Management.ni.dll",
+        "ManagedPdbSignature": "8",
+        "ManagedPdbAge": "{49d13828-8c5e-417b-b8c7-f47c89b84e3f}",
+        "ManagedPdbBuildPath": "1",
+        "NativePdbSignature": "System.Management.pdb",
+        "NativePdbAge": "{8a454799-ab5b-bc2b-2fe2-b22e64c1f06c}",
+        "NativePdbBuildPath": "1"
+      }
+    },
+    {
+      "event_id": 155,
+      "pid": "4124",
+      "fields": {
+        "AssemblyID": "0x22F5A755620",
+        "AppDomainID": "0x7FFFBC5D4C80",
+        "BindingID": "0x0",
+        "AssemblyFlags": "5",
+        "FullyQualifiedAssemblyName": "System.Management, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a",
+        "ClrInstanceID": "8"
+      }
+    },
+    {
+      "event_id": 153,
+      "pid": "4124",
+      "fields": {
+        "ModuleID": "0x7FFF5C55A2C8",
+        "AssemblyID": "0x22F5A7549C0",
+        "ModuleFlags": "9",
+        "ModuleILPath": "0",
+        "ModuleNativePath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\mscorlib.resources\\v4.0_4.0.0.0_zh-Hans_b77a5c561934e089\\mscorlib.resources.dll",
+        "ClrInstanceID": "",
+        "ManagedPdbSignature": "8",
+        "ManagedPdbAge": "{00000000-0000-0000-0000-000000000000}",
+        "ManagedPdbBuildPath": "0",
+        "NativePdbSignature": "",
+        "NativePdbAge": "{00000000-0000-0000-0000-000000000000}",
+        "NativePdbBuildPath": "0"
+      }
+    },
+    {
+      "event_id": 155,
+      "pid": "4124",
+      "fields": {
+        "AssemblyID": "0x22F5A7549C0",
+        "AppDomainID": "0x7FFFBC5D4C80",
+        "BindingID": "0x0",
+        "AssemblyFlags": "1",
+        "FullyQualifiedAssemblyName": "mscorlib.resources, Version=4.0.0.0, Culture=zh-Hans, PublicKeyToken=b77a5c561934e089",
+        "ClrInstanceID": "8"
+      }
+    },
+    {
+      "event_id": 153,
+      "pid": "4124",
+      "fields": {
+        "ModuleID": "0x7FFF5C556F58",
+        "AssemblyID": "0x22F5A7541E0",
+        "ModuleFlags": "9",
+        "ModuleILPath": "0",
+        "ModuleNativePath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\Microsoft.PowerShell.ConsoleHost.resources\\v4.0_3.0.0.0_zh-Hans_31bf3856ad364e35\\Microsoft.PowerShell.ConsoleHost.resources.dll",
+        "ClrInstanceID": "",
+        "ManagedPdbSignature": "8",
+        "ManagedPdbAge": "{00000000-0000-0000-0000-000000000000}",
+        "ManagedPdbBuildPath": "0",
+        "NativePdbSignature": "",
+        "NativePdbAge": "{00000000-0000-0000-0000-000000000000}",
+        "NativePdbBuildPath": "0"
+      }
+    },
+    {
+      "event_id": 155,
+      "pid": "4124",
+      "fields": {
+        "AssemblyID": "0x22F5A7541E0",
+        "AppDomainID": "0x7FFFBC5D4C80",
+        "BindingID": "0x0",
+        "AssemblyFlags": "1",
+        "FullyQualifiedAssemblyName": "Microsoft.PowerShell.ConsoleHost.resources, Version=3.0.0.0, Culture=zh-Hans, PublicKeyToken=31bf3856ad364e35",
+        "ClrInstanceID": "8"
+      }
+    },
+    {
+      "event_id": 153,
+      "pid": "4124",
+      "fields": {
+        "ModuleID": "0x7FFFB5EE1000",
+        "AssemblyID": "0x22F5A753E80",
+        "ModuleFlags": "27",
+        "ModuleILPath": "0",
+        "ModuleNativePath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.DirectoryServices\\v4.0_4.0.0.0__b03f5f7f11d50a3a\\System.DirectoryServices.dll",
+        "ClrInstanceID": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Dired13b18a9#\\8896ee2a874b493fefecca12bdc2097d\\System.DirectoryServices.ni.dll",
+        "ManagedPdbSignature": "8",
+        "ManagedPdbAge": "{daef7bd6-3053-4f5c-8314-d3b270139d9e}",
+        "ManagedPdbBuildPath": "1",
+        "NativePdbSignature": "System.DirectoryServices.pdb",
+        "NativePdbAge": "{8896ee2a-874b-493f-efec-ca12bdc2097d}",
+        "NativePdbBuildPath": "1"
+      }
+    },
+    {
+      "event_id": 155,
+      "pid": "4124",
+      "fields": {
+        "AssemblyID": "0x22F5A753E80",
+        "AppDomainID": "0x7FFFBC5D4C80",
+        "BindingID": "0x0",
+        "AssemblyFlags": "5",
+        "FullyQualifiedAssemblyName": "System.DirectoryServices, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a",
+        "ClrInstanceID": "8"
+      }
+    },
+    {
+      "event_id": 153,
+      "pid": "4124",
+      "fields": {
+        "ModuleID": "0x7FFFB6B81000",
+        "AssemblyID": "0x22F41B8A9F0",
+        "ModuleFlags": "11",
+        "ModuleILPath": "0",
+        "ModuleNativePath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.Management.Automation\\v4.0_3.0.0.0__31bf3856ad364e35\\System.Management.Automation.dll",
+        "ClrInstanceID": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Manaa57fc8cc#\\021537811b25d09909593f37faf9e713\\System.Management.Automation.ni.dll",
+        "ManagedPdbSignature": "8",
+        "ManagedPdbAge": "{52131ed9-2a81-4789-b73e-5b86ec97365a}",
+        "ManagedPdbBuildPath": "1",
+        "NativePdbSignature": "System.Management.Automation.pdb",
+        "NativePdbAge": "{02153781-1b25-d099-0959-3f37faf9e713}",
+        "NativePdbBuildPath": "1"
+      }
+    },
+    {
+      "event_id": 155,
+      "pid": "4124",
+      "fields": {
+        "AssemblyID": "0x22F41B8A9F0",
+        "AppDomainID": "0x7FFFBC5D4C80",
+        "BindingID": "0x0",
+        "AssemblyFlags": "5",
+        "FullyQualifiedAssemblyName": "System.Management.Automation, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35",
+        "ClrInstanceID": "8"
+      }
+    },
+    {
+      "event_id": 153,
+      "pid": "4124",
+      "fields": {
+        "ModuleID": "0x7FFFB8F21000",
+        "AssemblyID": "0x22F41B8AE70",
+        "ModuleFlags": "27",
+        "ModuleILPath": "0",
+        "ModuleNativePath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.Core\\v4.0_4.0.0.0__b77a5c561934e089\\System.Core.dll",
+        "ClrInstanceID": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Core\\2d550862ce4c9745f1ec2785d34258ac\\System.Core.ni.dll",
+        "ManagedPdbSignature": "8",
+        "ManagedPdbAge": "{913f5254-14a0-461f-8c7c-99da2651f143}",
+        "ManagedPdbBuildPath": "2",
+        "NativePdbSignature": "System.Core.pdb",
+        "NativePdbAge": "{2d550862-ce4c-9745-f1ec-2785d34258ac}",
+        "NativePdbBuildPath": "1"
+      }
+    },
+    {
+      "event_id": 155,
+      "pid": "4124",
+      "fields": {
+        "AssemblyID": "0x22F41B8AE70",
+        "AppDomainID": "0x7FFFBC5D4C80",
+        "BindingID": "0x0",
+        "AssemblyFlags": "5",
+        "FullyQualifiedAssemblyName": "System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+        "ClrInstanceID": "8"
+      }
+    },
+    {
+      "event_id": 153,
+      "pid": "4124",
+      "fields": {
+        "ModuleID": "0x7FFFB61C1000",
+        "AssemblyID": "0x22F41B8B650",
+        "ModuleFlags": "27",
+        "ModuleILPath": "0",
+        "ModuleNativePath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.Xml\\v4.0_4.0.0.0__b77a5c561934e089\\System.Xml.dll",
+        "ClrInstanceID": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Xml\\9f5174b58465a67acb58ccaa54a46f15\\System.Xml.ni.dll",
+        "ManagedPdbSignature": "8",
+        "ManagedPdbAge": "{60efed85-5fff-46b8-ab6b-f371e363f68a}",
+        "ManagedPdbBuildPath": "2",
+        "NativePdbSignature": "System.Xml.pdb",
+        "NativePdbAge": "{9f5174b5-8465-a67a-cb58-ccaa54a46f15}",
+        "NativePdbBuildPath": "1"
+      }
+    },
+    {
+      "event_id": 155,
+      "pid": "4124",
+      "fields": {
+        "AssemblyID": "0x22F41B8B650",
+        "AppDomainID": "0x7FFFBC5D4C80",
+        "BindingID": "0x0",
+        "AssemblyFlags": "5",
+        "FullyQualifiedAssemblyName": "System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+        "ClrInstanceID": "8"
+      }
+    },
+    {
+      "event_id": 153,
+      "pid": "4124",
+      "fields": {
+        "ModuleID": "0x7FFFB4AE1000",
+        "AssemblyID": "0x22F5A9150C0",
+        "ModuleFlags": "11",
+        "ModuleILPath": "0",
+        "ModuleNativePath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\Microsoft.PowerShell.Security\\v4.0_3.0.0.0__31bf3856ad364e35\\Microsoft.PowerShell.Security.dll",
+        "ClrInstanceID": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\Microsoft.P6f792626#\\9229da9c95d298d7ea0acc0b3d8f25fa\\Microsoft.PowerShell.Security.ni.dll",
+        "ManagedPdbSignature": "8",
+        "ManagedPdbAge": "{de47d298-c841-47d3-92c2-1cf7fc70a833}",
+        "ManagedPdbBuildPath": "1",
+        "NativePdbSignature": "Microsoft.PowerShell.Security.pdb",
+        "NativePdbAge": "{9229da9c-95d2-98d7-ea0a-cc0b3d8f25fa}",
+        "NativePdbBuildPath": "1"
+      }
+    },
+    {
+      "event_id": 155,
+      "pid": "4124",
+      "fields": {
+        "AssemblyID": "0x22F5A9150C0",
+        "AppDomainID": "0x7FFFBC5D4C80",
+        "BindingID": "0x0",
+        "AssemblyFlags": "5",
+        "FullyQualifiedAssemblyName": "Microsoft.PowerShell.Security, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35",
+        "ClrInstanceID": "8"
+      }
+    },
+    {
+      "event_id": 153,
+      "pid": "4124",
+      "fields": {
+        "ModuleID": "0x7FFFB6A81000",
+        "AssemblyID": "0x22F41B8B1D0",
+        "ModuleFlags": "11",
+        "ModuleILPath": "0",
+        "ModuleNativePath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\Microsoft.Management.Infrastructure\\v4.0_1.0.0.0__31bf3856ad364e35\\Microsoft.Management.Infrastructure.dll",
+        "ClrInstanceID": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\Microsoft.Mf49f6405#\\08ab12cea70c2d02df7073fa6f73703e\\Microsoft.Management.Infrastructure.ni.dll",
+        "ManagedPdbSignature": "8",
+        "ManagedPdbAge": "{2c5db641-47fd-4c66-a9bf-e7541c7491ba}",
+        "ManagedPdbBuildPath": "1",
+        "NativePdbSignature": "Microsoft.Management.Infrastructure.pdb",
+        "NativePdbAge": "{08ab12ce-a70c-2d02-df70-73fa6f73703e}",
+        "NativePdbBuildPath": "1"
+      }
+    },
+    {
+      "event_id": 155,
+      "pid": "4124",
+      "fields": {
+        "AssemblyID": "0x22F41B8B1D0",
+        "AppDomainID": "0x7FFFBC5D4C80",
+        "BindingID": "0x0",
+        "AssemblyFlags": "5",
+        "FullyQualifiedAssemblyName": "Microsoft.Management.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35",
+        "ClrInstanceID": "8"
+      }
+    },
+    {
+      "event_id": 157,
+      "pid": "4124",
+      "fields": {
+        "AppDomainID": "0x7FFFBC5D4C80",
+        "AppDomainFlags": "4",
+        "AppDomainName": "SharedDomain",
+        "AppDomainIndex": "0",
+        "ClrInstanceID": "8"
+      }
+    }
+  ],
+  "trace_tools_observed": {
+    "C:\\Windows\\System32\\logman.exe": "A6325762ED7725748DF62D9BF3478596DA03AA8CE0A9EB8E07087EEBFA52CDAC",
+    "C:\\Windows\\System32\\tracerpt.exe": "EA5D0C93A0BBF9ACB7A01DC574238EDA7ECAD3E1EF9F33F8180A8F70F369E469"
+  },
+  "limitations": [
+    "Only Loader provider in this run",
+    "No kernel image events or image hashes in this run",
+    "No assembly content digests or production identity"
+  ],
+  "missing_unload_negative_rejected": true
+}

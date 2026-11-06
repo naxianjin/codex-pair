@@ -1,5 +1,12 @@
-﻿param([Parameter(Mandatory)][string]$InputDirectory)
+﻿param([Parameter(Mandatory)][string]$InputDirectory,[Parameter(Mandatory)][string]$SourceInventory)
 $ErrorActionPreference='Stop'
+$sourceBytes=[IO.File]::ReadAllBytes($SourceInventory)
+$sourceRecord=[Text.Encoding]::UTF8.GetString($sourceBytes) | ConvertFrom-Json
+$sha=[Security.Cryptography.SHA256]::Create()
+try {$sourceDigest=([BitConverter]::ToString($sha.ComputeHash($sourceBytes))).Replace('-','')} finally {$sha.Dispose()}
+$requiredSources=@('Invoke-ValidatorRootDiagnostic.ps1','Test-RootTrace.ps1','PairValidatorIdentityDiagnostic.cs','root-identity-baseline.json','run-root-etw.ps1')
+if(@($sourceRecord.files.PSObject.Properties).Count -ne 5 -or @($sourceRecord.files.PSObject.Properties.Name | Where-Object {$_ -notin $requiredSources}).Count){throw 'Invalid source inventory set'}
+foreach($item in $sourceRecord.files.PSObject.Properties){if((Get-FileHash -LiteralPath (Join-Path $PSScriptRoot $item.Name)).Hash -ne $item.Value){throw 'Diagnostic source inventory mismatch'}}
 . (Join-Path $PSScriptRoot 'Test-RootTrace.ps1')
 $lab='E:\codex-pair\.codex-pair\isolation'
 $vmName='codex-pair-isolation-20261102'
@@ -29,7 +36,7 @@ try{
  if(@($identity.controls.PSObject.Properties).Count -ne 4 -or @($identity.controls.PSObject.Properties.Name | Where-Object {$_ -notin $controlNames}).Count){throw 'Invalid diagnostic control set'}
  foreach($name in $controlNames){if(-not $identity.controls.$name -or $hashes[$name] -ne $identity.controls.$name){throw 'Registered diagnostic snapshot changed'}}
  $controller=(Get-FileHash -LiteralPath $PSCommandPath).Hash
- Save-NewJson "$output\request.json" ([ordered]@{Run=$run;VM=$vm.Id.ToString();ControllerSHA256=$controller;Files=$hashes;Formal=$false;Limits=@{Processes=16;ProcessMiB=384;JobMiB=512;CPUSeconds=120;WallSeconds=180;DiskMiB=64}})
+ Save-NewJson "$output\request.json" ([ordered]@{Run=$run;VM=$vm.Id.ToString();SourceInventorySHA256=$sourceDigest;ControllerSHA256=$controller;Files=$hashes;Formal=$false;Limits=@{Processes=16;ProcessMiB=384;JobMiB=512;CPUSeconds=120;WallSeconds=180;DiskMiB=64}})
  $session=New-PSSession -VMName $vmName -Credential (Import-Clixml "$lab\windows-20261102\guest-credential.dpapi.xml")
  $guest="C:\PairLab\ValidatorRuns\$run"
  Invoke-Command -Session $session -ArgumentList $guest -ScriptBlock {param($path);if(Test-Path -LiteralPath $path){throw 'Run exists'};New-Item -ItemType Directory $path | Out-Null; & icacls.exe 'C:\PairLab\ValidatorRuns' /grant '*S-1-5-32-545:(RX)' | Out-Null; if($LASTEXITCODE){throw 'Run parent traversal ACL failed'}}
@@ -85,7 +92,9 @@ try{
   $stream=[IO.File]::Open("$output\artifact.json",'CreateNew','Write','None');try{$stream.Write($bytes,0,$bytes.Length);$stream.Flush($true)}finally{$stream.Dispose()}
  }
  if((Get-FileHash -LiteralPath $PSCommandPath).Hash -ne $controller){throw 'Host controller changed'}
- Save-NewJson "$output\receipt.json" @{Run=$run;State='terminal';NativeSHA256=(Get-FileHash "$output\native.json").Hash;ControllerSHA256=$controller;Formal=$false}
+ if((Get-FileHash -LiteralPath $SourceInventory).Hash -ne $sourceDigest){throw 'Source inventory changed'}
+ foreach($item in $sourceRecord.files.PSObject.Properties){if((Get-FileHash -LiteralPath (Join-Path $PSScriptRoot $item.Name)).Hash -ne $item.Value){throw 'Diagnostic source changed'}}
+ Save-NewJson "$output\receipt.json" @{Run=$run;State='terminal';NativeSHA256=(Get-FileHash "$output\native.json").Hash;SourceInventorySHA256=$sourceDigest;ControllerSHA256=$controller;Formal=$false}
  Remove-Item -LiteralPath $pending
  @{Run=$run;Output=$output;Formal=$false} | ConvertTo-Json -Compress
 }finally{

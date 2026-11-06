@@ -1,0 +1,62 @@
+{
+  "source": "real Store test fixture; synthetic actor and report",
+  "candidate": "3aa8a42f539b4c108a575b17bae733cc",
+  "execution": "86a7c588f9e94de7a154586187d1957c",
+  "context": {
+    "pair_id": "test",
+    "audit_id": "audit-product",
+    "stage_id": "8580173c0be04086bf69170ed084afcc",
+    "auxiliary_task_id": "aux",
+    "session": "00000000-0000-0000-0000-000000000011",
+    "execution_id": "86a7c588f9e94de7a154586187d1957c",
+    "epoch": 1,
+    "candidate_digest": "4675777b5c0d33f74349b37e58c4fe588dee3195b28e9971499113e4aca9bb7b",
+    "contract_digest": "923aa2561986ade6b6f6fca3685f3067255116c7b6e3951cfa12ac794a2508d5",
+    "track": "cloudflare",
+    "requirements_version": 1
+  },
+  "formal": false,
+  "parent_verdict": "needs_validation",
+  "run": {
+    "Output": "D:\\Codex_No_Projects\\work\\github\\codex-pair-real-wokey-20261104\\.codex-pair\\worktrees\\windows-f93e3110d73b-a\\validation\\direct-tests-v4\\hyperv-validator\\runs\\6ae08ee4ec21432386dca2f612b183b3",
+    "Run": "6ae08ee4ec21432386dca2f612b183b3",
+    "Formal": false
+  },
+  "saved": {
+    "saved": true,
+    "duplicate": false,
+    "run_id": "6ae08ee4ec21432386dca2f612b183b3",
+    "validators_succeeded": true,
+    "formal_checks_verified": false
+  },
+  "settlement": {
+    "candidate_id": "3aa8a42f539b4c108a575b17bae733cc",
+    "stage_id": "8580173c0be04086bf69170ed084afcc",
+    "verdict": "needs_validation",
+    "reasons": [
+      "formal_receipts_missing:aux",
+      "necessary_validation_missing",
+      "parent_fixed_stage_official_review_required",
+      "report_validation_incomplete:aux",
+      "required_coverage_or_independent_final_verification_missing"
+    ],
+    "report_digests": [
+      "37860e58a86cd6d78e69aae825bba999335a307af401bc28c9603bf2cd7c6194"
+    ],
+    "ordinary_stage_changed": false,
+    "new_work_started": false,
+    "validator_runs": [
+      {
+        "run_id": "6ae08ee4ec21432386dca2f612b183b3",
+        "execution_id": "86a7c588f9e94de7a154586187d1957c",
+        "formal_checks_verified": false
+      }
+    ]
+  },
+  "source_head": "f0093dd98c9bdf683b490c85fa10baeb7c0adcf2",
+  "source_overlay_sha256": {
+    "Invoke-ValidatorRootDiagnostic.ps1": "c746b3a294489ce0f1a04e5e57e86e27bbc6a482f80b593716d2ce6fb55434c8",
+    "runtime-source-inventory.json": "a80f45e8c514659bb69b6ea4ee9f7cc40a2345b3bcac47cb7bfaa5551191d680",
+    "Test-RootTrace.ps1": "36f44c804fb18e86f8518c29869afe34dd45a65aa80bed167f7f608028eae801"
+  }
+}

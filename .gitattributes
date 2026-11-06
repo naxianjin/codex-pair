@@ -1,1 +1,11 @@
 * text=auto eol=lf
+
+# Preserve exact bytes used by diagnostic source inventories.
+validation/bytecode-provenance-20261105/Invoke-ValidatorCombinedDiagnostic.ps1 -text whitespace=cr-at-eol
+validation/bytecode-provenance-20261105/Invoke-ValidatorRootDiagnostic.ps1 -text whitespace=cr-at-eol
+validation/bytecode-provenance-20261105/PairValidatorIdentityDiagnostic.cs -text whitespace=cr-at-eol
+validation/bytecode-provenance-20261105/Test-RootTrace.ps1 -text whitespace=cr-at-eol
+validation/bytecode-provenance-20261105/check-combined-evidence.py -text whitespace=cr-at-eol
+validation/bytecode-provenance-20261105/root-identity-baseline.json -text whitespace=cr-at-eol
+validation/bytecode-provenance-20261105/run-combined-etw.ps1 -text whitespace=cr-at-eol
+validation/bytecode-provenance-20261105/run-root-etw.ps1 -text whitespace=cr-at-eol

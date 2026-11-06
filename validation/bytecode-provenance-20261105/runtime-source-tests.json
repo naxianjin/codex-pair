@@ -1,0 +1,10 @@
+{
+  "formal": false,
+  "five_real_entrypoint_hash_mismatches_rejected": true,
+  "same_byte_parse_and_hash": true,
+  "same_byte_revision_live": true,
+  "earlier_live_run": "0a135c04ef0649bf821568be33d5d064",
+  "helper_load_window_closed": false,
+  "etw_tools_trusted": false,
+  "final_live_run": "6ae08ee4ec21432386dca2f612b183b3"
+}

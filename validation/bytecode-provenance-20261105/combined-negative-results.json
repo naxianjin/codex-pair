@@ -1,0 +1,30 @@
+{
+  "positive": true,
+  "negative_cases": [
+    {
+      "case": "missing_unload",
+      "rejected": true
+    },
+    {
+      "case": "wrong_clr",
+      "rejected": true
+    },
+    {
+      "case": "wrong_assembly",
+      "rejected": true
+    },
+    {
+      "case": "missing_hashes",
+      "rejected": true
+    },
+    {
+      "case": "short_hash",
+      "rejected": true
+    },
+    {
+      "case": "wrong_root",
+      "rejected": true
+    }
+  ],
+  "formal": false
+}
