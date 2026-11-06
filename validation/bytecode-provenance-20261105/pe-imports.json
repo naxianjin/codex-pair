@@ -1,0 +1,50 @@
+{
+  "imports": {
+    "python/python.exe": [
+      "python312.dll",
+      "VCRUNTIME140.dll",
+      "api-ms-win-crt-runtime-l1-1-0.dll",
+      "api-ms-win-crt-math-l1-1-0.dll",
+      "api-ms-win-crt-stdio-l1-1-0.dll",
+      "api-ms-win-crt-locale-l1-1-0.dll",
+      "api-ms-win-crt-heap-l1-1-0.dll",
+      "KERNEL32.dll"
+    ],
+    "python/python312.dll": [
+      "VERSION.dll",
+      "WS2_32.dll",
+      "api-ms-win-core-path-l1-1-0.dll",
+      "bcrypt.dll",
+      "ADVAPI32.dll",
+      "KERNEL32.dll",
+      "VCRUNTIME140.dll",
+      "api-ms-win-crt-stdio-l1-1-0.dll",
+      "api-ms-win-crt-environment-l1-1-0.dll",
+      "api-ms-win-crt-heap-l1-1-0.dll",
+      "api-ms-win-crt-runtime-l1-1-0.dll",
+      "api-ms-win-crt-locale-l1-1-0.dll",
+      "api-ms-win-crt-string-l1-1-0.dll",
+      "api-ms-win-crt-convert-l1-1-0.dll",
+      "api-ms-win-crt-math-l1-1-0.dll",
+      "api-ms-win-crt-time-l1-1-0.dll",
+      "api-ms-win-crt-process-l1-1-0.dll",
+      "api-ms-win-crt-conio-l1-1-0.dll",
+      "api-ms-win-crt-filesystem-l1-1-0.dll"
+    ],
+    "node/node.exe": [
+      "CRYPT32.dll",
+      "WS2_32.dll",
+      "USER32.dll",
+      "dbghelp.dll",
+      "ADVAPI32.dll",
+      "IPHLPAPI.DLL",
+      "USERENV.dll",
+      "SHELL32.dll",
+      "ole32.dll",
+      "WINMM.dll",
+      "KERNEL32.dll"
+    ]
+  },
+  "scope": "static import directory only; no delay imports or actual module-load trace",
+  "formal": false
+}

@@ -1,0 +1,127 @@
+{
+  "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+  "modules": [
+    {
+      "path": "C:\\PairLab\\Tools\\python\\python.exe",
+      "sha256": "b7a12c3af0b4db44191eec14ea095eba731b7328917f570806183093d19ddca2"
+    },
+    {
+      "path": "C:\\Windows\\SYSTEM32\\ntdll.dll",
+      "sha256": "4dfbbd3d58225196603c6e61a9a61a7f71b9712ee63c79431998e51b393b63e6"
+    },
+    {
+      "path": "C:\\Windows\\System32\\KERNEL32.DLL",
+      "sha256": "f694ab9ccf9d8c0b24003d14788b864a97c0f1ffe697ee043174626c30b96e2b"
+    },
+    {
+      "path": "C:\\Windows\\System32\\KERNELBASE.dll",
+      "sha256": "6a2b921dd5b1cca7c96903d4e03eaa8ac980a067ea3b69c4c485cb99b5ae7584"
+    },
+    {
+      "path": "C:\\Windows\\System32\\ucrtbase.dll",
+      "sha256": "c43e5b334a71341c639912ed40bd0029edc283d96a36958f4b33d1c010fe04bc"
+    },
+    {
+      "path": "C:\\PairLab\\Tools\\python\\VCRUNTIME140.dll",
+      "sha256": "d5e4d9a3e835fa679450145d6a7d94e36573a509317111904d9b3712c30d9066"
+    },
+    {
+      "path": "C:\\PairLab\\Tools\\python\\python312.dll",
+      "sha256": "b354a5caed2b89f811c5a7a1262aca49f7132d9d9c631607280d50f1036838fe"
+    },
+    {
+      "path": "C:\\Windows\\System32\\WS2_32.dll",
+      "sha256": "198d705f131e88e2c246e794faae253f7cfcd43804fd64f8c4f85aca4f0247f3"
+    },
+    {
+      "path": "C:\\Windows\\System32\\RPCRT4.dll",
+      "sha256": "6ce9a729d5053902315f86616a6e459981b699fcea64f28531b6d4e3dceefd68"
+    },
+    {
+      "path": "C:\\Windows\\System32\\ADVAPI32.dll",
+      "sha256": "9d3b59400a91b58f359d2a79874ec17d7cb6c6753012e7377c9bfd26b080d14a"
+    },
+    {
+      "path": "C:\\Windows\\SYSTEM32\\VERSION.dll",
+      "sha256": "cea99f212af557a9613150c5509631403ed0f05f5d9a06ac42039bd59b40e39a"
+    },
+    {
+      "path": "C:\\Windows\\System32\\msvcrt.dll",
+      "sha256": "167b5e6185a070e15795ebce91b24f34b526ba48b5685a50837a31f435e62461"
+    },
+    {
+      "path": "C:\\Windows\\System32\\sechost.dll",
+      "sha256": "190c3747f4fc54639f9769d574fe4390e6c96933991816dd51d553134cc745b4"
+    },
+    {
+      "path": "C:\\Windows\\SYSTEM32\\bcrypt.dll",
+      "sha256": "f7e4de6c82fd808cdd6dcec639a60a6d99222420e0d0d45db24aea2e728b9b9c"
+    },
+    {
+      "path": "C:\\Windows\\System32\\bcryptprimitives.dll",
+      "sha256": "0e4328bd638171737873636b36ce97dda21a9585940e3066e20ba99d10dedee1"
+    },
+    {
+      "path": "C:\\PairLab\\Tools\\python\\python3.DLL",
+      "sha256": "d59b99938eb86479c9defa3e8c42f1bd54f8ebe94b99dd086a4fa34089c9ed07"
+    },
+    {
+      "path": "C:\\PairLab\\Tools\\python\\DLLs\\_ctypes.pyd",
+      "sha256": "52716a0fc8bbf645d1f9a279bd87d1fc1eff1739916655c466121b34b04e537d"
+    },
+    {
+      "path": "C:\\Windows\\System32\\ole32.dll",
+      "sha256": "d52c99cf522519cd16a2d8835d14bf786904339f803b040ce7c9e2c77214941e"
+    },
+    {
+      "path": "C:\\Windows\\System32\\msvcp_win.dll",
+      "sha256": "b1544e1f3f52ff5546ffd5934b5ff5c2569b9a1826271f1f1d48ef249db90b69"
+    },
+    {
+      "path": "C:\\Windows\\System32\\GDI32.dll",
+      "sha256": "1203b4ac2519f2ff862a42f70b0aba9dc378abb74048c1ba0f220c8c456ef884"
+    },
+    {
+      "path": "C:\\Windows\\System32\\win32u.dll",
+      "sha256": "a28d67a52706184189b2267398743cb94103c84e35194bec24d6c80d25098647"
+    },
+    {
+      "path": "C:\\Windows\\System32\\gdi32full.dll",
+      "sha256": "6191328ada2433b19562b255f90d84b5029e7c155ba6a9d471c6cdf98d6eb670"
+    },
+    {
+      "path": "C:\\Windows\\System32\\USER32.dll",
+      "sha256": "15ec212ea7753b907bc171e10d649e8275b0dc648ef15ce7a33461a3466d3516"
+    },
+    {
+      "path": "C:\\Windows\\System32\\combase.dll",
+      "sha256": "2586976ade0aa0382a8c4a01ea08ee7ae9453d2c0973d4573d41eb2fa4659e9c"
+    },
+    {
+      "path": "C:\\Windows\\System32\\OLEAUT32.dll",
+      "sha256": "b88292af8d91bc50f94d8a262c5186e1c935b10c003f523f7685f3906af6116a"
+    },
+    {
+      "path": "C:\\PairLab\\Tools\\python\\DLLs\\libffi-8.dll",
+      "sha256": "3d9a8c0e1170edb0480f11d2058b4538f3bd0eedfde8b67059fb5af21b435e78"
+    },
+    {
+      "path": "C:\\PairLab\\Tools\\python\\DLLs\\_hashlib.pyd",
+      "sha256": "48b476758c3c50fd6b44b4497a9d1368f7e75e550a983b6854e14b3e0d0ea7d6"
+    },
+    {
+      "path": "C:\\PairLab\\Tools\\python\\DLLs\\libcrypto-3-x64.dll",
+      "sha256": "276e6a57d4ec0dd50f47a6c1ae3e91bb7cf50d2356f8c81e01b97be1187ab098"
+    },
+    {
+      "path": "C:\\Windows\\System32\\CRYPT32.dll",
+      "sha256": "b3f1b4cec3ec6c72acc20b23a6cb6891cd4800dfc9159b40e00b008a46e3f88d"
+    },
+    {
+      "path": "C:\\Windows\\System32\\psapi.DLL",
+      "sha256": "aee47f2535e0196552513d37be8411a9b9c649a50c3d847488162580d8b88793"
+    }
+  ],
+  "scope": "diagnostic Python process at one instant; not restricted validator tree",
+  "formal": false
+}

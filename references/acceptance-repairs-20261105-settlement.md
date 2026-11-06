@@ -75,3 +75,7 @@ b9dcc1b完整120文件包在两个新建隔离home安装，逐文件清单一致
 既有离线控制器capability登记的11个源文件摘要全部一致，仅证明离线unittest范围基线未漂移，不扩大生产能力。
 
 延长开机等待后客体加载探针成功：Python3.12 -I -B -v实际从4个pyc读取代码，完整代码对象与源码重编译相等。制作仅观察用途的786文件清单，精确库存匹配，改缓存/增加/缺文件比较均拒绝。未替换可信工具链基线、未提升formal；历史写入者及Windows系统/动态模块认证仍未知。VM已Off且无pending。
+
+进一步从工具归档PE导入目录读取Python EXE/DLL及Node静态依赖，确认Windows系统DLL/API-set不在工具目录清单内。静态导入表不涵盖delay-load、动态LoadLibrary或实际映射，不能作为完整加载证明。
+
+客体诊断Python进程实际模块枚举成功，共30个模块并保存文件SHA256。仅单进程单时刻，未覆盖受限validator整棵进程树、Node、PowerShell或编译器；不作完整工具链认证。VM关闭且无pending。
