@@ -237,3 +237,5 @@ Invoke-ValidatorRawModuleDiagnostic在terminal receipt前调用真实check-restr
 读取器源码锁修复独立复审passed：官方openai/gpt-6.1-sol会话01a1b0ae-5e37-7c80-812b-9953f2b0371f，CLI 0.167.0-alpha.3.2；三项现场字节与冻结及审核摘要一致，审核者实际65项测试通过。发布修复仅覆盖同次源码读取编译、流清理、写入共享拒绝及释放后恢复；不认证JIT、系统DLL、正式回执或整体产品。审核原件保存reader-source-lock-independent-review.json，未修改活动安装或联系B。
 
 发布字节修正：ab01d46中Git默认换行规范化使三文件提交摘要与已审CRLF工作副本不同；语义归一后相同，但准确字节审核不可沿用。现为三文件增加-text规则并恢复已审核准确字节，提交前机器逐项核对暂存摘要，保留原提交历史，不改写审核结论。
+
+本地加载字节采集原型独立复审passed（openai/gpt-6.1-sol，01a1b0ae-5e37-7c80-812b-9953f2b0371f）。准确脚本摘要与冻结清单匹配；审核记录loaded-byte-independent-review.json，实测loaded-byte-observations.json。固定数组Assembly.Load、3方法IL、3系统模块磁盘/映像摘要、有效读取及非法程序集拒绝已验证，仅自身进程观察，未接入受限执行器/Store，不认证内存磁盘等价、JIT或正式回执。formal=false。

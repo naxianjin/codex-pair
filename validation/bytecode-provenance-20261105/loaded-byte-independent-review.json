@@ -1,0 +1,78 @@
+{
+  "conclusion": "passed",
+  "scope": "当前采集原型，仅本次自身进程",
+  "identity": {
+    "session_id": "01a1b0ae-5e37-7c80-812b-9953f2b0371f",
+    "thread_id": "01a1b0ae-5e37-7c80-812b-9953f2b0371f",
+    "model": "gpt-6.1-sol",
+    "model_provider": "openai"
+  },
+  "script": {
+    "actual_sha256": "7ddb03fda25c556eded1dbac62d7ac961c653c901b1cf0ef8c3e14edcc81e878",
+    "expected_sha256": "7ddb03fda25c556eded1dbac62d7ac961c653c901b1cf0ef8c3e14edcc81e878",
+    "equal": true
+  },
+  "observation": {
+    "Methods": [
+      {
+        "ILSHA256": "25518cc2da9594e4f8ca0cec40d4393629911c0dd047f30f0afc2ba681fc2964",
+        "Name": "IntPtr OpenRoot(System.String)",
+        "Token": 100663303,
+        "ILBytes": 116
+      },
+      {
+        "ILSHA256": "5ee5d7383ab9fed7f0a769247e410617469abc308f062cae2b0da29c69f5ff93",
+        "Name": "Byte[] Read(System.String)",
+        "Token": 100663304,
+        "ILBytes": 630
+      },
+      {
+        "ILSHA256": "3995ba3481d5ae939ad06ba487344ebb8105e26e196d4ae9f23666de0b34b8ab",
+        "Name": "Byte[] ReadBytes(IntPtr, System.String)",
+        "Token": 100663305,
+        "ILBytes": 756
+      }
+    ],
+    "ReadPassed": true,
+    "Formal": false,
+    "ProcessCreationUTC": "2026-11-06T16:18:56.7462157Z",
+    "MVID": "4619a90d-ffd3-464e-8cef-ad6358da62fe",
+    "AssemblyInputSHA256": "89da53cd6ea07db50e66c48b2dc00ceb9114b37eef60fddce5df3ac33284dab8",
+    "Images": [
+      {
+        "Name": "ntdll.dll",
+        "BaseAddress": "140705352318976",
+        "DiskSHA256": "3b2363e47b5143d5d2f927a5b84cabd62d1f08214030f5db1120214631bf6033",
+        "Path": "C:\\Windows\\SYSTEM32\\ntdll.dll",
+        "MappedBytes": 2064384,
+        "MappedSHA256": "ccc8a8449980e9843f3942af15b704aeae2c91f36a145f69b2f76fed061dc6e0"
+      },
+      {
+        "Name": "KERNEL32.DLL",
+        "BaseAddress": "140705347403776",
+        "DiskSHA256": "d070dc8e60a8eef48286f8657e016ef0223c21ae783fe6cb5c0a2d7da2a7846e",
+        "Path": "C:\\Windows\\System32\\KERNEL32.DLL",
+        "MappedBytes": 790528,
+        "MappedSHA256": "bc9da661e538715891183ddbfbd45746b905d6bd93f054e18d8bac4684f0590b"
+      },
+      {
+        "Name": "clr.dll",
+        "BaseAddress": "140704745717760",
+        "DiskSHA256": "2542439ff591d798bcdb2da534e95a7a8e427cafb4e6b3764234e7f72a529823",
+        "Path": "C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\clr.dll",
+        "MappedBytes": 10108928,
+        "MappedSHA256": "4c6f0c2ebf186c787925951495a8c14fe93edb710a35356a317227fcd80f8001"
+      }
+    ],
+    "InvalidAssemblyRejected": true,
+    "Limit": "Current collector process only. Memory hashes are observations, not PE equivalence, trusted baseline, JIT authentication or official host receipts.",
+    "PID": 18236,
+    "SourceSHA256": "6f1e2e716c5e7922b59a33b2a4e5570018b213469bf5a90ec48256b813d7003b"
+  },
+  "boundaries": [
+    "不认证系统磁盘/内存等价",
+    "不认证JIT",
+    "不授正式回执",
+    "原型尚未接入受限验证器或Store"
+  ]
+}

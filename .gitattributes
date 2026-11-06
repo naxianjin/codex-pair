@@ -16,3 +16,4 @@ validation/bytecode-provenance-20261105/run-raw-module-etw.ps1 -text whitespace=
 assets/audit/read-windows-input.ps1 -text whitespace=cr-at-eol
 tests/test_validator_worker.py -text whitespace=cr-at-eol
 package-manifest.json -text whitespace=cr-at-eol
+validation/bytecode-provenance-20261105/probe-loaded-byte-observations.ps1 -text whitespace=cr-at-eol
