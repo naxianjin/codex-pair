@@ -394,6 +394,15 @@ class AuxiliaryTests(unittest.TestCase):
                 request, native, artifact, {'node': 'a' * 64})
         from scripts.pair_next_commands import COMMANDS
         self.assertEqual(COMMANDS['record-validator-run'], 'record_validator_run')
+        import copy
+        for formal in (True, 1, 'true', None):
+            with self.subTest(forged_formal=formal):
+                forged = copy.deepcopy(artifact)
+                forged['formal_checks_verified'] = formal
+                with self.assertRaisesRegex(ValueError, 'binding mismatch'):
+                    self.store.record_validator_run(*args[:5], '9' * 32, request, native, forged, {'node': 'a' * 64})
+                with self.store.transaction() as db:
+                    self.assertIsNone(self.store._option(db, 'validator_run:' + '9' * 32))
         saved = self.store.record_validator_run(*args)
         self.assertFalse(saved['formal_checks_verified'])
         self.assertFalse(saved['duplicate'])
