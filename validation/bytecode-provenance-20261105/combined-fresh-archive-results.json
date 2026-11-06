@@ -1,0 +1,25 @@
+{
+  "formal": false,
+  "commit": "db34bc486284a5091ca47b9e8cbd2d89ece710cd",
+  "fresh_git_archive": true,
+  "checks": [
+    {
+      "script": "check-native-il-links.py",
+      "exit_code": 0
+    },
+    {
+      "script": "check-combined-negative-cases.py",
+      "exit_code": 0
+    },
+    {
+      "script": "check-clr-raw-properties.py",
+      "exit_code": 0
+    },
+    {
+      "script": "check-restricted-raw-negative-cases.py",
+      "exit_code": 0
+    }
+  ],
+  "source_inventories": 3,
+  "original_native_receipt_digest_matches": true
+}

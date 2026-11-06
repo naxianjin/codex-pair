@@ -185,3 +185,5 @@ IL文件续测取得21个绝对路径的磁盘SHA256及Windows签名观察，全
 ## NativeImage与IL观察关联
 
 新增check-native-il-links.py复核现有真实受限模块事件及后续磁盘签名观察：15个NotSigned NativeImage均有模块记录关联到签名Valid的IL路径及两端磁盘摘要。三个负例（缺IL观察、签名无效、缺Native关联）均拒绝，结果native-il-links-results.json。该关联不是NativeImage和IL内容等价证明，不是同次加载字节认证；两端签名/摘要来自后续单独探针。3个动态名称单列，4个加载记录分布在原始进程3948和3936，ETW确认两者是受限PowerShell；与输入读取器Add-Type有关只是实现线索，尚未认证动态内容。无生产代码修改，未联系B、未启动VM；整体formal=false。
+
+从db34bc4全新Git archive复现四个检查器（Native/IL、组合六负例、CLR三负例、受限模块六负例）全部返回0；三份来源清单及原始native回执摘要均匹配。证据combined-fresh-archive-results.json，formal=false。
