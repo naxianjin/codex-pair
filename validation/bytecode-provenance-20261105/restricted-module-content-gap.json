@@ -28,5 +28,33 @@
     "y2alwhqi"
   ],
   "empty_il_path_modules": [],
-  "limitation": "No module content SHA256 collected or loaded-byte identity verified."
+  "limitation": "21 absolute IL file paths and 3 dynamic module names; no loaded-byte identity. Dynamic names are not disk paths.",
+  "file_il_paths": [
+    "C:\\Windows\\Microsoft.Net\\assembly\\GAC_64\\System.Data\\v4.0_4.0.0.0__b77a5c561934e089\\System.Data.dll",
+    "C:\\Windows\\Microsoft.Net\\assembly\\GAC_64\\System.Transactions\\v4.0_4.0.0.0__b77a5c561934e089\\System.Transactions.dll",
+    "C:\\Windows\\Microsoft.Net\\assembly\\GAC_64\\mscorlib\\v4.0_4.0.0.0__b77a5c561934e089\\mscorlib.dll",
+    "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\Microsoft.Management.Infrastructure\\v4.0_1.0.0.0__31bf3856ad364e35\\Microsoft.Management.Infrastructure.dll",
+    "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\Microsoft.PowerShell.Commands.Management\\v4.0_3.0.0.0__31bf3856ad364e35\\Microsoft.PowerShell.Commands.Management.dll",
+    "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\Microsoft.PowerShell.Commands.Utility\\v4.0_3.0.0.0__31bf3856ad364e35\\Microsoft.PowerShell.Commands.Utility.dll",
+    "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\Microsoft.PowerShell.ConsoleHost.resources\\v4.0_3.0.0.0_zh-Hans_31bf3856ad364e35\\Microsoft.PowerShell.ConsoleHost.resources.dll",
+    "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\Microsoft.PowerShell.ConsoleHost\\v4.0_3.0.0.0__31bf3856ad364e35\\Microsoft.PowerShell.ConsoleHost.dll",
+    "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\Microsoft.PowerShell.Security\\v4.0_3.0.0.0__31bf3856ad364e35\\Microsoft.PowerShell.Security.dll",
+    "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.Configuration.Install\\v4.0_4.0.0.0__b03f5f7f11d50a3a\\System.Configuration.Install.dll",
+    "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.Configuration\\v4.0_4.0.0.0__b03f5f7f11d50a3a\\System.Configuration.dll",
+    "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.Core\\v4.0_4.0.0.0__b77a5c561934e089\\System.Core.dll",
+    "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.DirectoryServices\\v4.0_4.0.0.0__b03f5f7f11d50a3a\\System.DirectoryServices.dll",
+    "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.Management.Automation.resources\\v4.0_3.0.0.0_zh-Hans_31bf3856ad364e35\\System.Management.Automation.resources.dll",
+    "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.Management.Automation\\v4.0_3.0.0.0__31bf3856ad364e35\\System.Management.Automation.dll",
+    "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.Management\\v4.0_4.0.0.0__b03f5f7f11d50a3a\\System.Management.dll",
+    "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.Numerics\\v4.0_4.0.0.0__b77a5c561934e089\\System.Numerics.dll",
+    "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.Xml\\v4.0_4.0.0.0__b77a5c561934e089\\System.Xml.dll",
+    "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.resources\\v4.0_4.0.0.0_zh-Hans_b77a5c561934e089\\System.resources.dll",
+    "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System\\v4.0_4.0.0.0__b77a5c561934e089\\System.dll",
+    "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\mscorlib.resources\\v4.0_4.0.0.0_zh-Hans_b77a5c561934e089\\mscorlib.resources.dll"
+  ],
+  "dynamic_module_names": [
+    "Anonymously Hosted DynamicMethods Assembly",
+    "inmzhaot",
+    "y2alwhqi"
+  ]
 }

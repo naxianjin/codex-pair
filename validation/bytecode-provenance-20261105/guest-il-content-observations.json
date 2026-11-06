@@ -1,0 +1,195 @@
+{
+    "Formal":  false,
+    "Scope":  "Guest Windows trust evaluation; no independent publisher baseline",
+    "Files":  [
+                  {
+                      "SHA256":  "D479439EABA17FDFF2FF0423C3F729DFABDF8AB9C675957CAB136DA94F81B62A",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\Microsoft.Net\\assembly\\GAC_64\\System.Data\\v4.0_4.0.0.0__b77a5c561934e089\\System.Data.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "5CD2991507C3A0D61E99F2BF83DC5708721A12B9F2553BA6615CFBEFCB9D175B",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\Microsoft.Net\\assembly\\GAC_64\\System.Transactions\\v4.0_4.0.0.0__b77a5c561934e089\\System.Transactions.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "A13D6716D12E17F2D5721CC1F8891E08305B5B009F8D3736E078A01AB19AB7CF",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\Microsoft.Net\\assembly\\GAC_64\\mscorlib\\v4.0_4.0.0.0__b77a5c561934e089\\mscorlib.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "72EF8CE20B86EBEB62827ECE742EA0DCC2DDEB57E17CC3B7AE0D6451A5596F7D",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "71F53A26BB1625E466727183409A30D03D7923DF",
+                      "Path":  "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\Microsoft.Management.Infrastructure\\v4.0_1.0.0.0__31bf3856ad364e35\\Microsoft.Management.Infrastructure.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "D200883CAF188DD1DF7922BD94A1BC7BA4657BD74265E36C2CB9229D3917833E",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "71F53A26BB1625E466727183409A30D03D7923DF",
+                      "Path":  "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\Microsoft.PowerShell.Commands.Management\\v4.0_3.0.0.0__31bf3856ad364e35\\Microsoft.PowerShell.Commands.Management.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "A716CD486E6A77511317EA203766067464E79038587FEA3F7AEF9FA6D6AA12E1",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "71F53A26BB1625E466727183409A30D03D7923DF",
+                      "Path":  "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\Microsoft.PowerShell.Commands.Utility\\v4.0_3.0.0.0__31bf3856ad364e35\\Microsoft.PowerShell.Commands.Utility.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "0B66E97286EB6D16D2585E4106A920F60FB0F106D5514240BAC5250A0358E62F",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\Microsoft.PowerShell.ConsoleHost.resources\\v4.0_3.0.0.0_zh-Hans_31bf3856ad364e35\\Microsoft.PowerShell.ConsoleHost.resources.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "D6E244D46D452DC4E53DF5B556FC38D07C89B8458D07FABC9E02A52F71363BA5",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "71F53A26BB1625E466727183409A30D03D7923DF",
+                      "Path":  "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\Microsoft.PowerShell.ConsoleHost\\v4.0_3.0.0.0__31bf3856ad364e35\\Microsoft.PowerShell.ConsoleHost.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "9D24D2A9D3B5326A9BD8FCAE8863FA5AF32D37D7D0EEE175600D7D4E89AF8010",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "71F53A26BB1625E466727183409A30D03D7923DF",
+                      "Path":  "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\Microsoft.PowerShell.Security\\v4.0_3.0.0.0__31bf3856ad364e35\\Microsoft.PowerShell.Security.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "747428AF553969DEA3F37FC742B8E2989A0F2FAFF1FE3AE38F7A3C66096CAF3A",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.Configuration.Install\\v4.0_4.0.0.0__b03f5f7f11d50a3a\\System.Configuration.Install.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "3335BFF560F09508E609EBB2162DBB9987FBDBE30682D424F423191851B72A99",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.Configuration\\v4.0_4.0.0.0__b03f5f7f11d50a3a\\System.Configuration.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "4F8F2BDAD9DB393A6FE3FFFF2FFE4398EFF644C796F484C36F536444AA48901E",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.Core\\v4.0_4.0.0.0__b77a5c561934e089\\System.Core.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "963E952E5E33C87BACCBA7A388C09D69D4713DCC812E1ED8BE7A01E165968843",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.DirectoryServices\\v4.0_4.0.0.0__b03f5f7f11d50a3a\\System.DirectoryServices.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "0EBA69AAB099E824C9F378AE8D2026822F2054F7552A7F1A9AA8CC64C3EE8255",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.Management.Automation.resources\\v4.0_3.0.0.0_zh-Hans_31bf3856ad364e35\\System.Management.Automation.resources.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "34ECFB561B3ED480B291AC3D30DC3FCC4DDBD0A8FF43F4C6BBBDB6D31B629F5F",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "71F53A26BB1625E466727183409A30D03D7923DF",
+                      "Path":  "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.Management.Automation\\v4.0_3.0.0.0__31bf3856ad364e35\\System.Management.Automation.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "1DEF7EE3817BA89A66950F62EFD63A47E4E9C8829FF1A136745F0BC6F2E39C69",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.Management\\v4.0_4.0.0.0__b03f5f7f11d50a3a\\System.Management.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "7318EC6DDCF5C3725425617EFFAE5514B3EC03399A03473BE95BF59CB41D15DF",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.Numerics\\v4.0_4.0.0.0__b77a5c561934e089\\System.Numerics.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "AB3240B316126EB0B19C7E5B253ECB68C07A9C710BD5A3E7B858A2E3D2E99CDB",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.Xml\\v4.0_4.0.0.0__b77a5c561934e089\\System.Xml.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "12F139B36961C47B8C7D89633FAA156BDEACD6D6D7627C3A29BFEADCD476F2FD",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.resources\\v4.0_4.0.0.0_zh-Hans_b77a5c561934e089\\System.resources.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "6B7220D3D9A697042B20E97BA7ACCF01400B75E2A5CF5397DA40A4A90B03B233",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System\\v4.0_4.0.0.0__b77a5c561934e089\\System.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "078C1C8D6FAD15B75374DC431336FDD3A12F91C6F369535D6618712ED564239A",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\mscorlib.resources\\v4.0_4.0.0.0_zh-Hans_b77a5c561934e089\\mscorlib.resources.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  }
+              ]
+}
