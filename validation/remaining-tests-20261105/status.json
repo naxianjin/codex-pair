@@ -1,0 +1,12 @@
+{
+  "baseline": "74f66708ad847b56f00466c3f36ca8a24e9c8d7f",
+  "related_tests": 58,
+  "compatibility_validator_git_tests": 56,
+  "strict_receipt_tests": 151,
+  "real_core": "failed before model dispatch: Original visible CLI required",
+  "real_integration": "not executed: obsolete new-session path and user forbids messages to quota-exhausted B",
+  "original_b": "read-only process inspection only; no messages or model turns",
+  "formal_validator": "needs_validation: incomplete trusted toolchain and formal host integration",
+  "fixed_issue": "supplemental parent settlement did not compare full fixed context",
+  "review": "independent official read-only review found no blocker; not formal stage approval"
+}

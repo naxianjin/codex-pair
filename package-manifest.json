@@ -84,7 +84,7 @@
     "scripts/pair_assistance.py": "634413e594b75270cd9f92e0196dda295ba282ef31c3ce3a739bf4052e87dad3",
     "scripts/pair_audit_adapter.py": "2ff86c994a4e3366f7695ff497bcc0cc8cfe3c0a681e9266ad27fd9f59cf1c23",
     "scripts/pair_autoscale.py": "e9501bd3d69bc0a10896f85a914fe43d829929f9bf4a8a4ee209a7f9d0ba37d3",
-    "scripts/pair_auxiliary.py": "cadddd6ba2754cc01edcea57e091906124ad9790605fa9ed14ca3d97c97c20e5",
+    "scripts/pair_auxiliary.py": "cab3970e0fec894da658ceeaaef12f8c690c9782113aad19f22c1177b0498505",
     "scripts/pair_auxiliary_runtime.py": "d581278746bca731812b14734e1fe728221bed03b1237c5eb68907527cf00edf",
     "scripts/pair_balance.py": "32a4a2931eb7f95aac9e877f794640763a9b3f4a1f3a19bf48d64a707da443a6",
     "scripts/pair_commands.py": "5f95b3f87bc91992777d7b4959c11126c7ddc1d99f43f10887df7407665f8837",

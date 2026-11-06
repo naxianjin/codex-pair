@@ -1,0 +1,61 @@
+{
+  "source": "real Store test fixture; synthetic actor and report",
+  "candidate": "eb451f84ab3c4c0db019fefa47977294",
+  "execution": "92ce8109bcbd4e169a65e3869390b0ca",
+  "context": {
+    "pair_id": "test",
+    "audit_id": "audit-product",
+    "stage_id": "789777909a0f48438550765c006d2697",
+    "auxiliary_task_id": "aux",
+    "session": "00000000-0000-0000-0000-000000000011",
+    "execution_id": "92ce8109bcbd4e169a65e3869390b0ca",
+    "epoch": 1,
+    "candidate_digest": "4675777b5c0d33f74349b37e58c4fe588dee3195b28e9971499113e4aca9bb7b",
+    "contract_digest": "923aa2561986ade6b6f6fca3685f3067255116c7b6e3951cfa12ac794a2508d5",
+    "track": "cloudflare",
+    "requirements_version": 1
+  },
+  "formal": false,
+  "parent_verdict": "needs_validation",
+  "run": {
+    "Output": "D:\\Codex_No_Projects\\work\\github\\codex-pair-real-wokey-20261104\\.codex-pair\\worktrees\\windows-f93e3110d73b-a\\validation\\direct-tests-v4\\hyperv-validator\\runs\\8ff98f7c520e4c0c914ea0369db85f74",
+    "Run": "8ff98f7c520e4c0c914ea0369db85f74",
+    "Formal": false
+  },
+  "saved": {
+    "saved": true,
+    "duplicate": false,
+    "run_id": "8ff98f7c520e4c0c914ea0369db85f74",
+    "validators_succeeded": true,
+    "formal_checks_verified": false
+  },
+  "settlement": {
+    "candidate_id": "eb451f84ab3c4c0db019fefa47977294",
+    "stage_id": "789777909a0f48438550765c006d2697",
+    "verdict": "needs_validation",
+    "reasons": [
+      "formal_receipts_missing:aux",
+      "necessary_validation_missing",
+      "parent_fixed_stage_official_review_required",
+      "report_validation_incomplete:aux",
+      "required_coverage_or_independent_final_verification_missing"
+    ],
+    "report_digests": [
+      "2d839ff339c27e34d01869c9a921d70161e7405c5b6369999de3bbfda600fd63"
+    ],
+    "ordinary_stage_changed": false,
+    "new_work_started": false,
+    "validator_runs": [
+      {
+        "run_id": "8ff98f7c520e4c0c914ea0369db85f74",
+        "execution_id": "92ce8109bcbd4e169a65e3869390b0ca",
+        "formal_checks_verified": false
+      }
+    ]
+  },
+  "source_head": "74f66708ad847b56f00466c3f36ca8a24e9c8d7f",
+  "tested_overlay_sha256": {
+    "scripts/pair_auxiliary.py": "cab3970e0fec894da658ceeaaef12f8c690c9782113aad19f22c1177b0498505",
+    "package-manifest.json": "dd7fb4805c61db9b627b612b591e6ea1a293ecdf983d91cfc1b5886a85170122"
+  }
+}

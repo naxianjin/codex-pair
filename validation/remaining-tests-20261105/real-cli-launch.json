@@ -1,0 +1,168 @@
+{
+  "launch": {
+    "file": {
+      "path": "c:\\users\\xos\\appdata\\local\\openai\\codex\\bin\\a159911ff70742e9\\codex.exe",
+      "device": 4575202908659693461,
+      "inode": 2251799814019492,
+      "size": 371731248,
+      "mtime_ns": 1793788046393299600,
+      "sha256": "925c7d0665ffa49b0dcf748e034a805a04da984164ac92301432073b47789b99"
+    },
+    "version": "0.166.0-alpha.6"
+  },
+  "untrusted_probe": {
+    "adapter_version": "codex-pair-cli-compatibility/1",
+    "checked_at": 1793928369.4041357,
+    "status": "not_verified",
+    "read_only": true,
+    "persisted": false,
+    "model_started": false,
+    "test_message_sent": false,
+    "configuration_changed": false,
+    "communication": {
+      "status": "not_verified",
+      "reason": "not_tested_by_readonly_preflight"
+    },
+    "capabilities": {
+      "executable_file": {
+        "status": "observed",
+        "source": "file_identity_sha256"
+      },
+      "executable_origin": {
+        "status": "not_verified",
+        "reason": "trusted_baseline_unavailable"
+      },
+      "identity": {
+        "status": "not_verified",
+        "reason": "live_metadata_observer_unavailable"
+      },
+      "readonly_metadata": {
+        "status": "not_verified",
+        "reason": "not_queried"
+      },
+      "turn_fields": {
+        "status": "not_verified",
+        "reason": "not_queried"
+      },
+      "tool_fields": {
+        "status": "not_verified",
+        "reason": "not_queried"
+      },
+      "observer_executable": {
+        "status": "not_verified",
+        "reason": "not_queried"
+      },
+      "cli_version": {
+        "status": "not_verified",
+        "reason": "untrusted_executable_not_run"
+      },
+      "app_server_cli": {
+        "status": "not_verified",
+        "reason": "untrusted_executable_not_run"
+      },
+      "queue_cli": {
+        "status": "not_verified",
+        "reason": "untrusted_executable_not_run"
+      },
+      "receipt_adapter": {
+        "status": "not_verified",
+        "format": null,
+        "actual_receipt_validated": false
+      }
+    },
+    "observations": [],
+    "reasons": [
+      "app_server_cli_not_available",
+      "cli_adapter_not_verified",
+      "current_session_identity_not_verified",
+      "executable_origin_not_verified",
+      "metadata_observer_executable_not_verified",
+      "readonly_metadata_not_verified",
+      "receipt_adapter_version_not_registered",
+      "trusted_executable_baseline_missing_or_changed"
+    ],
+    "operations": {
+      "new_delivery": {
+        "status": "not_verified",
+        "reasons": [
+          "executable_origin_not_verified",
+          "cli_adapter_not_verified",
+          "current_session_identity_not_verified",
+          "readonly_metadata_not_verified",
+          "metadata_observer_executable_not_verified",
+          "app_server_cli_not_available"
+        ],
+        "execution_authorized": false
+      },
+      "approval_execution": {
+        "status": "not_verified",
+        "reasons": [
+          "executable_origin_not_verified",
+          "cli_adapter_not_verified",
+          "current_session_identity_not_verified",
+          "readonly_metadata_not_verified",
+          "metadata_observer_executable_not_verified",
+          "app_server_cli_not_available",
+          "official_tool_evidence_fields_not_observed"
+        ],
+        "execution_authorized": false
+      },
+      "review_settlement": {
+        "status": "not_verified",
+        "reasons": [
+          "executable_origin_not_verified",
+          "cli_adapter_not_verified",
+          "current_session_identity_not_verified",
+          "readonly_metadata_not_verified",
+          "metadata_observer_executable_not_verified",
+          "app_server_cli_not_available",
+          "official_tool_evidence_fields_not_observed"
+        ],
+        "execution_authorized": false
+      },
+      "runtime_switch": {
+        "status": "not_verified",
+        "reasons": [
+          "executable_origin_not_verified",
+          "cli_adapter_not_verified",
+          "current_session_identity_not_verified",
+          "readonly_metadata_not_verified",
+          "metadata_observer_executable_not_verified",
+          "app_server_cli_not_available"
+        ],
+        "execution_authorized": false
+      }
+    },
+    "reused": false,
+    "binding": null,
+    "environment": {
+      "os": "Windows",
+      "release": "10.0.19045",
+      "machine": "win-amd64",
+      "machine_source": "python_platform_tag",
+      "python": [
+        3,
+        13,
+        9
+      ],
+      "adapter_digest": "1296d9241e32ea53b39e3918fa294c38cb298ed24db6a518e602f4201b680a50",
+      "binding": null
+    },
+    "executable": {
+      "path": "c:\\users\\xos\\appdata\\local\\openai\\codex\\bin\\a159911ff70742e9\\codex.exe",
+      "device": 4575202908659693461,
+      "inode": 2251799814019492,
+      "size": 371731248,
+      "mtime_ns": 1793788046393299600,
+      "sha256": "925c7d0665ffa49b0dcf748e034a805a04da984164ac92301432073b47789b99"
+    },
+    "fingerprint": "5c7e3e915d9be4b6555817f614dc6a597f182e9939027a1040b525adb74a0b87",
+    "version": null,
+    "verification_limits": [
+      "help_is_not_rpc_or_delivery_proof",
+      "no_model_or_message_probe",
+      "existing_permissions_and_user_pause_still_apply",
+      "formal_receipts_need_per_execution_validation"
+    ]
+  }
+}

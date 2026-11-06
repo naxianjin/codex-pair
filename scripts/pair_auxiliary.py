@@ -659,6 +659,10 @@ class AuxiliaryMixin:
 
     def settle_audit(self, member, session, cwd, candidate_id):
         """子报告不写父stage；缺本次准确正式回执时保留 needs_validation。"""
+        try:
+            from .pair_auxiliary_runtime import _context
+        except ImportError:
+            from pair_auxiliary_runtime import _context
         with self.transaction() as db:
             self._a_actor(db, member, session, cwd)
             candidate = self._auxiliary_candidate(db, candidate_id)
@@ -691,6 +695,8 @@ class AuxiliaryMixin:
                 for run_id in self._option(db, 'validator_runs:' + execution['id'], []):
                     supplemental = self._option(db, 'validator_run:' + run_id)
                     if (supplemental and supplemental['execution_id'] == execution['id']
+                            and supplemental['request']['binding']['context'] == _context(self,
+                                {'execution': execution, 'task': task, 'candidate': candidate})
                             and supplemental['request']['binding']['original_report_digest'] == report['report_digest']
                             and supplemental['request']['binding']['stored_report_digest'] == evidence['stored_report_digest']
                             and supplemental['request']['binding']['adapted_report_digest'] == evidence['adapted_report_digest']):

@@ -45,3 +45,13 @@ b9dcc1b完整120文件包在两个新建隔离home安装，逐文件清单一致
 真实官方CLI通信测试通过，36.779秒；另外核对结果确认中文正文精确一致、idle/busy队列均实际处理。原B只读探针确认PermissionRequest enabled/trusted，缺失及错误token均401；新诊断服务中的原thread为notLoaded，后台查询thread not found，不能据此判原B空闲。原生hosted/unified/specialized工具控制缺口仍在。RealCore及RealIntegration仍使用--new-session旧路径，尚未迁移实际验收。
 
 真实VM超时run f5c6c4097cd04f16b3f3877f6382527b：ExitCode=124、TimedOut=true、ActiveProcesses=0。首轮远程会话连接失败，延长开机等待后取得native终态；运行器错误要求超时artifact存在而失败。未重放该次执行，直接复用native结果调用真实Store登记入口，确认拒收且父结算validator_runs为空。该Store使用新合成夹具，不声称超时结果通过了候选绑定校验；终态先行拒绝。VM已关，无pending。正式完整身份和原窗口控制仍未通过。
+
+## 非正式引用上下文完整性返修
+
+新增负例复现：保存的补充记录中stage_id被改写后，父结算仍列引用。修复settle_audit，复用_context核对完整执行上下文；使用历史execution epoch/session，不跟随reviewer当前epoch。补充跨执行、阶段、候选、契约、会话、epoch篡改拒绝，以及历史validator引用跨reviewer epoch保留、2MiB ASCII/中文精确边界、保存期间来源变化测试。58项相关回归通过。同步注入的来源变化不是实际并发证明。
+
+56项兼容性/验证器/Git集成及151项严格回执回归通过。真实旧RealCore用例实际失败：Original visible CLI required；不能放宽原窗口限制来伪造通过，RealIntegration同样仍用旧--new-session。用户明确B无额度，不向B发消息或启动模型；只读进程识别看到codex-a启动器，但无明确原执行器WebSocket记录。两项真实原窗口用例仍未完成。
+
+官方独立只读复审未发现本次实现阻塞，明确非正式范围；建议的历史validator引用epoch用例随后补充通过。修复实现再次真实VM到Store通过（run 8ff98f7c520e4c0c914ea0369db85f74），formal=false且needs_validation；记录overlay摘要，不把基础HEAD冒充已提交修复版本。VM关闭、无pending。
+
+修复实现冻结快照全量1212项，0失败0错误3跳过；快照早于最后扩展context字段及历史validator epoch断言，最终测试文件58项相关回归另行通过。全量日志及摘要已保存，未将最后断言称为全量覆盖。

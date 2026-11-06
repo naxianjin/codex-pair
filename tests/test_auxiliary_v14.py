@@ -401,6 +401,30 @@ class AuxiliaryTests(unittest.TestCase):
         settled = self.store.settle_audit(*self.actor(), candidate['id'])
         self.assertEqual(settled['validator_runs'][0]['run_id'], '1' * 32)
         self.assertEqual(settled['verdict'], 'needs_validation')
+        with self.store.transaction() as db:
+            db.execute('UPDATE auxiliary_sessions SET epoch=epoch+1')
+        self.assertEqual(self.store.settle_audit(*self.actor(), candidate['id'])['validator_runs'],
+                         settled['validator_runs'])
+        with self.store.transaction() as db:
+            db.execute('UPDATE auxiliary_sessions SET epoch=epoch-1')
+        with self.store.transaction() as db:
+            supplemental = self.store._option(db, 'validator_run:' + '1' * 32)
+        for field in ('execution_id', 'stage_id', 'candidate_digest', 'contract_digest', 'session', 'epoch'):
+            with self.subTest(supplemental_binding=field):
+                import copy
+                changed = copy.deepcopy(supplemental)
+                if field == 'execution_id':
+                    changed[field] = 'unrelated-execution'
+                else:
+                    changed['request']['binding']['context'][field] = 999 if field == 'epoch' else 'unrelated-context'
+                with self.store.transaction() as db:
+                    self.store._put(db, 'validator_run:' + '1' * 32, changed)
+                try:
+                    references = self.store.settle_audit(*self.actor(), candidate['id'])['validator_runs']
+                    self.assertEqual(references, [])
+                finally:
+                    with self.store.transaction() as db:
+                        self.store._put(db, 'validator_run:' + '1' * 32, supplemental)
         with self.assertRaisesRegex(PairError, 'receipt conflict'):
             self.store.record_validator_run(*args[:-1], {'node': 'a' * 64, 'python': 'b' * 64})
         with self.assertRaisesRegex(ValueError, 'terminal state unverified'):
@@ -409,6 +433,42 @@ class AuxiliaryTests(unittest.TestCase):
             self.store.record_validator_run(*args[:-1], dict({'node': 'a' * 64}, **{str(i): 'a' * 64 for i in range(32)}))
         with self.assertRaisesRegex(PairError, 'Node binding mismatch'):
             self.store.record_validator_run(*args[:-1], {'node': 'b' * 64})
+        from scripts.pair_validator_worker import verify_validator_result
+        def source_changes_during_verification(*values):
+            verification = verify_validator_result(*values)
+            with self.store.transaction() as db:
+                db.execute('UPDATE auxiliary_reports SET report_digest=? WHERE execution_id=?',
+                           ('changed-during-validation', ticket['execution_id']))
+            return verification
+        with self.store.transaction() as db:
+            original_digest = db.execute('SELECT report_digest FROM auxiliary_reports WHERE execution_id=?',
+                                         (ticket['execution_id'],)).fetchone()[0]
+        try:
+            with patch('scripts.pair_validator_worker.verify_validator_result',
+                       side_effect=source_changes_during_verification):
+                with self.assertRaisesRegex(PairError, 'source changed'):
+                    self.store.record_validator_run(*args[:5], '8' * 32, *args[6:])
+            with self.store.transaction() as db:
+                self.assertIsNone(self.store._option(db, 'validator_run:' + '8' * 32))
+        finally:
+            with self.store.transaction() as db:
+                db.execute('UPDATE auxiliary_reports SET report_digest=? WHERE execution_id=?',
+                           (original_digest, ticket['execution_id']))
+        from scripts.pair_auxiliary import encoded
+        for index, character in enumerate(('x', '中'), 3):
+            with self.subTest(evidence_padding=character):
+                padded = dict(native, padding='')
+                size = len(encoded({'request': request, 'native': padded,
+                                    'artifact': artifact, 'tools': {'node': 'a' * 64}}).encode('utf-8'))
+                count, remainder = divmod(2097152 - size, len(character.encode('utf-8')))
+                padded['padding'] = character * count + 'x' * remainder
+                boundary = self.store.record_validator_run(*args[:5], str(index) * 32,
+                    request, padded, artifact, {'node': 'a' * 64})
+                self.assertTrue(boundary['saved'])
+                padded['padding'] += 'x'
+                with self.assertRaisesRegex(PairError, 'exceeds limit'):
+                    self.store.record_validator_run(*args[:5], str(index + 2) * 32,
+                        request, padded, artifact, {'node': 'a' * 64})
         import copy
         negative = copy.deepcopy(artifact)
         negative['results'][0]['exit_code'] = 1
