@@ -695,8 +695,8 @@ class AuxiliaryMixin:
                 for run_id in self._option(db, 'validator_runs:' + execution['id'], []):
                     supplemental = self._option(db, 'validator_run:' + run_id)
                     if (supplemental and supplemental['execution_id'] == execution['id']
-                            and supplemental['request']['binding']['context'] == _context(self,
-                                {'execution': execution, 'task': task, 'candidate': candidate})
+                            and digest(supplemental['request']['binding']['context']) == digest(_context(self,
+                                {'execution': execution, 'task': task, 'candidate': candidate}))
                             and supplemental['request']['binding']['original_report_digest'] == report['report_digest']
                             and supplemental['request']['binding']['stored_report_digest'] == evidence['stored_report_digest']
                             and supplemental['request']['binding']['adapted_report_digest'] == evidence['adapted_report_digest']):

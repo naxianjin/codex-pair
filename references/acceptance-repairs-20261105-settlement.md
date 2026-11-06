@@ -57,3 +57,11 @@ b9dcc1b完整120文件包在两个新建隔离home安装，逐文件清单一致
 修复实现冻结快照全量1212项，0失败0错误3跳过；快照早于最后扩展context字段及历史validator epoch断言，最终测试文件58项相关回归另行通过。全量日志及摘要已保存，未将最后断言称为全量覆盖。
 
 准确提交1bf559a再次完整打包并安装至新隔离home：120文件摘要一致，pair.py --help实际加载返回0。未改活动home，原窗口加载仍未验收；证据exact-install.json。
+
+## epoch类型精确性独立补测
+
+用户要求暂跳过需B事项且禁止向无额度B发消息。本轮无B通信。新增负例先复现Python字典比较将epoch True、1.0与1视为相等，两项失败；settle_audit改用已有digest规范JSON比较完整context，保持历史execution epoch语义。修复后63项辅助/清单/结算/真实Node验证器回归通过，独立官方只读复审未发现阻塞；审核者因只读临时目录限制未运行目标测试，未冒称独立测试通过。
+
+工具归档10322个文件逐项大小/SHA256匹配（Git9540、Python781、Node1）；仅归档基线，不涵盖Windows系统库或实际加载模块，formal=false。只读客体库存探针New-PSSession失败，未执行查询，finally已关闭VM；不记通过。未触碰活动库、安装或B。
+
+最终epoch类型修复快照全量1212项，0失败0错误3跳过，包含本轮最终测试文件。独立真实诊断夹具确认数据库前后SHA256不变，read_only=true、runtime_observed=false；不代表活动库验收。

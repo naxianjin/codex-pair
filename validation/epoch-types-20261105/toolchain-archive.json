@@ -1,0 +1,11 @@
+{
+  "archive_files": 10322,
+  "all_archive_hashes_verified": true,
+  "groups": {
+    "git": 9540,
+    "node": 1,
+    "python": 781
+  },
+  "coverage_limit": "Archive manifest is local distribution baseline; does not identify Windows system libraries or actual dynamically loaded modules",
+  "formal": false
+}

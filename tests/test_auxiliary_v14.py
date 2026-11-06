@@ -409,14 +409,17 @@ class AuxiliaryTests(unittest.TestCase):
             db.execute('UPDATE auxiliary_sessions SET epoch=epoch-1')
         with self.store.transaction() as db:
             supplemental = self.store._option(db, 'validator_run:' + '1' * 32)
-        for field in ('execution_id', 'stage_id', 'candidate_digest', 'contract_digest', 'session', 'epoch'):
+        for field in ('execution_id', 'stage_id', 'candidate_digest', 'contract_digest', 'session', 'epoch', 'epoch_bool', 'epoch_float'):
             with self.subTest(supplemental_binding=field):
                 import copy
                 changed = copy.deepcopy(supplemental)
                 if field == 'execution_id':
                     changed[field] = 'unrelated-execution'
                 else:
-                    changed['request']['binding']['context'][field] = 999 if field == 'epoch' else 'unrelated-context'
+                    if field in ('epoch_bool', 'epoch_float'):
+                        changed['request']['binding']['context']['epoch'] = True if field == 'epoch_bool' else 1.0
+                    else:
+                        changed['request']['binding']['context'][field] = 999 if field == 'epoch' else 'unrelated-context'
                 with self.store.transaction() as db:
                     self.store._put(db, 'validator_run:' + '1' * 32, changed)
                 try:

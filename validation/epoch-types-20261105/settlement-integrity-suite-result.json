@@ -1,0 +1,13 @@
+{
+  "tests": 1212,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 3,
+  "passed": true,
+  "overlay_sha256": {
+    "scripts/pair_auxiliary.py": "2e615c7026cc91f23131650be8d43a69832070d0f8732b9a59b3a33b00c8a347",
+    "scripts/pair_next_commands.py": "6d995d7a3cc850afab6ecde2aa1d46fb1b2f3fabcb609170c7c20608a925e78e",
+    "tests/test_auxiliary_v14.py": "0d67cb4e7483c4351c00cd6892553088cbefde0fa25b0ab60820f20b8ba262c2",
+    "package-manifest.json": "aa72dbec483d2e8d02e1fd62c9d281e8b4df5548cf49bf3e58e59bd779e20c9c"
+  }
+}
