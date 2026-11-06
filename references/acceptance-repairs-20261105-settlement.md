@@ -215,3 +215,5 @@ Invoke-ValidatorRawModuleDiagnostic在terminal receipt前调用真实check-restr
 直接调用生产verify_validator_result验收两份真实产物：正例formal恒false，伪造formal通过、绑定漂移、活动残留、超时、bool退出码、诊断摘要篡改、汇总谎报七负例均拒绝；额外构造自洽业务失败，正确保留execution_completed=true、validators_succeeded=false、formal=false。此自洽失败是宿主验收逻辑测试，非客体再次执行失败。脚本check-live-artifact-boundaries.py及strict-types-live-artifact-results.json保留可复核过程。
 
 独立复审仍未完成，待审检查器/负例及来源清单不发布；本次只同步实际测试记录及无生产改动的验收脚本，整体formal=false。证据strict-types-live-summary.json和pending-strict-source-checks.json。
+
+待审三个文件已冻结本地补丁并记录SHA256，反向应用检查及从当前HEAD全新导出副本的正向git apply --check均通过。补丁只保留本地，不发布待审核源码；pending-review-freeze.json提供版本定位。

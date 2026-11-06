@@ -1,0 +1,15 @@
+{
+  "formal": false,
+  "base_commit": "11f619706cf74effc34c81bc43b4f55e7d31eab2",
+  "patch_sha256": "01214663c122c859e5907756b6b363befde81095cfa0c0874a5dd6e421bcaafb",
+  "patch_bytes": 5211,
+  "reverse_apply_check": true,
+  "files": {
+    "validation/bytecode-provenance-20261105/check-restricted-raw-modules.py": "ce642357ff38315f181d80292aee0f7439ff110c658795ee191de0a9b21a961e",
+    "validation/bytecode-provenance-20261105/check-restricted-raw-negative-cases.py": "568f11b0a00d778bfa8287d0958a1335f640983b5ffe918a358c5a0831053ba6",
+    "validation/bytecode-provenance-20261105/raw-module-source-inventory.json": "c9a7307f82f457d431ff021fae5b4bc25bb4b14f7efd0a4509df0f4a05539cde"
+  },
+  "patch_local_path": "C:\\Users\\XOS\\AppData\\Local\\Temp\\pair-module-review-e4wyz3gy\\pending-module-fixes.patch",
+  "review": "pending; do not integrate until independent review completed",
+  "clean_base_apply_check": true
+}
