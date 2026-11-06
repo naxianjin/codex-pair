@@ -1,0 +1,27 @@
+{
+  "formal": false,
+  "run": "00968f4359f64fc7bb7542d9edbb3fca",
+  "native": {
+    "ExitCode": 0,
+    "ActiveProcesses": 0,
+    "TotalProcesses": 13,
+    "RootPid": 4344,
+    "RootCreationFileTime": 134384065121429800,
+    "TimedOut": false,
+    "Seconds": 1.8443542,
+    "CPUSeconds": 0.5
+  },
+  "revised_gate_live_run": true,
+  "validators_succeeded": true,
+  "source_files_unchanged": 5,
+  "source_mismatch_cases_rejected": 5,
+  "trace_negative_cases_passed": 8,
+  "receipt_controller_and_native_digests_checked": true,
+  "vm_off": true,
+  "pending": false,
+  "remaining": [
+    "Helper and baseline digest not enforced by controller",
+    "Full trusted image and managed assembly identity",
+    "Formal host-to-Store certification"
+  ]
+}

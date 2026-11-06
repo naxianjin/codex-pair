@@ -109,3 +109,9 @@ b9dcc1b完整120文件包在两个新建隔离home安装，逐文件清单一致
 Test-RootTrace接到native保存后、terminal receipt及pending清理前；无效证据抛错并保留对账。首轮真实run e193d17f83eb4219ae08b89657f288d4通过。独立openai/gpt-6.1-sol复审发现Provider未限定及丢事件声明可矛盾，均保留为阻塞历史。随后限定Kernel-Process GUID、唯一零计数行及XML EventsLost；正例及8负例在PowerShell7和原生5.1通过，最新真实证据离线复核通过，尚未把修订后门槛称为再次VM实跑。脚本首次夹具运算符、空白匹配及重复回车问题已修正；不记首次失败为通过。测试脚本改名避免大小写路径冲突。来源基线/helper摘要、映像及程序集身份仍未完成，formal=false。
 
 独立复审第二轮在原生5.1及7.6.6实际执行正例和8负例全部通过，确认上述两阻塞已修复，仅通过诊断门槛；VM接线仍为静态复核，来源绑定与formal未通过。VM Off、无pending，未联系B。
+
+## 最终根身份门槛真实联测
+
+准确543b8a1控制器及最终Provider/唯一零计数/XML丢事件检查实跑VM成功，run 00968f4359f64fc7bb7542d9edbb3fca。ExitCode0、ActiveProcesses0、TotalProcesses13、未超时，两验证器成功；门槛执行后生成terminal诊断回执。回执native摘要和控制器摘要实际核对一致，5份源码实跑前后无变化；8负例复测通过，来源核对脚本5个单文件摘要错配均拒绝。VM Off、无pending，未联系B。
+
+新增来源清单仅供离线复核，未把helper/baseline摘要接成运行门禁，未声称独立可信能力。完整映像与托管程序集身份、正式Host→Store认证仍未完成，formal=false。

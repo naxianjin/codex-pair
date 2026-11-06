@@ -1,0 +1,11 @@
+{
+  "formal": false,
+  "scope": "Frozen diagnostic source inventory; not an independently trusted capability",
+  "files": {
+    "Invoke-ValidatorRootDiagnostic.ps1": "355edbe42dd11baab3aa64a477cfb859be26858dd556f24c042d91e760bd93a6",
+    "Test-RootTrace.ps1": "36f44c804fb18e86f8518c29869afe34dd45a65aa80bed167f7f608028eae801",
+    "PairValidatorIdentityDiagnostic.cs": "8d9c99b445aa36317b9b36be86ab8cdca754472c8ac79f96aa6a82aacce8a6f4",
+    "root-identity-baseline.json": "0faaa69832fd6c7c94e338d92148cab2ba8a976e88d9696bc3fc3c303f746c91",
+    "run-root-etw.ps1": "53b9b164d477d40d12638556ad145041fd67de1807001b214725e571620e2b23"
+  }
+}
