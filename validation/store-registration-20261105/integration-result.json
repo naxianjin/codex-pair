@@ -1,0 +1,57 @@
+{
+  "source": "real Store test fixture; synthetic actor and report",
+  "candidate": "0bee57cbdbd24c12ab460efeb82fc4d6",
+  "execution": "a8cf1fcd25e843198fd7a8e4e72c0a27",
+  "context": {
+    "pair_id": "test",
+    "audit_id": "audit-product",
+    "stage_id": "555c123567974ae49a00c519f8fc3ccc",
+    "auxiliary_task_id": "aux",
+    "session": "00000000-0000-0000-0000-000000000011",
+    "execution_id": "a8cf1fcd25e843198fd7a8e4e72c0a27",
+    "epoch": 1,
+    "candidate_digest": "4675777b5c0d33f74349b37e58c4fe588dee3195b28e9971499113e4aca9bb7b",
+    "contract_digest": "923aa2561986ade6b6f6fca3685f3067255116c7b6e3951cfa12ac794a2508d5",
+    "track": "cloudflare",
+    "requirements_version": 1
+  },
+  "formal": false,
+  "parent_verdict": "needs_validation",
+  "run": {
+    "Output": "D:\\Codex_No_Projects\\work\\github\\codex-pair-real-wokey-20261104\\.codex-pair\\worktrees\\windows-f93e3110d73b-a\\validation\\direct-tests-v4\\hyperv-validator\\runs\\4e081f34d25d46928aaa1068a4a4c52b",
+    "Run": "4e081f34d25d46928aaa1068a4a4c52b",
+    "Formal": false
+  },
+  "saved": {
+    "saved": true,
+    "duplicate": false,
+    "run_id": "4e081f34d25d46928aaa1068a4a4c52b",
+    "validators_succeeded": true,
+    "formal_checks_verified": false
+  },
+  "settlement": {
+    "candidate_id": "0bee57cbdbd24c12ab460efeb82fc4d6",
+    "stage_id": "555c123567974ae49a00c519f8fc3ccc",
+    "verdict": "needs_validation",
+    "reasons": [
+      "formal_receipts_missing:aux",
+      "necessary_validation_missing",
+      "parent_fixed_stage_official_review_required",
+      "report_validation_incomplete:aux",
+      "required_coverage_or_independent_final_verification_missing"
+    ],
+    "report_digests": [
+      "7e3890805eeb7a99cbf4e65613a6aba8faa2e7cde70583a5d58ee0c08d2ecccd"
+    ],
+    "ordinary_stage_changed": false,
+    "new_work_started": false,
+    "validator_runs": [
+      {
+        "run_id": "4e081f34d25d46928aaa1068a4a4c52b",
+        "execution_id": "a8cf1fcd25e843198fd7a8e4e72c0a27",
+        "formal_checks_verified": false
+      }
+    ]
+  },
+  "source_head": "910b12cdbfaaeaaa803faa445d5ca8246c5f565c"
+}
