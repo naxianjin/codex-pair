@@ -24,4 +24,3 @@ try {
  if(-not $writeRejected){throw 'Source lock did not reject writer'}
  @{Formal=$false;Scope='Current local diagnostic compilation only';SourceSHA256=$sourceHash;Assembly=$type.Assembly.FullName;MVID=$type.Module.ModuleVersionId.ToString();Methods=$methods;ReadPassed=$true;SourceWriterRejected=$writeRejected;Limit='Reflection IL does not prove JIT native bytes, historical dynamic modules or official host identity.'} | ConvertTo-Json -Depth 6
 } finally {$stream.Dispose()}
-
