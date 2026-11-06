@@ -1,0 +1,27 @@
+Files Processed:
+	C:\Users\PAIRSE~1\AppData\Local\Temp\pair-validator-4a308fd866a142f9948bde7f1095412c.etl
+Total Buffers Processed 37
+Total Events  Processed 1077
+Total Events  Lost      0
+Start Time              2026116
+End Time                2026116
+Elapsed Time            2 sec
++-------------------------------------------------------------------------------------------------------------------------+
+|Event Count   Event Name           Task            Opcode          Version         Guid                                  |
++-------------------------------------------------------------------------------------------------------------------------+
+|          1   EventTrace           0               PartitionInfoExtension 2               {68fdd900-4a3e-11d1-84f4-0000f80464e3}|
+|          1   EventTrace           0               Header          2               {68fdd900-4a3e-11d1-84f4-0000f80464e3}|
+|         15   Microsoft-Windows-Kernel-Process  1                             4               {22fb2cd6-0e7b-422b-a0c7-2fad1fd0e716}|
+|        536   Microsoft-Windows-Kernel-Process  5                             0               {22fb2cd6-0e7b-422b-a0c7-2fad1fd0e716}|
+|         14   Microsoft-Windows-Kernel-Process  2                             2               {22fb2cd6-0e7b-422b-a0c7-2fad1fd0e716}|
+|        510   Microsoft-Windows-Kernel-Process  6                             0               {22fb2cd6-0e7b-422b-a0c7-2fad1fd0e716}|
++-------------------------------------------------------------------------------------------------------------------------+
++---------------------------------------------------------------------------------------------------------+
+|Event Count   Event Name           Event ID        Version         Guid                                  |
++---------------------------------------------------------------------------------------------------------+
+|          2   EventTrace           0               2               {68fdd900-4a3e-11d1-84f4-0000f80464e3}|
+|         15   Microsoft-Windows-Kernel-Process  1               4               {22fb2cd6-0e7b-422b-a0c7-2fad1fd0e716}|
+|         14   Microsoft-Windows-Kernel-Process  2               2               {22fb2cd6-0e7b-422b-a0c7-2fad1fd0e716}|
+|        536   Microsoft-Windows-Kernel-Process  5               0               {22fb2cd6-0e7b-422b-a0c7-2fad1fd0e716}|
+|        510   Microsoft-Windows-Kernel-Process  6               0               {22fb2cd6-0e7b-422b-a0c7-2fad1fd0e716}|
++---------------------------------------------------------------------------------------------------------+

@@ -87,3 +87,11 @@ b9dcc1b完整120文件包在两个新建隔离home安装，逐文件清单一致
 客体探针首轮PSSessionOpenFailed，未派发命令；延长开机等待后成功。Node单时刻33个模块，PowerShell5.1单时刻86个模块、23个程序集，均保存路径及模块文件摘要；小型Add-Type检查返回42。发现Kernel-Process及.NET ETW事件源，只证明可查询，尚不证明受限验证器进程树完整加载取证。所有诊断Formal=false。
 
 客体ETW动态试验成功：188个事件，初筛69个文本匹配，按EventData.ProcessID准确过滤后68个属于目标Node：启动1、退出1、映像加载33、卸载33；启动/退出ProcessSequenceNumber一致。已保存原始初筛及结构化核对证据。未验证丢事件计数、完整受限进程树、映像摘要绑定或编译器/托管程序集生命周期，formal仍false。
+
+## ETW父子进程与丢事件续测
+
+独立客体诊断执行Node→PowerShell→Add-Type，退出0。按ProcessID及ProcessSequenceNumber、父进程序号构建6进程树，包含两个conhost、csc及cvtres；6个启动均有匹配退出。tracerpt汇总482事件、丢失0。仅提升了诊断可观察性，不代表受限验证器或正式能力认证。原始事件和结构化摘要见validation/bytecode-provenance-20261105/guest-etw-tree*。
+
+真实受限验证器ETW联测run 4a308fd866a142f9948bde7f1095412c成功：ExitCode0、ActiveProcesses0、TotalProcesses13、未超时，两验证器成功。按PID及进程序号关联13进程，全部匹配退出，与作业总数一致；464条映像加载事件，tracerpt共1077事件、丢失0。核对脚本正例通过，删除退出、错PID、错进程序号、非零丢事件4负例均拒绝。VM Off、无pending。
+
+根进程目前由隔离观测选取，尚未绑定native根PID回执；映像加载摘要、托管程序集生命周期及正式宿主到Store认证仍缺失。诊断副本保留原控制和工具摘要校验，未改原运行器、活动安装或活动pair库，formal=false。
