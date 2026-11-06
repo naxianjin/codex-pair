@@ -1,0 +1,18 @@
+{
+  "formal": false,
+  "commit": "398d73f682f1f0726b8b6e0fa4d77298425f76f1",
+  "inventories": [
+    {
+      "inventory": "runtime-source-inventory.json",
+      "matched": true
+    },
+    {
+      "inventory": "combined-source-inventory.json",
+      "matched": true
+    },
+    {
+      "inventory": "raw-module-source-inventory.json",
+      "matched": true
+    }
+  ]
+}
