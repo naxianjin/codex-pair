@@ -41,10 +41,27 @@ for case in ("formal_claim", "binding_drift", "active_process", "timeout", "bool
     try: verify_validator_result(request, native, changed)
     except ValueError: cases.append({"case": case, "rejected": True})
     else: raise AssertionError(case + " accepted")
+diagnostic_limits = []
+for name, diagnostic, accepted in (
+    ("ascii_exact_limit", "x" * 1048576, True),
+    ("utf8_exact_limit", "中" * 349525 + "x", True),
+    ("utf8_over_limit", "中" * 349526, False),
+):
+    import hashlib
+    changed = copy.deepcopy(artifact)
+    changed["results"][0]["stderr"] = diagnostic
+    changed["results"][0]["stderr_sha256"] = hashlib.sha256(diagnostic.encode()).hexdigest()
+    try:
+        checked = verify_validator_result(request, evidence["Native"], changed)
+    except ValueError:
+        assert not accepted, name
+    else:
+        assert accepted and not checked["formal_checks_verified"], name
+    diagnostic_limits.append({"case": name, "bytes": len(diagnostic.encode()), "accepted": accepted})
 negative = copy.deepcopy(artifact)
 negative["results"][0]["exit_code"] = 1
 negative["validators_succeeded"] = False
 business_failure = verify_validator_result(request, evidence["Native"], negative)
 assert business_failure["execution_completed"] and not business_failure["validators_succeeded"]
 assert not business_failure["formal_checks_verified"]
-print(json.dumps({"business_failure_preserved": business_failure, "formal": False, "run": run.name, "positive": result, "cases": cases}, indent=2))
+print(json.dumps({"diagnostic_limits": diagnostic_limits, "business_failure_preserved": business_failure, "formal": False, "run": run.name, "positive": result, "cases": cases}, indent=2))

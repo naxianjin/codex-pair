@@ -219,3 +219,5 @@ Invoke-ValidatorRawModuleDiagnostic在terminal receipt前调用真实check-restr
 待审三个文件已冻结本地补丁并记录SHA256，反向应用检查及从当前HEAD全新导出副本的正向git apply --check均通过。补丁只保留本地，不发布待审核源码；pending-review-freeze.json提供版本定位。
 
 真实run38fb91ca产物边界续测扩至16负例，新增浮点native退出码、bool活动数、缺TimedOut、顺序倒置、缺结果、浮点validator退出码、非法摘要字符、缺files和自洽超限诊断，全部拒绝；正例及自洽业务失败保留均通过。待审补丁与三个源码摘要复核未变。曾试验从已提交产物派生request回放，因不能证明独立固定请求已弃用该入口；正式保留脚本仍读取原run/input/request.json，不把自派生回放作为绑定认证。无VM运行或B联系，formal=false。
+
+产物诊断字节上限续测：直接调用生产verify_validator_result，ASCII和中文诊断恰好1048576字节均接受，中文1048578字节拒绝；16个既有负例仍拒绝，自洽业务失败状态保留。证据diagnostic-byte-limit-results.json；tests.test_validator_worker五项通过。仅扩展验收脚本，无生产实现修改，无VM运行，未联系B，formal=false。待审模块修订仍未发布；动态内容、加载瞬间字节身份、正式宿主身份接线及依赖B的窗口验收仍未完成。
