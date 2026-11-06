@@ -1,0 +1,21 @@
+{
+  "formal": false,
+  "run": "cc23fcf635854ae39e8ddb2288437abf",
+  "native_pid": 792,
+  "native_creation_filetime": 134384057541274136,
+  "etw_sequence": "124",
+  "exact_100ns_match": true,
+  "identity_negative_cases_rejected": 2,
+  "review": {
+    "model": "gpt-6.1-sol",
+    "provider": "openai",
+    "session": "01a1aeaf-e777-7f70-b7d7-7aa87ac0c065",
+    "scope": "static diagnostic review; controller does not enforce binding; not formal acceptance"
+  },
+  "remaining": [
+    "Controller-enforced binding and provenance",
+    "Loaded image hash binding",
+    "Managed assembly lifecycle",
+    "Formal host-to-Store integration"
+  ]
+}

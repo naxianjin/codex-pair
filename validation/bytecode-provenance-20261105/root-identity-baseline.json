@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "scope": "Diagnostic root PID and creation time overlay; formal=false",
+  "vm_id": "3d337311-e8b0-4d7e-a746-f21f72e4cdb6",
+  "tools": {
+    "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe": "D3B4B97C2BF97D70E5655FF4C4CA1D8CEF9DED51685CFD764247CFDA98EE68DF",
+    "C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\mscorlib.dll": "A13D6716D12E17F2D5721CC1F8891E08305B5B009F8D3736E078A01AB19AB7CF",
+    "C:\\PairLab\\Tools\\python\\python.exe": "B7A12C3AF0B4DB44191EEC14EA095EBA731B7328917F570806183093D19DDCA2",
+    "C:\\PairLab\\Tools\\node\\node.exe": "5C976096E04E5C2C1F091938926234CC9FBEBFE9787DDD149351B3B0ECC707B5"
+  },
+  "limits": {
+    "processes": 16,
+    "process_memory_mib": 384,
+    "job_memory_mib": 512,
+    "cpu_seconds": 120,
+    "wall_seconds": 180,
+    "disk_quota_mib": 64
+  },
+  "controls": {
+    "runner.cs": "8d9c99b445aa36317b9b36be86ab8cdca754472c8ac79f96aa6a82aacce8a6f4",
+    "entry.py": "8ffc9eb1c8cd61386254361fbe85183feb66ecd9ca67c34efc34dbe1e50d8bf6",
+    "reader.cs": "c9c48e9ca5aeb427ded3b72d198a22e322a40fb0feb97d7890382e5071d3d066",
+    "reset.ps1": "e87a59a5da5f5647610be4f5893dcf784e6323a2142d521fe83a14bd618b5c8b"
+  }
+}
