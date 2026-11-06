@@ -1,0 +1,6 @@
+{
+  "registered_controller_files": 11,
+  "mismatches": [],
+  "formal": false,
+  "scope": "Only offline registered unittest modules; no production or real CLI acceptance"
+}

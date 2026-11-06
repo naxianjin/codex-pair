@@ -1,0 +1,7 @@
+{
+  "exact_observed_inventory_matches": true,
+  "changed_cache_rejected": true,
+  "extra_file_rejected": true,
+  "missing_cache_rejected": true,
+  "formal": false
+}

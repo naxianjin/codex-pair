@@ -1,0 +1,12 @@
+{
+  "guest_python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+  "cache_count": 4,
+  "source_archive_hashes_match": true,
+  "cache_inventory_hashes_unchanged": true,
+  "timestamp_size_magic_and_code_shape_match": true,
+  "historical_writer_identified": false,
+  "actual_cache_load_confirmed": true,
+  "formal": false,
+  "controller_baseline_files_match": 11,
+  "full_code_objects_match": true
+}
