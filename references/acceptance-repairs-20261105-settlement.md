@@ -193,3 +193,5 @@ IL文件续测取得21个绝对路径的磁盘SHA256及Windows签名观察，全
 Invoke-ValidatorRawModuleDiagnostic在terminal receipt前调用真实check-restricted-raw-modules.py并立即核对退出码；七项来源清单包括检查器，持锁贯穿回执。独立openai/gpt-6.1-sol只读复审无阻塞，确认失败在pending清理前抛错。原生PS5.1抽取真实门槛正例通过、缺事件和未知版本拒绝；另用夹具续接receipt/pending行为，正例生成回执清pending，负例无回执且保留pending。该失败注入不是完整控制器失败运行，不冒充端到端负例。
 
 真实受限VM run 698b8bbda9574536bb11e923cfe0d9dc通过：13进程、46程序集配对、106映像及46原始模块配对门槛全部在回执前完成。receipt的Native、Controller、SourceInventory SHA256逐项与实跑文件核对一致；结果raw-module-gate-live-summary.json。首次测试生成命令被自动执行策略拒绝，改为无递归删除的一次性夹具后执行；未绕过拒绝。整体formal=false，动态内容及正式宿主身份认证仍未完成，未联系B。
+
+新增七项来源真实入口拒绝测试：七个单独摘要错配和集合缺项/多项共九例，准确错误均在VM访问及派发前返回；每次摘要失败后，清单和所有源码均可独占只读打开，确认句柄释放。仅入口负例，不涉及新VM运行。证据seven-source-failure-results.json，formal=false。

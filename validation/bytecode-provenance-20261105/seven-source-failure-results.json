@@ -1,0 +1,7 @@
+{
+  "formal": false,
+  "digest_failures": 7,
+  "set_failures": 2,
+  "all_handles_released_after_digest_failures": true,
+  "output": "{\n    \"Cases\":  [\n                  {\n                      \"RejectedBeforeDispatch\":  true,\n                      \"Source\":  \"Test-RootTrace.ps1\"\n                  },\n                  {\n                      \"RejectedBeforeDispatch\":  true,\n                      \"Source\":  \"PairValidatorIdentityDiagnostic.cs\"\n                  },\n                  {\n                      \"RejectedBeforeDispatch\":  true,\n                      \"Source\":  \"root-identity-baseline.json\"\n                  },\n                  {\n                      \"RejectedBeforeDispatch\":  true,\n                      \"Source\":  \"check-combined-evidence.py\"\n                  },\n                  {\n                      \"RejectedBeforeDispatch\":  true,\n                      \"Source\":  \"Invoke-ValidatorRawModuleDiagnostic.ps1\"\n                  },\n                  {\n                      \"RejectedBeforeDispatch\":  true,\n                      \"Source\":  \"run-raw-module-etw.ps1\"\n                  },\n                  {\n                      \"RejectedBeforeDispatch\":  true,\n                      \"Source\":  \"check-restricted-raw-modules.py\"\n                  }\n              ],\n    \"Formal\":  false\n}\nmissing source set rejected before dispatch\nextra source set rejected before dispatch\n"
+}
