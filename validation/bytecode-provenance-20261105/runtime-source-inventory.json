@@ -2,7 +2,7 @@
   "formal": false,
   "scope": "Diagnostic caller-selected source baseline, not independent trust",
   "files": {
-    "Invoke-ValidatorRootDiagnostic.ps1": "e049e72bf392f7d77218d280fddac1856ad93a877c1aebd6fa12fed00a7ca448",
+    "Invoke-ValidatorRootDiagnostic.ps1": "6be71adf2db7af65cb1991c96d881f436708a7cfd99dc79b7e6a6f8bdd256044",
     "Test-RootTrace.ps1": "36f44c804fb18e86f8518c29869afe34dd45a65aa80bed167f7f608028eae801",
     "PairValidatorIdentityDiagnostic.cs": "8d9c99b445aa36317b9b36be86ab8cdca754472c8ac79f96aa6a82aacce8a6f4",
     "root-identity-baseline.json": "0faaa69832fd6c7c94e338d92148cab2ba8a976e88d9696bc3fc3c303f746c91",

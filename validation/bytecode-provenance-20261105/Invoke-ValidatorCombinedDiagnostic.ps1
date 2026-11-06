@@ -1,12 +1,24 @@
 ﻿param([Parameter(Mandatory)][string]$InputDirectory,[Parameter(Mandatory)][string]$SourceInventory)
 $ErrorActionPreference='Stop'
-$sourceBytes=[IO.File]::ReadAllBytes($SourceInventory)
+$sourceLocks=New-Object 'System.Collections.Generic.List[System.IDisposable]'
+try {
+# Keep source paths immutable through loading and terminal receipt generation.
+$inventoryLock=[IO.File]::Open($SourceInventory,'Open','Read','Read')
+$sourceLocks.Add($inventoryLock)
+$sourceBytes=New-Object byte[] $inventoryLock.Length
+if($inventoryLock.Read($sourceBytes,0,$sourceBytes.Length) -ne $sourceBytes.Length){throw 'Incomplete source inventory read'}
 $sourceRecord=[Text.Encoding]::UTF8.GetString($sourceBytes) | ConvertFrom-Json
 $sha=[Security.Cryptography.SHA256]::Create()
 try {$sourceDigest=([BitConverter]::ToString($sha.ComputeHash($sourceBytes))).Replace('-','')} finally {$sha.Dispose()}
 $requiredSources=@('Invoke-ValidatorCombinedDiagnostic.ps1','Test-RootTrace.ps1','PairValidatorIdentityDiagnostic.cs','root-identity-baseline.json','run-combined-etw.ps1','check-combined-evidence.py')
 if(@($sourceRecord.files.PSObject.Properties).Count -ne 6 -or @($sourceRecord.files.PSObject.Properties.Name | Where-Object {$_ -notin $requiredSources}).Count){throw 'Invalid source inventory set'}
-foreach($item in $sourceRecord.files.PSObject.Properties){if((Get-FileHash -LiteralPath (Join-Path $PSScriptRoot $item.Name)).Hash -ne $item.Value){throw 'Diagnostic source inventory mismatch'}}
+foreach($item in $sourceRecord.files.PSObject.Properties){
+ $sourceLock=[IO.File]::Open((Join-Path $PSScriptRoot $item.Name),'Open','Read','Read')
+ $sourceLocks.Add($sourceLock)
+ $sourceHash=[Security.Cryptography.SHA256]::Create()
+ try {$lockedDigest=([BitConverter]::ToString($sourceHash.ComputeHash($sourceLock))).Replace('-','')}finally{$sourceHash.Dispose()}
+ if($lockedDigest -ne $item.Value){throw 'Diagnostic source inventory mismatch'}
+}
 . (Join-Path $PSScriptRoot 'Test-RootTrace.ps1')
 $lab='E:\codex-pair\.codex-pair\isolation'
 $vmName='codex-pair-isolation-20261102'
@@ -107,4 +119,8 @@ try{
 }finally{
  if($session){Remove-PSSession $session}
  $lease.Dispose()
+}
+
+} finally {
+ foreach($sourceLock in $sourceLocks){$sourceLock.Dispose()}
 }

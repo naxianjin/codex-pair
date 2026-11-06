@@ -1,0 +1,5 @@
+{
+  "formal": false,
+  "native_powershell_exit": 0,
+  "output": "Invoke-ValidatorRootDiagnostic.ps1: mutation rejected; every handle released after success, digest mismatch and partial acquisition\nInvoke-ValidatorCombinedDiagnostic.ps1: mutation rejected; every handle released after success, digest mismatch and partial acquisition\n"
+}

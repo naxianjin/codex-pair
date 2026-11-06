@@ -141,3 +141,11 @@ check-combined-negative-cases.py使用此次真实证据，正例和六负例通
 发布前发现Git换行转换使清单与暂存字节不符；为清单引用的诊断源码设置精确字节保留及CRLF空白识别，重新暂存后两份清单全部逐项匹配，未修改实跑源码字节。git diff --cached --check通过。
 
 另从13c9e09的Git archive解出全新副本，两份来源清单逐项摘要一致；在该副本执行组合正例及六负例全部通过，确认发布字节可复现。证据git-archive-reproduction.json。
+
+## 来源校验后加载窗口修复与归档核对
+
+两个诊断控制器对清单和全部来源文件从校验前开始持有FileShare.Read句柄，覆盖helper加载、实际执行及terminal receipt生成，finally释放。实际哈希从所持句柄读取。原生PowerShell5.1隔离副本测试确认写入/删除拒绝；摘要错误及部分打开失败使用实际控制器代码，失败后每个文件均可独占打开。首版测试直接尝试删除真实源码，经独立审核指出风险后改为一次性副本；首次测试生成及作用域错误已修，不计为通过。
+
+真实VM run b970d7ae4dfb42f994e311eda76604ca成功：13进程、46程序集配对键、106映像摘要；receipt绑定当前控制器、清单及原始native字节。独立openai/gpt-6.1-sol复审确认原两测试阻塞消除；未由审核者重跑VM。VM Off，无pending。锁解决当前Windows普通写删路径的来源替换窗口，不代表系统映像加载身份、管理员对抗或独立可信基线。
+
+另核对786项工具观察记录与安装前tools.zip及manifest：782项存在且三方摘要完全一致；4项为归档外生成的Python encodings缓存。归档来源记为existing local application distributions，不能改称发布者认证。保存toolchain-archive-comparison.json。formal始终false，尚缺系统/ETW独立可信来源、加载瞬间内容和程序集digest、正式Host→Store及原窗口验收；未联系B。

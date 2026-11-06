@@ -1,0 +1,4719 @@
+{
+  "formal": false,
+  "source": "existing local application distributions; no account homes copied",
+  "archive_sha256": "a2dc35e1951d502dfaa62f8509bd748da20a2283f9138095638edf73aa9710ba",
+  "checked": 786,
+  "archive_present": 782,
+  "matches": 782,
+  "files": [
+    {
+      "path": "node/node.exe",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/DLLs/_asyncio.pyd",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/DLLs/_bz2.pyd",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/DLLs/_ctypes.pyd",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/DLLs/_ctypes_test.pyd",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/DLLs/_decimal.pyd",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/DLLs/_elementtree.pyd",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/DLLs/_hashlib.pyd",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/DLLs/_lzma.pyd",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/DLLs/_msi.pyd",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/DLLs/_multiprocessing.pyd",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/DLLs/_overlapped.pyd",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/DLLs/_queue.pyd",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/DLLs/_socket.pyd",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/DLLs/_sqlite3.pyd",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/DLLs/_ssl.pyd",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/DLLs/_testbuffer.pyd",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/DLLs/_testcapi.pyd",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/DLLs/_testclinic.pyd",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/DLLs/_testconsole.pyd",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/DLLs/_testimportmultiple.pyd",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/DLLs/_testinternalcapi.pyd",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/DLLs/_testmultiphase.pyd",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/DLLs/_testsinglephase.pyd",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/DLLs/_tkinter.pyd",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/DLLs/_uuid.pyd",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/DLLs/_wmi.pyd",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/DLLs/_zoneinfo.pyd",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/DLLs/libcrypto-3-x64.dll",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/DLLs/libffi-8.dll",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/DLLs/libssl-3-x64.dll",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/DLLs/pyexpat.pyd",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/DLLs/select.pyd",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/DLLs/sqlite3.dll",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/DLLs/tcl86t.dll",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/DLLs/tk86t.dll",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/DLLs/unicodedata.pyd",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/DLLs/winsound.pyd",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/LICENSE.txt",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/__future__.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/__hello__.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/__phello__/__init__.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/__phello__/ham/__init__.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/__phello__/ham/eggs.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/__phello__/spam.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/_aix_support.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/_collections_abc.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/_compat_pickle.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/_compression.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/_markupbase.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/_osx_support.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/_py_abc.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/_pydatetime.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/_pydecimal.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/_pyio.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/_pylong.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/_sitebuiltins.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/_strptime.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/_threading_local.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/_weakrefset.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/abc.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/aifc.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/antigravity.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/argparse.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/ast.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/asyncio/__init__.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/asyncio/__main__.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/asyncio/base_events.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/asyncio/base_futures.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/asyncio/base_subprocess.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/asyncio/base_tasks.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/asyncio/constants.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/asyncio/coroutines.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/asyncio/events.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/asyncio/exceptions.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/asyncio/format_helpers.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/asyncio/futures.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/asyncio/locks.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/asyncio/log.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/asyncio/mixins.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/asyncio/proactor_events.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/asyncio/protocols.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/asyncio/queues.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/asyncio/runners.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/asyncio/selector_events.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/asyncio/sslproto.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/asyncio/staggered.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/asyncio/streams.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/asyncio/subprocess.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/asyncio/taskgroups.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/asyncio/tasks.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/asyncio/threads.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/asyncio/timeouts.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/asyncio/transports.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/asyncio/trsock.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/asyncio/unix_events.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/asyncio/windows_events.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/asyncio/windows_utils.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/base64.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/bdb.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/bisect.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/bz2.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/cProfile.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/calendar.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/cgi.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/cgitb.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/chunk.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/cmd.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/code.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/codecs.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/codeop.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/collections/__init__.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/collections/abc.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/colorsys.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/compileall.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/concurrent/__init__.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/concurrent/futures/__init__.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/concurrent/futures/_base.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/concurrent/futures/process.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/concurrent/futures/thread.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/configparser.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/contextlib.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/contextvars.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/copy.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/copyreg.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/crypt.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/csv.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/ctypes/__init__.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/ctypes/_aix.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/ctypes/_endian.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/ctypes/macholib/README.ctypes",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/ctypes/macholib/__init__.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/ctypes/macholib/dyld.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/ctypes/macholib/dylib.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/ctypes/macholib/fetch_macholib",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/ctypes/macholib/fetch_macholib.bat",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/ctypes/macholib/framework.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/ctypes/util.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/ctypes/wintypes.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/curses/__init__.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/curses/ascii.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/curses/has_key.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/curses/panel.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/curses/textpad.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/dataclasses.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/datetime.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/dbm/__init__.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/dbm/dumb.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/dbm/gnu.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/dbm/ndbm.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/decimal.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/difflib.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/dis.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/doctest.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/email/__init__.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/email/_encoded_words.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/email/_header_value_parser.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/email/_parseaddr.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/email/_policybase.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/email/architecture.rst",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/email/base64mime.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/email/charset.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/email/contentmanager.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/email/encoders.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/email/errors.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/email/feedparser.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/email/generator.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/email/header.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/email/headerregistry.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/email/iterators.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/email/message.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/email/mime/__init__.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/email/mime/application.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/email/mime/audio.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/email/mime/base.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/email/mime/image.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/email/mime/message.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/email/mime/multipart.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/email/mime/nonmultipart.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/email/mime/text.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/email/parser.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/email/policy.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/email/quoprimime.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/email/utils.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/__init__.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/aliases.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/ascii.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/base64_codec.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/big5.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/big5hkscs.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/bz2_codec.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/charmap.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/cp037.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/cp1006.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/cp1026.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/cp1125.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/cp1140.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/cp1250.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/cp1251.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/cp1252.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/cp1253.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/cp1254.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/cp1255.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/cp1256.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/cp1257.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/cp1258.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/cp273.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/cp424.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/cp437.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/cp500.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/cp720.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/cp737.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/cp775.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/cp850.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/cp852.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/cp855.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/cp856.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/cp857.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/cp858.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/cp860.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/cp861.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/cp862.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/cp863.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/cp864.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/cp865.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/cp866.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/cp869.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/cp874.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/cp875.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/cp932.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/cp949.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/cp950.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/euc_jis_2004.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/euc_jisx0213.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/euc_jp.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/euc_kr.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/gb18030.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/gb2312.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/gbk.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/hex_codec.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/hp_roman8.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/hz.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/idna.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/iso2022_jp.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/iso2022_jp_1.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/iso2022_jp_2.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/iso2022_jp_2004.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/iso2022_jp_3.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/iso2022_jp_ext.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/iso2022_kr.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/iso8859_1.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/iso8859_10.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/iso8859_11.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/iso8859_13.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/iso8859_14.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/iso8859_15.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/iso8859_16.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/iso8859_2.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/iso8859_3.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/iso8859_4.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/iso8859_5.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/iso8859_6.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/iso8859_7.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/iso8859_8.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/iso8859_9.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/johab.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/koi8_r.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/koi8_t.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/koi8_u.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/kz1048.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/latin_1.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/mac_arabic.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/mac_croatian.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/mac_cyrillic.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/mac_farsi.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/mac_greek.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/mac_iceland.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/mac_latin2.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/mac_roman.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/mac_romanian.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/mac_turkish.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/mbcs.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/oem.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/palmos.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/ptcp154.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/punycode.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/quopri_codec.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/raw_unicode_escape.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/rot_13.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/shift_jis.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/shift_jis_2004.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/shift_jisx0213.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/tis_620.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/undefined.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/unicode_escape.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/utf_16.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/utf_16_be.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/utf_16_le.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/utf_32.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/utf_32_be.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/utf_32_le.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/utf_7.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/utf_8.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/utf_8_sig.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/uu_codec.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/zlib_codec.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/ensurepip/__init__.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/ensurepip/__main__.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/ensurepip/_bundled/pip-25.0.1-py3-none-any.whl",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/ensurepip/_uninstall.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/enum.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/filecmp.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/fileinput.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/fnmatch.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/fractions.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/ftplib.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/functools.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/genericpath.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/getopt.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/getpass.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/gettext.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/glob.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/graphlib.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/gzip.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/hashlib.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/heapq.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/hmac.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/html/__init__.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/html/entities.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/html/parser.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/http/__init__.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/http/client.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/http/cookiejar.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/http/cookies.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/http/server.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/CREDITS.txt",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/ChangeLog",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/HISTORY.txt",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/Icons/README.txt",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/Icons/folder.gif",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/Icons/idle.ico",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/Icons/idle_16.gif",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/Icons/idle_16.png",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/Icons/idle_256.png",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/Icons/idle_32.gif",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/Icons/idle_32.png",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/Icons/idle_48.gif",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/Icons/idle_48.png",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/Icons/minusnode.gif",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/Icons/openfolder.gif",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/Icons/plusnode.gif",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/Icons/python.gif",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/Icons/tk.gif",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/NEWS2x.txt",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/News3.txt",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/README.txt",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/TODO.txt",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/__init__.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/__main__.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/autocomplete.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/autocomplete_w.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/autoexpand.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/browser.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/calltip.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/calltip_w.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/codecontext.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/colorizer.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/config-extensions.def",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/config-highlight.def",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/config-keys.def",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/config-main.def",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/config.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/config_key.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/configdialog.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/debugger.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/debugger_r.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/debugobj.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/debugobj_r.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/delegator.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/dynoption.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/editor.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/extend.txt",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/filelist.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/format.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/grep.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/help.html",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/help.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/help_about.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/history.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/hyperparser.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/idle.bat",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/idle.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/idle.pyw",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/iomenu.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/macosx.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/mainmenu.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/multicall.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/outwin.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/parenmatch.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/pathbrowser.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/percolator.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/pyparse.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/pyshell.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/query.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/redirector.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/replace.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/rpc.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/run.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/runscript.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/scrolledlist.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/search.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/searchbase.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/searchengine.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/sidebar.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/squeezer.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/stackviewer.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/statusbar.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/textview.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/tooltip.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/tree.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/undo.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/util.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/window.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/zoomheight.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/idlelib/zzdummy.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/imaplib.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/imghdr.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/importlib/__init__.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/importlib/_abc.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/importlib/_bootstrap.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/importlib/_bootstrap_external.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/importlib/abc.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/importlib/machinery.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/importlib/metadata/__init__.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/importlib/metadata/_adapters.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/importlib/metadata/_collections.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/importlib/metadata/_functools.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/importlib/metadata/_itertools.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/importlib/metadata/_meta.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/importlib/metadata/_text.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/importlib/readers.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/importlib/resources/__init__.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/importlib/resources/_adapters.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/importlib/resources/_common.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/importlib/resources/_itertools.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/importlib/resources/_legacy.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/importlib/resources/abc.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/importlib/resources/readers.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/importlib/resources/simple.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/importlib/simple.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/importlib/util.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/inspect.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/io.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/ipaddress.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/json/__init__.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/json/decoder.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/json/encoder.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/json/scanner.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/json/tool.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/keyword.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/Grammar.txt",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/PatternGrammar.txt",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/__init__.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/__main__.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/btm_matcher.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/btm_utils.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/fixer_base.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/fixer_util.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/fixes/__init__.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/fixes/fix_apply.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/fixes/fix_asserts.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/fixes/fix_basestring.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/fixes/fix_buffer.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/fixes/fix_dict.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/fixes/fix_except.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/fixes/fix_exec.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/fixes/fix_execfile.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/fixes/fix_exitfunc.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/fixes/fix_filter.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/fixes/fix_funcattrs.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/fixes/fix_future.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/fixes/fix_getcwdu.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/fixes/fix_has_key.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/fixes/fix_idioms.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/fixes/fix_import.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/fixes/fix_imports.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/fixes/fix_imports2.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/fixes/fix_input.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/fixes/fix_intern.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/fixes/fix_isinstance.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/fixes/fix_itertools.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/fixes/fix_itertools_imports.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/fixes/fix_long.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/fixes/fix_map.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/fixes/fix_metaclass.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/fixes/fix_methodattrs.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/fixes/fix_ne.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/fixes/fix_next.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/fixes/fix_nonzero.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/fixes/fix_numliterals.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/fixes/fix_operator.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/fixes/fix_paren.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/fixes/fix_print.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/fixes/fix_raise.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/fixes/fix_raw_input.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/fixes/fix_reduce.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/fixes/fix_reload.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/fixes/fix_renames.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/fixes/fix_repr.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/fixes/fix_set_literal.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/fixes/fix_standarderror.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/fixes/fix_sys_exc.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/fixes/fix_throw.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/fixes/fix_tuple_params.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/fixes/fix_types.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/fixes/fix_unicode.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/fixes/fix_urllib.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/fixes/fix_ws_comma.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/fixes/fix_xrange.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/fixes/fix_xreadlines.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/fixes/fix_zip.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/main.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/patcomp.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/pgen2/__init__.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/pgen2/conv.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/pgen2/driver.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/pgen2/grammar.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/pgen2/literals.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/pgen2/parse.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/pgen2/pgen.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/pgen2/token.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/pgen2/tokenize.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/pygram.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/pytree.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lib2to3/refactor.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/linecache.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/locale.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/logging/__init__.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/logging/config.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/logging/handlers.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/lzma.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/mailbox.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/mailcap.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/mimetypes.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/modulefinder.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/msilib/__init__.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/msilib/schema.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/msilib/sequence.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/msilib/text.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/multiprocessing/__init__.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/multiprocessing/connection.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/multiprocessing/context.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/multiprocessing/dummy/__init__.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/multiprocessing/dummy/connection.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/multiprocessing/forkserver.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/multiprocessing/heap.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/multiprocessing/managers.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/multiprocessing/pool.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/multiprocessing/popen_fork.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/multiprocessing/popen_forkserver.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/multiprocessing/popen_spawn_posix.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/multiprocessing/popen_spawn_win32.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/multiprocessing/process.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/multiprocessing/queues.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/multiprocessing/reduction.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/multiprocessing/resource_sharer.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/multiprocessing/resource_tracker.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/multiprocessing/shared_memory.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/multiprocessing/sharedctypes.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/multiprocessing/spawn.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/multiprocessing/synchronize.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/multiprocessing/util.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/netrc.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/nntplib.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/ntpath.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/nturl2path.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/numbers.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/opcode.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/operator.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/optparse.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/os.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/pathlib.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/pdb.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/pickle.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/pickletools.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/pipes.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/pkgutil.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/platform.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/plistlib.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/poplib.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/posixpath.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/pprint.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/profile.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/pstats.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/pty.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/py_compile.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/pyclbr.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/pydoc.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/pydoc_data/__init__.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/pydoc_data/_pydoc.css",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/pydoc_data/topics.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/queue.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/quopri.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/random.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/re/__init__.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/re/_casefix.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/re/_compiler.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/re/_constants.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/re/_parser.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/reprlib.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/rlcompleter.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/runpy.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/sched.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/secrets.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/selectors.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/shelve.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/shlex.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/shutil.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/signal.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/site.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/smtplib.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/sndhdr.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/socket.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/socketserver.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/sqlite3/__init__.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/sqlite3/__main__.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/sqlite3/dbapi2.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/sqlite3/dump.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/sre_compile.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/sre_constants.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/sre_parse.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/ssl.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/stat.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/statistics.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/string.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/stringprep.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/struct.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/subprocess.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/sunau.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/symtable.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/sysconfig.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/tabnanny.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/tarfile.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/telnetlib.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/tempfile.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/textwrap.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/this.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/threading.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/timeit.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/tkinter/__init__.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/tkinter/__main__.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/tkinter/colorchooser.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/tkinter/commondialog.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/tkinter/constants.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/tkinter/dialog.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/tkinter/dnd.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/tkinter/filedialog.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/tkinter/font.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/tkinter/messagebox.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/tkinter/scrolledtext.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/tkinter/simpledialog.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/tkinter/tix.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/tkinter/ttk.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/token.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/tokenize.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/tomllib/__init__.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/tomllib/_parser.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/tomllib/_re.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/tomllib/_types.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/trace.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/traceback.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/tracemalloc.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/tty.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/turtle.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/turtledemo/__init__.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/turtledemo/__main__.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/turtledemo/bytedesign.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/turtledemo/chaos.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/turtledemo/clock.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/turtledemo/colormixer.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/turtledemo/forest.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/turtledemo/fractalcurves.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/turtledemo/lindenmayer.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/turtledemo/minimal_hanoi.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/turtledemo/nim.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/turtledemo/paint.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/turtledemo/peace.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/turtledemo/penrose.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/turtledemo/planet_and_moon.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/turtledemo/rosette.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/turtledemo/round_dance.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/turtledemo/sorting_animate.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/turtledemo/tree.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/turtledemo/turtle.cfg",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/turtledemo/two_canvases.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/turtledemo/yinyang.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/types.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/typing.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/unittest/__init__.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/unittest/__main__.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/unittest/_log.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/unittest/async_case.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/unittest/case.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/unittest/loader.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/unittest/main.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/unittest/mock.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/unittest/result.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/unittest/runner.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/unittest/signals.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/unittest/suite.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/unittest/util.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/urllib/__init__.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/urllib/error.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/urllib/parse.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/urllib/request.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/urllib/response.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/urllib/robotparser.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/uu.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/uuid.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/venv/__init__.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/venv/__main__.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/venv/scripts/common/Activate.ps1",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/venv/scripts/common/activate",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/venv/scripts/nt/activate.bat",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/venv/scripts/nt/deactivate.bat",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/venv/scripts/nt/python.exe",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/venv/scripts/nt/pythonw.exe",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/venv/scripts/posix/activate.csh",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/venv/scripts/posix/activate.fish",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/warnings.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/wave.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/weakref.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/webbrowser.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/wsgiref/__init__.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/wsgiref/handlers.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/wsgiref/headers.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/wsgiref/simple_server.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/wsgiref/types.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/wsgiref/util.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/wsgiref/validate.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/xdrlib.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/xml/__init__.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/xml/dom/NodeFilter.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/xml/dom/__init__.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/xml/dom/domreg.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/xml/dom/expatbuilder.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/xml/dom/minicompat.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/xml/dom/minidom.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/xml/dom/pulldom.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/xml/dom/xmlbuilder.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/xml/etree/ElementInclude.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/xml/etree/ElementPath.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/xml/etree/ElementTree.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/xml/etree/__init__.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/xml/etree/cElementTree.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/xml/parsers/__init__.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/xml/parsers/expat.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/xml/sax/__init__.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/xml/sax/_exceptions.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/xml/sax/expatreader.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/xml/sax/handler.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/xml/sax/saxutils.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/xml/sax/xmlreader.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/xmlrpc/__init__.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/xmlrpc/client.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/xmlrpc/server.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/zipapp.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/zipfile/__init__.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/zipfile/__main__.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/zipfile/_path/__init__.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/zipfile/_path/glob.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/zipimport.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/zoneinfo/__init__.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/zoneinfo/_common.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/zoneinfo/_tzpath.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/zoneinfo/_zoneinfo.py",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/python.exe",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/python3.dll",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/python312.dll",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/pythonw.exe",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/vcruntime140.dll",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/vcruntime140_1.dll",
+      "archive_present": true,
+      "archive_matches_manifest": true,
+      "observed_matches_archive": true
+    },
+    {
+      "path": "python/Lib/encodings/__pycache__/__init__.cpython-312.pyc",
+      "archive_present": false
+    },
+    {
+      "path": "python/Lib/encodings/__pycache__/aliases.cpython-312.pyc",
+      "archive_present": false
+    },
+    {
+      "path": "python/Lib/encodings/__pycache__/gbk.cpython-312.pyc",
+      "archive_present": false
+    },
+    {
+      "path": "python/Lib/encodings/__pycache__/utf_8.cpython-312.pyc",
+      "archive_present": false
+    }
+  ],
+  "limitation": "Local archive consistency only; no independent publisher authentication or system/ETW baseline."
+}
