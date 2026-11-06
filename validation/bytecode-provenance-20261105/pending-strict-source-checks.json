@@ -1,0 +1,19 @@
+{
+  "formal": false,
+  "review": "pending",
+  "checker_sha256": "ce642357ff38315f181d80292aee0f7439ff110c658795ee191de0a9b21a961e",
+  "checks": [
+    {
+      "script": "check-seven-source-failures.ps1",
+      "exit_code": 0
+    },
+    {
+      "script": "check-raw-module-receipt-gate.ps1",
+      "exit_code": 0
+    },
+    {
+      "script": "check-source-locks.ps1",
+      "exit_code": 0
+    }
+  ]
+}

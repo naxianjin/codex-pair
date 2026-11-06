@@ -1,0 +1,44 @@
+{
+  "business_failure_preserved": {
+    "execution_completed": true,
+    "validators_succeeded": false,
+    "formal_checks_verified": false
+  },
+  "formal": false,
+  "run": "38fb91ca5e304f9483da78df618c288b",
+  "positive": {
+    "execution_completed": true,
+    "validators_succeeded": true,
+    "formal_checks_verified": false
+  },
+  "cases": [
+    {
+      "case": "formal_claim",
+      "rejected": true
+    },
+    {
+      "case": "binding_drift",
+      "rejected": true
+    },
+    {
+      "case": "active_process",
+      "rejected": true
+    },
+    {
+      "case": "timeout",
+      "rejected": true
+    },
+    {
+      "case": "bool_exit",
+      "rejected": true
+    },
+    {
+      "case": "wrong_diagnostic",
+      "rejected": true
+    },
+    {
+      "case": "outcome_lie",
+      "rejected": true
+    }
+  ]
+}

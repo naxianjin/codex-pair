@@ -1,0 +1,10 @@
+{
+  "formal": false,
+  "run": "38fb91ca5e304f9483da78df618c288b",
+  "passed": true,
+  "source_inventory_sha256": "C9A7307F82F457D431FF021FAE5B4BC25BB4B14F7EFD0A4509DF0F4A05539CDE",
+  "checker_sha256": "ce642357ff38315f181d80292aee0f7439ff110c658795ee191de0a9b21a961e",
+  "receipt_native_and_source_hashes_match": true,
+  "review": "pending; official reviewer usage limit",
+  "release": "revised checker local only"
+}

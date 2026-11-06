@@ -207,3 +207,11 @@ Invoke-ValidatorRawModuleDiagnostic在terminal receipt前调用真实check-restr
 新增探针确认事件Id/Version及模板Version改为浮点数仍通过，原因是Python字典键整数/浮点相等。已本地要求事件Id、Version、PID及模板Id/Version为严格整数；46配对正例及13负例通过。新版离线复核f26f12ac、698b8bbd、5f692776三份真实历史native全部通过，未将其称为新版再次VM实跑。摘要和结果见raw-module-type-replay-summary.json及raw-module-type-negative-results.json。
 
 事件列表倒序仍通过；当前只验证身份配对及字段一致，原始模块记录无保存时间戳，未声称生命周期时序验证。重复相同模板被字典合并，未发现由此改变解码，不增加无依据的限制。独立审核仍因额度不足未完成；字段及类型修订源码、负例脚本和来源清单继续本地未提交，本轮仅同步测试记录，不发布待审实现。formal=false，未联系B、未启动VM。
+
+## 严格类型准确版本实跑及产物边界
+
+待审字段一致性/严格整数检查器准确版本真实VM run 38fb91ca5e304f9483da78df618c288b通过，13进程、46程序集/模块配对及106映像，来源清单和原始证据摘要与receipt匹配。VM Off、无pending；未联系B。新版来源九类拒绝、回执前门槛及持锁释放复测通过；验证器/Store相关43项通过。
+
+直接调用生产verify_validator_result验收两份真实产物：正例formal恒false，伪造formal通过、绑定漂移、活动残留、超时、bool退出码、诊断摘要篡改、汇总谎报七负例均拒绝；额外构造自洽业务失败，正确保留execution_completed=true、validators_succeeded=false、formal=false。此自洽失败是宿主验收逻辑测试，非客体再次执行失败。脚本check-live-artifact-boundaries.py及strict-types-live-artifact-results.json保留可复核过程。
+
+独立复审仍未完成，待审检查器/负例及来源清单不发布；本次只同步实际测试记录及无生产改动的验收脚本，整体formal=false。证据strict-types-live-summary.json和pending-strict-source-checks.json。
