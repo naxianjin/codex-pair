@@ -1,0 +1,855 @@
+{
+  "formal": false,
+  "pid": 5084,
+  "process_sequence_number": "93",
+  "counts": {
+    "1": 1,
+    "5": 33,
+    "6": 33,
+    "2": 1
+  },
+  "exact_pid_field_filter": true,
+  "start_exit_sequence_matches": true,
+  "events": [
+    {
+      "event_id": 1,
+      "fields": {
+        "ProcessID": "    5084",
+        "ProcessSequenceNumber": "93",
+        "CreateTime": "2026-11-06T02:12:46.062149800Z",
+        "ParentProcessID": "    4656",
+        "ParentProcessSequenceNumber": "87",
+        "SessionID": "       0",
+        "Flags": "       0",
+        "ProcessTokenElevationType": "       2",
+        "ProcessTokenIsElevated": "       1",
+        "MandatoryLabel": "S-1-16-12288",
+        "ImageName": "\\Device\\HarddiskVolume4\\PairLab\\Tools\\node\\node.exe",
+        "ImageChecksum": "0x591E1A3",
+        "TimeDateStamp": "0x6A8EB142",
+        "PackageFullName": null,
+        "PackageRelativeAppId": null,
+        "SecurityMitigations": "       0"
+      }
+    },
+    {
+      "event_id": 5,
+      "fields": {
+        "ImageBase": "0x7FF641CE0000",
+        "ImageSize": "0x596F000",
+        "ProcessID": "    5084",
+        "ImageCheckSum": "93446563",
+        "TimeDateStamp": "1787736386",
+        "DefaultBase": "0x7FF641CE0000",
+        "ImageName": "\\Device\\HarddiskVolume4\\PairLab\\Tools\\node\\node.exe"
+      }
+    },
+    {
+      "event_id": 5,
+      "fields": {
+        "ImageBase": "0x7FFD65E40000",
+        "ImageSize": "0x263000",
+        "ProcessID": "    5084",
+        "ImageCheckSum": " 2530290",
+        "TimeDateStamp": "3112076450",
+        "DefaultBase": "0x7FFD65E40000",
+        "ImageName": "\\Device\\HarddiskVolume4\\Windows\\System32\\ntdll.dll"
+      }
+    },
+    {
+      "event_id": 5,
+      "fields": {
+        "ImageBase": "0x7FFD64A40000",
+        "ImageSize": "0xC7000",
+        "ProcessID": "    5084",
+        "ImageCheckSum": "  854371",
+        "TimeDateStamp": "3576110796",
+        "DefaultBase": "0x7FFD64A40000",
+        "ImageName": "\\Device\\HarddiskVolume4\\Windows\\System32\\kernel32.dll"
+      }
+    },
+    {
+      "event_id": 5,
+      "fields": {
+        "ImageBase": "0x7FFD633B0000",
+        "ImageSize": "0x3A1000",
+        "ProcessID": "    5084",
+        "ImageCheckSum": " 3832757",
+        "TimeDateStamp": "1041202075",
+        "DefaultBase": "0x7FFD633B0000",
+        "ImageName": "\\Device\\HarddiskVolume4\\Windows\\System32\\KernelBase.dll"
+      }
+    },
+    {
+      "event_id": 5,
+      "fields": {
+        "ImageBase": "0x7FFD639F0000",
+        "ImageSize": "0x176000",
+        "ProcessID": "    5084",
+        "ImageCheckSum": " 1563013",
+        "TimeDateStamp": "217535984",
+        "DefaultBase": "0x7FFD639F0000",
+        "ImageName": "\\Device\\HarddiskVolume4\\Windows\\System32\\crypt32.dll"
+      }
+    },
+    {
+      "event_id": 5,
+      "fields": {
+        "ImageBase": "0x7FFD63B70000",
+        "ImageSize": "0x14B000",
+        "ProcessID": "    5084",
+        "ImageCheckSum": " 1436941",
+        "TimeDateStamp": "4121954014",
+        "DefaultBase": "0x7FFD63B70000",
+        "ImageName": "\\Device\\HarddiskVolume4\\Windows\\System32\\ucrtbase.dll"
+      }
+    },
+    {
+      "event_id": 5,
+      "fields": {
+        "ImageBase": "0x7FFD64E40000",
+        "ImageSize": "0x74000",
+        "ProcessID": "    5084",
+        "ImageCheckSum": "  534435",
+        "TimeDateStamp": "2640576187",
+        "DefaultBase": "0x7FFD64E40000",
+        "ImageName": "\\Device\\HarddiskVolume4\\Windows\\System32\\ws2_32.dll"
+      }
+    },
+    {
+      "event_id": 5,
+      "fields": {
+        "ImageBase": "0x7FFD646D0000",
+        "ImageSize": "0x116000",
+        "ProcessID": "    5084",
+        "ImageCheckSum": " 1167273",
+        "TimeDateStamp": "3069669587",
+        "DefaultBase": "0x7FFD646D0000",
+        "ImageName": "\\Device\\HarddiskVolume4\\Windows\\System32\\rpcrt4.dll"
+      }
+    },
+    {
+      "event_id": 5,
+      "fields": {
+        "ImageBase": "0x7FFD64C70000",
+        "ImageSize": "0x1C3000",
+        "ProcessID": "    5084",
+        "ImageCheckSum": " 1880622",
+        "TimeDateStamp": "1174328488",
+        "DefaultBase": "0x7FFD64C70000",
+        "ImageName": "\\Device\\HarddiskVolume4\\Windows\\System32\\user32.dll"
+      }
+    },
+    {
+      "event_id": 5,
+      "fields": {
+        "ImageBase": "0x7FFD63380000",
+        "ImageSize": "0x27000",
+        "ProcessID": "    5084",
+        "ImageCheckSum": "  224057",
+        "TimeDateStamp": "1056622025",
+        "DefaultBase": "0x7FFD63380000",
+        "ImageName": "\\Device\\HarddiskVolume4\\Windows\\System32\\win32u.dll"
+      }
+    },
+    {
+      "event_id": 5,
+      "fields": {
+        "ImageBase": "0x7FFD65440000",
+        "ImageSize": "0x2A000",
+        "ProcessID": "    5084",
+        "ImageCheckSum": "  230165",
+        "TimeDateStamp": "310737590",
+        "DefaultBase": "0x7FFD65440000",
+        "ImageName": "\\Device\\HarddiskVolume4\\Windows\\System32\\gdi32.dll"
+      }
+    },
+    {
+      "event_id": 5,
+      "fields": {
+        "ImageBase": "0x7FFD63250000",
+        "ImageSize": "0x121000",
+        "ProcessID": "    5084",
+        "ImageCheckSum": " 1243364",
+        "TimeDateStamp": "2186129804",
+        "DefaultBase": "0x7FFD63250000",
+        "ImageName": "\\Device\\HarddiskVolume4\\Windows\\System32\\gdi32full.dll"
+      }
+    },
+    {
+      "event_id": 5,
+      "fields": {
+        "ImageBase": "0x7FFD63940000",
+        "ImageSize": "0xA3000",
+        "ProcessID": "    5084",
+        "ImageCheckSum": "  702853",
+        "TimeDateStamp": "4233108621",
+        "DefaultBase": "0x7FFD63940000",
+        "ImageName": "\\Device\\HarddiskVolume4\\Windows\\System32\\msvcp_win.dll"
+      }
+    },
+    {
+      "event_id": 5,
+      "fields": {
+        "ImageBase": "0x7FFD658D0000",
+        "ImageSize": "0xB2000",
+        "ProcessID": "    5084",
+        "ImageCheckSum": "  757730",
+        "TimeDateStamp": "374853990",
+        "DefaultBase": "0x7FFD658D0000",
+        "ImageName": "\\Device\\HarddiskVolume4\\Windows\\System32\\advapi32.dll"
+      }
+    },
+    {
+      "event_id": 5,
+      "fields": {
+        "ImageBase": "0x7FFD64ED0000",
+        "ImageSize": "0xA9000",
+        "ProcessID": "    5084",
+        "ImageCheckSum": "  708025",
+        "TimeDateStamp": "1812057825",
+        "DefaultBase": "0x7FFD64ED0000",
+        "ImageName": "\\Device\\HarddiskVolume4\\Windows\\System32\\msvcrt.dll"
+      }
+    },
+    {
+      "event_id": 5,
+      "fields": {
+        "ImageBase": "0x7FFD647F0000",
+        "ImageSize": "0xA7000",
+        "ProcessID": "    5084",
+        "ImageCheckSum": "  731985",
+        "TimeDateStamp": "3299106793",
+        "DefaultBase": "0x7FFD647F0000",
+        "ImageName": "\\Device\\HarddiskVolume4\\Windows\\System32\\sechost.dll"
+      }
+    },
+    {
+      "event_id": 5,
+      "fields": {
+        "ImageBase": "0x7FFD63D70000",
+        "ImageSize": "0x6F6000",
+        "ProcessID": "    5084",
+        "ImageCheckSum": " 7364715",
+        "TimeDateStamp": "4112803642",
+        "DefaultBase": "0x7FFD63D70000",
+        "ImageName": "\\Device\\HarddiskVolume4\\Windows\\System32\\shell32.dll"
+      }
+    },
+    {
+      "event_id": 5,
+      "fields": {
+        "ImageBase": "0x7FFD648A0000",
+        "ImageSize": "0x199000",
+        "ProcessID": "    5084",
+        "ImageCheckSum": " 1692874",
+        "TimeDateStamp": "3184656494",
+        "DefaultBase": "0x7FFD648A0000",
+        "ImageName": "\\Device\\HarddiskVolume4\\Windows\\System32\\ole32.dll"
+      }
+    },
+    {
+      "event_id": 5,
+      "fields": {
+        "ImageBase": "0x7FFD65470000",
+        "ImageSize": "0x37C000",
+        "ProcessID": "    5084",
+        "ImageCheckSum": " 3741434",
+        "TimeDateStamp": "2723259794",
+        "DefaultBase": "0x7FFD65470000",
+        "ImageName": "\\Device\\HarddiskVolume4\\Windows\\System32\\combase.dll"
+      }
+    },
+    {
+      "event_id": 5,
+      "fields": {
+        "ImageBase": "0x7FFD61AF0000",
+        "ImageSize": "0x32000",
+        "ProcessID": "    5084",
+        "ImageCheckSum": "  238041",
+        "TimeDateStamp": "709119241",
+        "DefaultBase": "0x7FFD61AF0000",
+        "ImageName": "\\Device\\HarddiskVolume4\\Windows\\System32\\IPHLPAPI.DLL"
+      }
+    },
+    {
+      "event_id": 5,
+      "fields": {
+        "ImageBase": "0x7FFD62650000",
+        "ImageSize": "0x2B000",
+        "ProcessID": "    5084",
+        "ImageCheckSum": "  192979",
+        "TimeDateStamp": "3637315086",
+        "DefaultBase": "0x7FFD62650000",
+        "ImageName": "\\Device\\HarddiskVolume4\\Windows\\System32\\userenv.dll"
+      }
+    },
+    {
+      "event_id": 5,
+      "fields": {
+        "ImageBase": "0x7FFD45EE0000",
+        "ImageSize": "0x241000",
+        "ProcessID": "    5084",
+        "ImageCheckSum": " 2264814",
+        "TimeDateStamp": "2143614993",
+        "DefaultBase": "0x7FFD45EE0000",
+        "ImageName": "\\Device\\HarddiskVolume4\\Windows\\System32\\dbghelp.dll"
+      }
+    },
+    {
+      "event_id": 5,
+      "fields": {
+        "ImageBase": "0x7FFD473E0000",
+        "ImageSize": "0x36000",
+        "ProcessID": "    5084",
+        "ImageCheckSum": "  259481",
+        "TimeDateStamp": "4238946148",
+        "DefaultBase": "0x7FFD473E0000",
+        "ImageName": "\\Device\\HarddiskVolume4\\Windows\\System32\\winmm.dll"
+      }
+    },
+    {
+      "event_id": 5,
+      "fields": {
+        "ImageBase": "0x7FFD657F0000",
+        "ImageSize": "0xD6000",
+        "ProcessID": "    5084",
+        "ImageCheckSum": "  925617",
+        "TimeDateStamp": "2428608975",
+        "DefaultBase": "0x7FFD657F0000",
+        "ImageName": "\\Device\\HarddiskVolume4\\Windows\\System32\\oleaut32.dll"
+      }
+    },
+    {
+      "event_id": 5,
+      "fields": {
+        "ImageBase": "0x7FFD473A0000",
+        "ImageSize": "0x39000",
+        "ProcessID": "    5084",
+        "ImageCheckSum": "  278897",
+        "TimeDateStamp": "827311472",
+        "DefaultBase": "0x7FFD473A0000",
+        "ImageName": "\\Device\\HarddiskVolume4\\Windows\\System32\\dbgcore.dll"
+      }
+    },
+    {
+      "event_id": 5,
+      "fields": {
+        "ImageBase": "0x7FFD62870000",
+        "ImageSize": "0xC000",
+        "ProcessID": "    5084",
+        "ImageCheckSum": "   81547",
+        "TimeDateStamp": "2019749178",
+        "DefaultBase": "0x7FFD62870000",
+        "ImageName": "\\Device\\HarddiskVolume4\\Windows\\System32\\cryptbase.dll"
+      }
+    },
+    {
+      "event_id": 5,
+      "fields": {
+        "ImageBase": "0x7FFD630F0000",
+        "ImageSize": "0x4E000",
+        "ProcessID": "    5084",
+        "ImageCheckSum": "  381176",
+        "TimeDateStamp": "1843034312",
+        "DefaultBase": "0x7FFD630F0000",
+        "ImageName": "\\Device\\HarddiskVolume4\\Windows\\System32\\powrprof.dll"
+      }
+    },
+    {
+      "event_id": 5,
+      "fields": {
+        "ImageBase": "0x7FFD630D0000",
+        "ImageSize": "0x14000",
+        "ProcessID": "    5084",
+        "ImageCheckSum": "  140109",
+        "TimeDateStamp": "212057710",
+        "DefaultBase": "0x7FFD630D0000",
+        "ImageName": "\\Device\\HarddiskVolume4\\Windows\\System32\\umpdc.dll"
+      }
+    },
+    {
+      "event_id": 5,
+      "fields": {
+        "ImageBase": "0x7FFD638A0000",
+        "ImageSize": "0x99000",
+        "ProcessID": "    5084",
+        "ImageCheckSum": "  693389",
+        "TimeDateStamp": "4219892461",
+        "DefaultBase": "0x7FFD638A0000",
+        "ImageName": "\\Device\\HarddiskVolume4\\Windows\\System32\\bcryptprimitives.dll"
+      }
+    },
+    {
+      "event_id": 5,
+      "fields": {
+        "ImageBase": "0x7FFD625B0000",
+        "ImageSize": "0x68000",
+        "ProcessID": "    5084",
+        "ImageCheckSum": "  452554",
+        "TimeDateStamp": "1199954243",
+        "DefaultBase": "0x7FFD625B0000",
+        "ImageName": "\\Device\\HarddiskVolume4\\Windows\\System32\\mswsock.dll"
+      }
+    },
+    {
+      "event_id": 5,
+      "fields": {
+        "ImageBase": "0x7FFD62850000",
+        "ImageSize": "0x1C000",
+        "ProcessID": "    5084",
+        "ImageCheckSum": "  139618",
+        "TimeDateStamp": "2253308388",
+        "DefaultBase": "0x7FFD62850000",
+        "ImageName": "\\Device\\HarddiskVolume4\\Windows\\System32\\cryptsp.dll"
+      }
+    },
+    {
+      "event_id": 5,
+      "fields": {
+        "ImageBase": "0x7FFD62010000",
+        "ImageSize": "0x38000",
+        "ProcessID": "    5084",
+        "ImageCheckSum": "  241143",
+        "TimeDateStamp": "3471971846",
+        "DefaultBase": "0x7FFD62010000",
+        "ImageName": "\\Device\\HarddiskVolume4\\Windows\\System32\\rsaenh.dll"
+      }
+    },
+    {
+      "event_id": 5,
+      "fields": {
+        "ImageBase": "0x7FFD620B0000",
+        "ImageSize": "0x1A000",
+        "ProcessID": "    5084",
+        "ImageCheckSum": "  154074",
+        "TimeDateStamp": "526033435",
+        "DefaultBase": "0x7FFD620B0000",
+        "ImageName": "\\Device\\HarddiskVolume4\\Windows\\System32\\kernel.appcore.dll"
+      }
+    },
+    {
+      "event_id": 6,
+      "fields": {
+        "ImageBase": "0x7FF641CE0000",
+        "ImageSize": "0x596F000",
+        "ProcessID": "    5084",
+        "ImageCheckSum": "93446563",
+        "TimeDateStamp": "1787736386",
+        "DefaultBase": "0x7FF641CE0000",
+        "ImageName": "\\Device\\HarddiskVolume4\\PairLab\\Tools\\node\\node.exe"
+      }
+    },
+    {
+      "event_id": 6,
+      "fields": {
+        "ImageBase": "0x7FFD45EE0000",
+        "ImageSize": "0x241000",
+        "ProcessID": "    5084",
+        "ImageCheckSum": " 2264814",
+        "TimeDateStamp": "2143614993",
+        "DefaultBase": "0x7FFD45EE0000",
+        "ImageName": "\\Device\\HarddiskVolume4\\Windows\\System32\\dbghelp.dll"
+      }
+    },
+    {
+      "event_id": 6,
+      "fields": {
+        "ImageBase": "0x7FFD473A0000",
+        "ImageSize": "0x39000",
+        "ProcessID": "    5084",
+        "ImageCheckSum": "  278897",
+        "TimeDateStamp": "827311472",
+        "DefaultBase": "0x7FFD473A0000",
+        "ImageName": "\\Device\\HarddiskVolume4\\Windows\\System32\\dbgcore.dll"
+      }
+    },
+    {
+      "event_id": 6,
+      "fields": {
+        "ImageBase": "0x7FFD473E0000",
+        "ImageSize": "0x36000",
+        "ProcessID": "    5084",
+        "ImageCheckSum": "  259481",
+        "TimeDateStamp": "4238946148",
+        "DefaultBase": "0x7FFD473E0000",
+        "ImageName": "\\Device\\HarddiskVolume4\\Windows\\System32\\winmm.dll"
+      }
+    },
+    {
+      "event_id": 6,
+      "fields": {
+        "ImageBase": "0x7FFD61AF0000",
+        "ImageSize": "0x32000",
+        "ProcessID": "    5084",
+        "ImageCheckSum": "  238041",
+        "TimeDateStamp": "709119241",
+        "DefaultBase": "0x7FFD61AF0000",
+        "ImageName": "\\Device\\HarddiskVolume4\\Windows\\System32\\IPHLPAPI.DLL"
+      }
+    },
+    {
+      "event_id": 6,
+      "fields": {
+        "ImageBase": "0x7FFD62010000",
+        "ImageSize": "0x38000",
+        "ProcessID": "    5084",
+        "ImageCheckSum": "  241143",
+        "TimeDateStamp": "3471971846",
+        "DefaultBase": "0x7FFD62010000",
+        "ImageName": "\\Device\\HarddiskVolume4\\Windows\\System32\\rsaenh.dll"
+      }
+    },
+    {
+      "event_id": 6,
+      "fields": {
+        "ImageBase": "0x7FFD620B0000",
+        "ImageSize": "0x1A000",
+        "ProcessID": "    5084",
+        "ImageCheckSum": "  154074",
+        "TimeDateStamp": "526033435",
+        "DefaultBase": "0x7FFD620B0000",
+        "ImageName": "\\Device\\HarddiskVolume4\\Windows\\System32\\kernel.appcore.dll"
+      }
+    },
+    {
+      "event_id": 6,
+      "fields": {
+        "ImageBase": "0x7FFD625B0000",
+        "ImageSize": "0x68000",
+        "ProcessID": "    5084",
+        "ImageCheckSum": "  452554",
+        "TimeDateStamp": "1199954243",
+        "DefaultBase": "0x7FFD625B0000",
+        "ImageName": "\\Device\\HarddiskVolume4\\Windows\\System32\\mswsock.dll"
+      }
+    },
+    {
+      "event_id": 6,
+      "fields": {
+        "ImageBase": "0x7FFD62650000",
+        "ImageSize": "0x2B000",
+        "ProcessID": "    5084",
+        "ImageCheckSum": "  192979",
+        "TimeDateStamp": "3637315086",
+        "DefaultBase": "0x7FFD62650000",
+        "ImageName": "\\Device\\HarddiskVolume4\\Windows\\System32\\userenv.dll"
+      }
+    },
+    {
+      "event_id": 6,
+      "fields": {
+        "ImageBase": "0x7FFD62850000",
+        "ImageSize": "0x1C000",
+        "ProcessID": "    5084",
+        "ImageCheckSum": "  139618",
+        "TimeDateStamp": "2253308388",
+        "DefaultBase": "0x7FFD62850000",
+        "ImageName": "\\Device\\HarddiskVolume4\\Windows\\System32\\cryptsp.dll"
+      }
+    },
+    {
+      "event_id": 6,
+      "fields": {
+        "ImageBase": "0x7FFD62870000",
+        "ImageSize": "0xC000",
+        "ProcessID": "    5084",
+        "ImageCheckSum": "   81547",
+        "TimeDateStamp": "2019749178",
+        "DefaultBase": "0x7FFD62870000",
+        "ImageName": "\\Device\\HarddiskVolume4\\Windows\\System32\\cryptbase.dll"
+      }
+    },
+    {
+      "event_id": 6,
+      "fields": {
+        "ImageBase": "0x7FFD630D0000",
+        "ImageSize": "0x14000",
+        "ProcessID": "    5084",
+        "ImageCheckSum": "  140109",
+        "TimeDateStamp": "212057710",
+        "DefaultBase": "0x7FFD630D0000",
+        "ImageName": "\\Device\\HarddiskVolume4\\Windows\\System32\\umpdc.dll"
+      }
+    },
+    {
+      "event_id": 6,
+      "fields": {
+        "ImageBase": "0x7FFD630F0000",
+        "ImageSize": "0x4E000",
+        "ProcessID": "    5084",
+        "ImageCheckSum": "  381176",
+        "TimeDateStamp": "1843034312",
+        "DefaultBase": "0x7FFD630F0000",
+        "ImageName": "\\Device\\HarddiskVolume4\\Windows\\System32\\powrprof.dll"
+      }
+    },
+    {
+      "event_id": 6,
+      "fields": {
+        "ImageBase": "0x7FFD63250000",
+        "ImageSize": "0x121000",
+        "ProcessID": "    5084",
+        "ImageCheckSum": " 1243364",
+        "TimeDateStamp": "2186129804",
+        "DefaultBase": "0x7FFD63250000",
+        "ImageName": "\\Device\\HarddiskVolume4\\Windows\\System32\\gdi32full.dll"
+      }
+    },
+    {
+      "event_id": 6,
+      "fields": {
+        "ImageBase": "0x7FFD63380000",
+        "ImageSize": "0x27000",
+        "ProcessID": "    5084",
+        "ImageCheckSum": "  224057",
+        "TimeDateStamp": "1056622025",
+        "DefaultBase": "0x7FFD63380000",
+        "ImageName": "\\Device\\HarddiskVolume4\\Windows\\System32\\win32u.dll"
+      }
+    },
+    {
+      "event_id": 6,
+      "fields": {
+        "ImageBase": "0x7FFD633B0000",
+        "ImageSize": "0x3A1000",
+        "ProcessID": "    5084",
+        "ImageCheckSum": " 3832757",
+        "TimeDateStamp": "1041202075",
+        "DefaultBase": "0x7FFD633B0000",
+        "ImageName": "\\Device\\HarddiskVolume4\\Windows\\System32\\KernelBase.dll"
+      }
+    },
+    {
+      "event_id": 6,
+      "fields": {
+        "ImageBase": "0x7FFD638A0000",
+        "ImageSize": "0x99000",
+        "ProcessID": "    5084",
+        "ImageCheckSum": "  693389",
+        "TimeDateStamp": "4219892461",
+        "DefaultBase": "0x7FFD638A0000",
+        "ImageName": "\\Device\\HarddiskVolume4\\Windows\\System32\\bcryptprimitives.dll"
+      }
+    },
+    {
+      "event_id": 6,
+      "fields": {
+        "ImageBase": "0x7FFD63940000",
+        "ImageSize": "0xA3000",
+        "ProcessID": "    5084",
+        "ImageCheckSum": "  702853",
+        "TimeDateStamp": "4233108621",
+        "DefaultBase": "0x7FFD63940000",
+        "ImageName": "\\Device\\HarddiskVolume4\\Windows\\System32\\msvcp_win.dll"
+      }
+    },
+    {
+      "event_id": 6,
+      "fields": {
+        "ImageBase": "0x7FFD639F0000",
+        "ImageSize": "0x176000",
+        "ProcessID": "    5084",
+        "ImageCheckSum": " 1563013",
+        "TimeDateStamp": "217535984",
+        "DefaultBase": "0x7FFD639F0000",
+        "ImageName": "\\Device\\HarddiskVolume4\\Windows\\System32\\crypt32.dll"
+      }
+    },
+    {
+      "event_id": 6,
+      "fields": {
+        "ImageBase": "0x7FFD63B70000",
+        "ImageSize": "0x14B000",
+        "ProcessID": "    5084",
+        "ImageCheckSum": " 1436941",
+        "TimeDateStamp": "4121954014",
+        "DefaultBase": "0x7FFD63B70000",
+        "ImageName": "\\Device\\HarddiskVolume4\\Windows\\System32\\ucrtbase.dll"
+      }
+    },
+    {
+      "event_id": 6,
+      "fields": {
+        "ImageBase": "0x7FFD63D70000",
+        "ImageSize": "0x6F6000",
+        "ProcessID": "    5084",
+        "ImageCheckSum": " 7364715",
+        "TimeDateStamp": "4112803642",
+        "DefaultBase": "0x7FFD63D70000",
+        "ImageName": "\\Device\\HarddiskVolume4\\Windows\\System32\\shell32.dll"
+      }
+    },
+    {
+      "event_id": 6,
+      "fields": {
+        "ImageBase": "0x7FFD646D0000",
+        "ImageSize": "0x116000",
+        "ProcessID": "    5084",
+        "ImageCheckSum": " 1167273",
+        "TimeDateStamp": "3069669587",
+        "DefaultBase": "0x7FFD646D0000",
+        "ImageName": "\\Device\\HarddiskVolume4\\Windows\\System32\\rpcrt4.dll"
+      }
+    },
+    {
+      "event_id": 6,
+      "fields": {
+        "ImageBase": "0x7FFD647F0000",
+        "ImageSize": "0xA7000",
+        "ProcessID": "    5084",
+        "ImageCheckSum": "  731985",
+        "TimeDateStamp": "3299106793",
+        "DefaultBase": "0x7FFD647F0000",
+        "ImageName": "\\Device\\HarddiskVolume4\\Windows\\System32\\sechost.dll"
+      }
+    },
+    {
+      "event_id": 6,
+      "fields": {
+        "ImageBase": "0x7FFD648A0000",
+        "ImageSize": "0x199000",
+        "ProcessID": "    5084",
+        "ImageCheckSum": " 1692874",
+        "TimeDateStamp": "3184656494",
+        "DefaultBase": "0x7FFD648A0000",
+        "ImageName": "\\Device\\HarddiskVolume4\\Windows\\System32\\ole32.dll"
+      }
+    },
+    {
+      "event_id": 6,
+      "fields": {
+        "ImageBase": "0x7FFD64A40000",
+        "ImageSize": "0xC7000",
+        "ProcessID": "    5084",
+        "ImageCheckSum": "  854371",
+        "TimeDateStamp": "3576110796",
+        "DefaultBase": "0x7FFD64A40000",
+        "ImageName": "\\Device\\HarddiskVolume4\\Windows\\System32\\kernel32.dll"
+      }
+    },
+    {
+      "event_id": 6,
+      "fields": {
+        "ImageBase": "0x7FFD64C70000",
+        "ImageSize": "0x1C3000",
+        "ProcessID": "    5084",
+        "ImageCheckSum": " 1880622",
+        "TimeDateStamp": "1174328488",
+        "DefaultBase": "0x7FFD64C70000",
+        "ImageName": "\\Device\\HarddiskVolume4\\Windows\\System32\\user32.dll"
+      }
+    },
+    {
+      "event_id": 6,
+      "fields": {
+        "ImageBase": "0x7FFD64E40000",
+        "ImageSize": "0x74000",
+        "ProcessID": "    5084",
+        "ImageCheckSum": "  534435",
+        "TimeDateStamp": "2640576187",
+        "DefaultBase": "0x7FFD64E40000",
+        "ImageName": "\\Device\\HarddiskVolume4\\Windows\\System32\\ws2_32.dll"
+      }
+    },
+    {
+      "event_id": 6,
+      "fields": {
+        "ImageBase": "0x7FFD64ED0000",
+        "ImageSize": "0xA9000",
+        "ProcessID": "    5084",
+        "ImageCheckSum": "  708025",
+        "TimeDateStamp": "1812057825",
+        "DefaultBase": "0x7FFD64ED0000",
+        "ImageName": "\\Device\\HarddiskVolume4\\Windows\\System32\\msvcrt.dll"
+      }
+    },
+    {
+      "event_id": 6,
+      "fields": {
+        "ImageBase": "0x7FFD65440000",
+        "ImageSize": "0x2A000",
+        "ProcessID": "    5084",
+        "ImageCheckSum": "  230165",
+        "TimeDateStamp": "310737590",
+        "DefaultBase": "0x7FFD65440000",
+        "ImageName": "\\Device\\HarddiskVolume4\\Windows\\System32\\gdi32.dll"
+      }
+    },
+    {
+      "event_id": 6,
+      "fields": {
+        "ImageBase": "0x7FFD65470000",
+        "ImageSize": "0x37C000",
+        "ProcessID": "    5084",
+        "ImageCheckSum": " 3741434",
+        "TimeDateStamp": "2723259794",
+        "DefaultBase": "0x7FFD65470000",
+        "ImageName": "\\Device\\HarddiskVolume4\\Windows\\System32\\combase.dll"
+      }
+    },
+    {
+      "event_id": 6,
+      "fields": {
+        "ImageBase": "0x7FFD657F0000",
+        "ImageSize": "0xD6000",
+        "ProcessID": "    5084",
+        "ImageCheckSum": "  925617",
+        "TimeDateStamp": "2428608975",
+        "DefaultBase": "0x7FFD657F0000",
+        "ImageName": "\\Device\\HarddiskVolume4\\Windows\\System32\\oleaut32.dll"
+      }
+    },
+    {
+      "event_id": 6,
+      "fields": {
+        "ImageBase": "0x7FFD658D0000",
+        "ImageSize": "0xB2000",
+        "ProcessID": "    5084",
+        "ImageCheckSum": "  757730",
+        "TimeDateStamp": "374853990",
+        "DefaultBase": "0x7FFD658D0000",
+        "ImageName": "\\Device\\HarddiskVolume4\\Windows\\System32\\advapi32.dll"
+      }
+    },
+    {
+      "event_id": 6,
+      "fields": {
+        "ImageBase": "0x7FFD65E40000",
+        "ImageSize": "0x263000",
+        "ProcessID": "    5084",
+        "ImageCheckSum": " 2530290",
+        "TimeDateStamp": "3112076450",
+        "DefaultBase": "0x7FFD65E40000",
+        "ImageName": "\\Device\\HarddiskVolume4\\Windows\\System32\\ntdll.dll"
+      }
+    },
+    {
+      "event_id": 2,
+      "fields": {
+        "ProcessID": "    5084",
+        "ProcessSequenceNumber": "93",
+        "CreateTime": "2026-11-06T02:12:46.062149800Z",
+        "ExitTime": "2026-11-06T02:12:46.285257400Z",
+        "ExitCode": "       0",
+        "TokenElevationType": "       2",
+        "HandleCount": "      81",
+        "CommitCharge": "18362368",
+        "CommitPeak": "18997248",
+        "CPUCycleCount": "18243945",
+        "ReadOperationCount": "       1",
+        "WriteOperationCount": "       0",
+        "ReadTransferKiloBytes": "      18",
+        "WriteTransferKiloBytes": "       0",
+        "HardFaultCount": "    1858",
+        "ImageName": "node.exe"
+      }
+    }
+  ],
+  "limitations": [
+    "Diagnostic elevated process, not restricted validator tree",
+    "No ETW loss counter validation",
+    "No loaded image hash binding",
+    "No compiler or managed assembly lifecycle certification"
+  ]
+}
