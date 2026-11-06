@@ -1,4 +1,5 @@
 """复核诊断源码记录；这不是独立可信能力或运行时门禁。"""
+import argparse
 import hashlib
 import json
 from pathlib import Path
@@ -10,7 +11,9 @@ def check(expected, actual):
 
 
 if __name__ == '__main__':
-    root = Path(__file__).resolve().parent
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--source-directory', type=Path, default=Path(__file__).resolve().parent)
+    root = parser.parse_args().source_directory
     inventory = json.loads((root / 'root-gate-source-inventory.json').read_text())
     expected = inventory['files']
     actual = {name: hashlib.sha256((root / name).read_bytes()).hexdigest() for name in expected}

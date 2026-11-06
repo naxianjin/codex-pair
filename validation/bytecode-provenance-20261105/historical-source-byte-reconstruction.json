@@ -1,0 +1,60 @@
+{
+  "formal": false,
+  "historical_byte_reconstruction": [
+    {
+      "file": "Invoke-ValidatorRootDiagnostic.ps1",
+      "commit": "543b8a1ee1e7d8487f6cc0e1d654f58b21b0061d",
+      "representation": "windows_crlf",
+      "sha256": "355edbe42dd11baab3aa64a477cfb859be26858dd556f24c042d91e760bd93a6"
+    },
+    {
+      "file": "Test-RootTrace.ps1",
+      "commit": "13c9e097bd62b39cd0fcaa0d0265ef38c3537c68",
+      "representation": "git_blob",
+      "sha256": "36f44c804fb18e86f8518c29869afe34dd45a65aa80bed167f7f608028eae801"
+    },
+    {
+      "file": "PairValidatorIdentityDiagnostic.cs",
+      "commit": "13c9e097bd62b39cd0fcaa0d0265ef38c3537c68",
+      "representation": "git_blob",
+      "sha256": "8d9c99b445aa36317b9b36be86ab8cdca754472c8ac79f96aa6a82aacce8a6f4"
+    },
+    {
+      "file": "root-identity-baseline.json",
+      "commit": "13c9e097bd62b39cd0fcaa0d0265ef38c3537c68",
+      "representation": "git_blob",
+      "sha256": "0faaa69832fd6c7c94e338d92148cab2ba8a976e88d9696bc3fc3c303f746c91"
+    },
+    {
+      "file": "run-root-etw.ps1",
+      "commit": "02e34a65f5f0b4890080f553c831a027501b43ce",
+      "representation": "windows_crlf",
+      "sha256": "53b9b164d477d40d12638556ad145041fd67de1807001b214725e571620e2b23"
+    }
+  ],
+  "positive_exit_code": 0,
+  "stdout": "Five source hashes and controller receipt match; five mismatches rejected; formal=false\n",
+  "mutations": [
+    {
+      "file": "Invoke-ValidatorRootDiagnostic.ps1",
+      "changed_bytes_rejected": true
+    },
+    {
+      "file": "Test-RootTrace.ps1",
+      "changed_bytes_rejected": true
+    },
+    {
+      "file": "PairValidatorIdentityDiagnostic.cs",
+      "changed_bytes_rejected": true
+    },
+    {
+      "file": "root-identity-baseline.json",
+      "changed_bytes_rejected": true
+    },
+    {
+      "file": "run-root-etw.ps1",
+      "changed_bytes_rejected": true
+    }
+  ],
+  "limitation": "Historical receipt consistency only; not current-source or loaded-byte authentication."
+}
