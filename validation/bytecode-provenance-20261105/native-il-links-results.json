@@ -1,0 +1,102 @@
+{
+  "formal": false,
+  "native_il_links": [
+    {
+      "native": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\Microsoft.Pb378ec07#\\860f036fdb796eaa38d52d7c8f912562\\Microsoft.PowerShell.ConsoleHost.ni.dll",
+      "native_sha256": "5FEED4E0C37A01C7658B0DE3A0BBB7F3C96D6D84958EEE34FA3D310C7EF7227C",
+      "il": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\Microsoft.PowerShell.ConsoleHost\\v4.0_3.0.0.0__31bf3856ad364e35\\Microsoft.PowerShell.ConsoleHost.dll",
+      "il_sha256": "D6E244D46D452DC4E53DF5B556FC38D07C89B8458D07FABC9E02A52F71363BA5"
+    },
+    {
+      "native": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System\\45689b966cb35d73224432bacf80da91\\System.ni.dll",
+      "native_sha256": "B6E704F2F5EA18C817ECDCD323EBF27D876802E25235D92A4D7249E08B3158A4",
+      "il": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System\\v4.0_4.0.0.0__b77a5c561934e089\\System.dll",
+      "il_sha256": "6B7220D3D9A697042B20E97BA7ACCF01400B75E2A5CF5397DA40A4A90B03B233"
+    },
+    {
+      "native": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Core\\2d550862ce4c9745f1ec2785d34258ac\\System.Core.ni.dll",
+      "native_sha256": "16BA7407FB17226D93AA8A13D16B052700C4FF480460BDB70DAD78AC30025971",
+      "il": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.Core\\v4.0_4.0.0.0__b77a5c561934e089\\System.Core.dll",
+      "il_sha256": "4F8F2BDAD9DB393A6FE3FFFF2FFE4398EFF644C796F484C36F536444AA48901E"
+    },
+    {
+      "native": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Manaa57fc8cc#\\021537811b25d09909593f37faf9e713\\System.Management.Automation.ni.dll",
+      "native_sha256": "FF57A618D03DA63B4223FD2E8E51AD4507E0520B56BF18E8DAAFBC2D26F57029",
+      "il": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.Management.Automation\\v4.0_3.0.0.0__31bf3856ad364e35\\System.Management.Automation.dll",
+      "il_sha256": "34ECFB561B3ED480B291AC3D30DC3FCC4DDBD0A8FF43F4C6BBBDB6D31B629F5F"
+    },
+    {
+      "native": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\Microsoft.Mf49f6405#\\08ab12cea70c2d02df7073fa6f73703e\\Microsoft.Management.Infrastructure.ni.dll",
+      "native_sha256": "C03E778C025859DB20FB6A8C799F0CC93BDD2F2807C42CBCBF8649F3BA16950A",
+      "il": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\Microsoft.Management.Infrastructure\\v4.0_1.0.0.0__31bf3856ad364e35\\Microsoft.Management.Infrastructure.dll",
+      "il_sha256": "72EF8CE20B86EBEB62827ECE742EA0DCC2DDEB57E17CC3B7AE0D6451A5596F7D"
+    },
+    {
+      "native": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Xml\\9f5174b58465a67acb58ccaa54a46f15\\System.Xml.ni.dll",
+      "native_sha256": "748C9EC208A159211563113447563FAC54F868A479659D10D9E4B01890A004AE",
+      "il": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.Xml\\v4.0_4.0.0.0__b77a5c561934e089\\System.Xml.dll",
+      "il_sha256": "AB3240B316126EB0B19C7E5B253ECB68C07A9C710BD5A3E7B858A2E3D2E99CDB"
+    },
+    {
+      "native": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Management\\8a454799ab5bbc2b2fe2b22e64c1f06c\\System.Management.ni.dll",
+      "native_sha256": "964A616431A8D243829C3D58F16F4C141293A8DCBEFD4728F735A708605BCBE6",
+      "il": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.Management\\v4.0_4.0.0.0__b03f5f7f11d50a3a\\System.Management.dll",
+      "il_sha256": "1DEF7EE3817BA89A66950F62EFD63A47E4E9C8829FF1A136745F0BC6F2E39C69"
+    },
+    {
+      "native": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Dired13b18a9#\\8896ee2a874b493fefecca12bdc2097d\\System.DirectoryServices.ni.dll",
+      "native_sha256": "632FF48867C251DD45E78DAD3EDCEFDD805A7AE0DE6D542DE59BE33BECAD99D9",
+      "il": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.DirectoryServices\\v4.0_4.0.0.0__b03f5f7f11d50a3a\\System.DirectoryServices.dll",
+      "il_sha256": "963E952E5E33C87BACCBA7A388C09D69D4713DCC812E1ED8BE7A01E165968843"
+    },
+    {
+      "native": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Data\\bf9d5e129974ec144d643d259d0f8fd4\\System.Data.ni.dll",
+      "native_sha256": "86FAC62D7AA765949DD6E94CCAA76622B3809F749857E0BD5C3F1F40A28A2C6E",
+      "il": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_64\\System.Data\\v4.0_4.0.0.0__b77a5c561934e089\\System.Data.dll",
+      "il_sha256": "D479439EABA17FDFF2FF0423C3F729DFABDF8AB9C675957CAB136DA94F81B62A"
+    },
+    {
+      "native": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Configuration\\d4814540c1857595f441988c91150a28\\System.Configuration.ni.dll",
+      "native_sha256": "A3A4746B5E416C71DE1D490C162F2A61B80B6254721E2B1E0FD9233D6417F43C",
+      "il": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.Configuration\\v4.0_4.0.0.0__b03f5f7f11d50a3a\\System.Configuration.dll",
+      "il_sha256": "3335BFF560F09508E609EBB2162DBB9987FBDBE30682D424F423191851B72A99"
+    },
+    {
+      "native": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\Microsoft.P6f792626#\\9229da9c95d298d7ea0acc0b3d8f25fa\\Microsoft.PowerShell.Security.ni.dll",
+      "native_sha256": "49B6C17D098E0F8D731694E425D39780B9D7CCCB19AD1FF1610BBD580E703664",
+      "il": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\Microsoft.PowerShell.Security\\v4.0_3.0.0.0__31bf3856ad364e35\\Microsoft.PowerShell.Security.dll",
+      "il_sha256": "9D24D2A9D3B5326A9BD8FCAE8863FA5AF32D37D7D0EEE175600D7D4E89AF8010"
+    },
+    {
+      "native": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Transactions\\e2d002211b727266d0c6289112700897\\System.Transactions.ni.dll",
+      "native_sha256": "8852207BF137DB7A9594728E203E614C958272FF9C10B6D965A68C5EF9C89C02",
+      "il": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_64\\System.Transactions\\v4.0_4.0.0.0__b77a5c561934e089\\System.Transactions.dll",
+      "il_sha256": "5CD2991507C3A0D61E99F2BF83DC5708721A12B9F2553BA6615CFBEFCB9D175B"
+    },
+    {
+      "native": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\Microsoft.Pae3498d9#\\1636a569b6dd7d91d7643a3de248893b\\Microsoft.PowerShell.Commands.Management.ni.dll",
+      "native_sha256": "1AD3C94ADCA66B22546E4D1DEA455CB66F78CC14D971EF4FD8FAFAE10614F79A",
+      "il": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\Microsoft.PowerShell.Commands.Management\\v4.0_3.0.0.0__31bf3856ad364e35\\Microsoft.PowerShell.Commands.Management.dll",
+      "il_sha256": "D200883CAF188DD1DF7922BD94A1BC7BA4657BD74265E36C2CB9229D3917833E"
+    },
+    {
+      "native": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Confe64a9051#\\43d6670eb9862f8121ada3dbde5632cb\\System.Configuration.Install.ni.dll",
+      "native_sha256": "0DB012F90FAEB65025079EFFA0E3B174760338678C9F4AFCA42BBD70CDB574F6",
+      "il": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.Configuration.Install\\v4.0_4.0.0.0__b03f5f7f11d50a3a\\System.Configuration.Install.dll",
+      "il_sha256": "747428AF553969DEA3F37FC742B8E2989A0F2FAFF1FE3AE38F7A3C66096CAF3A"
+    },
+    {
+      "native": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\Microsoft.P521220ea#\\543f75d36bbf6d900552a6a5d24487c1\\Microsoft.PowerShell.Commands.Utility.ni.dll",
+      "native_sha256": "DB041ACC25D689EEFF2805FCF410D5DE91F854866ED2EB42F1AF81E79389A720",
+      "il": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\Microsoft.PowerShell.Commands.Utility\\v4.0_3.0.0.0__31bf3856ad364e35\\Microsoft.PowerShell.Commands.Utility.dll",
+      "il_sha256": "A716CD486E6A77511317EA203766067464E79038587FEA3F7AEF9FA6D6AA12E1"
+    }
+  ],
+  "dynamic_names": [
+    "Anonymously Hosted DynamicMethods Assembly",
+    "inmzhaot",
+    "y2alwhqi"
+  ],
+  "limitation": "Separate post-run disk signature observations and ETW path association; no native/IL content equivalence, trusted baseline or loaded-byte proof.",
+  "negative_cases": 3
+}
