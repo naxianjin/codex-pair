@@ -1,0 +1,36 @@
+{
+  "cli": "0.166.0-alpha.6",
+  "transport": "loopback_websocket",
+  "model_started": false,
+  "original_session_resumed": false,
+  "missing_token": 401,
+  "wrong_token": 401,
+  "initialize": {
+    "id": 1,
+    "result": {
+      "userAgent": "pair_local_diagnostic/0.166.0-alpha.6 (Windows 10.0.19045; x86_64) WindowsTerminal (pair_local_diagnostic; 1)",
+      "codexHome": "D:\\Codex\\.codex-001",
+      "platformFamily": "windows",
+      "platformOs": "windows"
+    }
+  },
+  "hooks": [
+    {
+      "eventName": "permissionRequest",
+      "enabled": true,
+      "trustStatus": "trusted",
+      "currentHash": "sha256:79a0cf12d550878f0e34c811d4ca6b9b9ca7db11e877fb32b37576029c16d23c"
+    }
+  ],
+  "original_thread_status": {
+    "type": "notLoaded"
+  },
+  "original_background_query": {
+    "error": {
+      "code": -32600,
+      "message": "thread not found: 01a1a9f4-b044-7872-93ff-41a33dbcd45b"
+    },
+    "id": 4
+  },
+  "owned_server_stopped": true
+}

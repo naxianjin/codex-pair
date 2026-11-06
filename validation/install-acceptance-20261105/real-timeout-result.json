@@ -1,0 +1,53 @@
+{
+  "source": "real Store test fixture; synthetic actor and report",
+  "candidate": "e2024d751f634f28985ad7205b664be0",
+  "execution": "5480f8e0e8134138bcdfd509caa456c2",
+  "context": {
+    "pair_id": "test",
+    "audit_id": "audit-product",
+    "stage_id": "632a5e36d7e043d197f9ebe4aae5c205",
+    "auxiliary_task_id": "aux",
+    "session": "00000000-0000-0000-0000-000000000011",
+    "execution_id": "5480f8e0e8134138bcdfd509caa456c2",
+    "epoch": 1,
+    "candidate_digest": "4675777b5c0d33f74349b37e58c4fe588dee3195b28e9971499113e4aca9bb7b",
+    "contract_digest": "923aa2561986ade6b6f6fca3685f3067255116c7b6e3951cfa12ac794a2508d5",
+    "track": "cloudflare",
+    "requirements_version": 1
+  },
+  "formal": false,
+  "parent_verdict": "needs_validation",
+  "run": {
+    "Run": "f5c6c4097cd04f16b3f3877f6382527b",
+    "Output": "D:\\Codex_No_Projects\\work\\github\\codex-pair-real-wokey-20261104\\.codex-pair\\worktrees\\windows-f93e3110d73b-a\\validation\\direct-tests-v4\\hyperv-validator\\runs\\f5c6c4097cd04f16b3f3877f6382527b"
+  },
+  "store_registration_exercised": true,
+  "timeout_rejected": true,
+  "settlement": {
+    "candidate_id": "e2024d751f634f28985ad7205b664be0",
+    "stage_id": "632a5e36d7e043d197f9ebe4aae5c205",
+    "verdict": "needs_validation",
+    "reasons": [
+      "formal_receipts_missing:aux",
+      "necessary_validation_missing",
+      "parent_fixed_stage_official_review_required",
+      "report_validation_incomplete:aux",
+      "required_coverage_or_independent_final_verification_missing"
+    ],
+    "report_digests": [
+      "c5ea114bca78acf865aead3da384fd2674d7f679462711c1d67ef1b252b76b1f"
+    ],
+    "ordinary_stage_changed": false,
+    "new_work_started": false,
+    "validator_runs": []
+  },
+  "native": {
+    "ExitCode": 124,
+    "ActiveProcesses": 0,
+    "TotalProcesses": 2,
+    "TimedOut": true,
+    "Seconds": 1.0141856999999999,
+    "CPUSeconds": 0.015625,
+    "ArtifactBase64": null
+  }
+}

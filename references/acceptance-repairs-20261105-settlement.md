@@ -37,3 +37,11 @@
 58项相关回归及三项隔离脚本行为测试通过。曾误用不存在的测试模块，改正重跑通过。真实联测前三次分别遇到路径转义、宿主PSModulePath缺失和PSSessionOpenFailed，均在派发前失败；补正路径、模块路径及开机等待后成功。完整工具链身份、正式回执接线、原窗口控制和安装加载仍未完成。
 
 最终910b12c冻结代码快照全量1212项，0失败、0错误、3跳过，208.073秒；本次包含最后命令映射断言。仅新增验收记录和证据，无产品代码修改。
+
+## 打包、隔离安装和控制续测
+
+b9dcc1b完整120文件包在两个新建隔离home安装，逐文件清单一致，两个实际pair.py --help入口返回0；重复打包SHA256一致（68e63ee0ef07f0674d43a15a96593a17247b92a9e7c3969397fe97051286c606）。首轮夹具漏建home失败，创建后重跑通过。未替换活动安装或宣称原窗口加载。9项安装/清单及123项控制/恢复/领取回归通过。
+
+真实官方CLI通信测试通过，36.779秒；另外核对结果确认中文正文精确一致、idle/busy队列均实际处理。原B只读探针确认PermissionRequest enabled/trusted，缺失及错误token均401；新诊断服务中的原thread为notLoaded，后台查询thread not found，不能据此判原B空闲。原生hosted/unified/specialized工具控制缺口仍在。RealCore及RealIntegration仍使用--new-session旧路径，尚未迁移实际验收。
+
+真实VM超时run f5c6c4097cd04f16b3f3877f6382527b：ExitCode=124、TimedOut=true、ActiveProcesses=0。首轮远程会话连接失败，延长开机等待后取得native终态；运行器错误要求超时artifact存在而失败。未重放该次执行，直接复用native结果调用真实Store登记入口，确认拒收且父结算validator_runs为空。该Store使用新合成夹具，不声称超时结果通过了候选绑定校验；终态先行拒绝。VM已关，无pending。正式完整身份和原窗口控制仍未通过。

@@ -1,0 +1,18 @@
+{
+  "head": "b9dcc1b65ec2586f1f865f112e2dc53eaadf3182",
+  "files": 120,
+  "package_sha256": "68e63ee0ef07f0674d43a15a96593a17247b92a9e7c3969397fe97051286c606",
+  "loads": [
+    {
+      "help_returncode": 0,
+      "help_sha256": "03d4755dcd3f87045b5839df06cdc8b303c41b821a8d35dec99797f4b7b2ec71"
+    },
+    {
+      "help_returncode": 0,
+      "help_sha256": "03d4755dcd3f87045b5839df06cdc8b303c41b821a8d35dec99797f4b7b2ec71"
+    }
+  ],
+  "active_install_modified": false,
+  "initial_failure": "Harness omitted required existing home directories; created and reran",
+  "reproducible_package": true
+}

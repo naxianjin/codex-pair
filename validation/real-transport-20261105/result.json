@@ -1,0 +1,157 @@
+{
+  "version": "codex-cli 0.166.0-alpha.6",
+  "queue_idle": {
+    "returncode": 0,
+    "stdout": "Queued message 01a1ae6e-b6a8-7a72-ade9-26f51f00beb2 for thread 01a1ae6e-979c-7d93-9ea8-c45cdba5185d.\n",
+    "stderr": "",
+    "observed": [
+      {
+        "method": "turn/completed",
+        "params": {
+          "threadId": "01a1ae6e-979c-7d93-9ea8-c45cdba5185d",
+          "turn": {
+            "id": "01a1ae6e-beb5-7493-9f57-98b6b5bd89b8",
+            "rootTurnId": "01a1ae6e-beb5-7493-9f57-98b6b5bd89b8",
+            "items": [
+              {
+                "type": "agentMessage",
+                "id": "msg_0b4659dc748b7a78016aed2aa5186087d0beeb2454f478ed53",
+                "text": "PAIR_QUEUE_IDLE_1793927853597101600",
+                "phase": "final_answer",
+                "memoryCitation": null,
+                "delivery": null,
+                "questions": null,
+                "startedAtMs": 1793927857818,
+                "completedAtMs": 1793927857901
+              }
+            ],
+            "itemsView": "summary",
+            "status": "completed",
+            "error": null,
+            "startedAt": 1793927855,
+            "completedAt": 1793927857,
+            "durationMs": 2134
+          }
+        },
+        "emittedAtMs": 1793927857938
+      }
+    ],
+    "observation_seconds": 15,
+    "processed": true
+  },
+  "queue_busy": {
+    "thread": "01a1ae6e-ed03-7a80-b025-ba464b15155b",
+    "first_turn": "01a1ae6e-fd25-7fc2-9145-7a6fdf0f9138",
+    "returncode": 0,
+    "stdout": "Queued message 01a1ae6e-fd4d-7b50-ba24-f38946557eab for thread 01a1ae6e-ed03-7a80-b025-ba464b15155b.\n",
+    "stderr": "",
+    "first_completion": {
+      "id": "01a1ae6e-fd25-7fc2-9145-7a6fdf0f9138",
+      "rootTurnId": "01a1ae6e-fd25-7fc2-9145-7a6fdf0f9138",
+      "items": [
+        {
+          "type": "agentMessage",
+          "id": "msg_008b1b46823a8bdc016aed2abc26f087d0ac5274e90b699ab7",
+          "text": "PAIR_FIRST",
+          "phase": "final_answer",
+          "memoryCitation": null,
+          "delivery": null,
+          "questions": null,
+          "startedAtMs": 1793927880882,
+          "completedAtMs": 1793927880954
+        }
+      ],
+      "itemsView": "summary",
+      "status": "completed",
+      "error": null,
+      "startedAt": 1793927871,
+      "completedAt": 1793927880,
+      "durationMs": 9212
+    },
+    "observed": [
+      {
+        "method": "turn/completed",
+        "params": {
+          "threadId": "01a1ae6e-ed03-7a80-b025-ba464b15155b",
+          "turn": {
+            "id": "01a1ae6f-2126-7e32-869c-53fb9dffb1df",
+            "rootTurnId": "01a1ae6f-2126-7e32-869c-53fb9dffb1df",
+            "items": [
+              {
+                "type": "agentMessage",
+                "id": "msg_008b1b46823a8bdc016aed2abd90b087d095bab66749f2bfef",
+                "text": "PAIR_QUEUE_BUSY_1793927871785281300",
+                "phase": "final_answer",
+                "memoryCitation": null,
+                "delivery": null,
+                "questions": null,
+                "startedAtMs": 1793927882328,
+                "completedAtMs": 1793927882348
+              }
+            ],
+            "itemsView": "summary",
+            "status": "completed",
+            "error": null,
+            "startedAt": 1793927881,
+            "completedAt": 1793927882,
+            "durationMs": 1381
+          }
+        },
+        "emittedAtMs": 1793927882385
+      }
+    ],
+    "processed": true
+  },
+  "thread": "01a1ae6e-979c-7d93-9ea8-c45cdba5185d",
+  "project": "C:\\Users\\XOS\\AppData\\Local\\Temp\\codex-pair-live-rbm7oykt",
+  "appserver": {
+    "receipt": {
+      "turn_id": "01a1ae6e-9f07-7253-b025-e63babeaa28d",
+      "remote_status": "inProgress"
+    },
+    "completion": {
+      "id": "01a1ae6e-9f07-7253-b025-e63babeaa28d",
+      "rootTurnId": "01a1ae6e-9f07-7253-b025-e63babeaa28d",
+      "items": [
+        {
+          "type": "agentMessage",
+          "id": "msg_0b4659dc748b7a78016aed2aa0c29c87d0a31b6c72007639c1",
+          "text": "PAIR_UNICODE_OK",
+          "phase": "final_answer",
+          "memoryCitation": null,
+          "delivery": null,
+          "questions": null,
+          "startedAtMs": 1793927853483,
+          "completedAtMs": 1793927853549
+        }
+      ],
+      "itemsView": "summary",
+      "status": "completed",
+      "error": null,
+      "startedAt": 1793927847,
+      "completedAt": 1793927853,
+      "durationMs": 5902
+    },
+    "payload_sha256": "75ca8bd8fe894181c09586ab999ad9538fc20d9fe02645e9b60132c45eb56a50",
+    "exact_payload_verified": true
+  },
+  "queue_unicode": {
+    "receipt": {
+      "turn_id": null,
+      "remote_status": "queued",
+      "queue_id": "01a1ae6e-c777-7aa1-86d5-357d1a48bc3d"
+    },
+    "observation": {
+      "turn_id": "01a1ae6e-e5d6-7040-92d1-e87aba139b53",
+      "remote_status": "completed",
+      "reported_status": "completed",
+      "completed_at": 1793927867,
+      "result": [
+        "PAIR_QUEUE_UNICODE_OK"
+      ],
+      "error": null,
+      "workspace_busy": true
+    },
+    "exact_payload_verified": true
+  }
+}
