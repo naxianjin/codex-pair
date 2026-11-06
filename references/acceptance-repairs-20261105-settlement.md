@@ -217,3 +217,5 @@ Invoke-ValidatorRawModuleDiagnostic在terminal receipt前调用真实check-restr
 独立复审仍未完成，待审检查器/负例及来源清单不发布；本次只同步实际测试记录及无生产改动的验收脚本，整体formal=false。证据strict-types-live-summary.json和pending-strict-source-checks.json。
 
 待审三个文件已冻结本地补丁并记录SHA256，反向应用检查及从当前HEAD全新导出副本的正向git apply --check均通过。补丁只保留本地，不发布待审核源码；pending-review-freeze.json提供版本定位。
+
+真实run38fb91ca产物边界续测扩至16负例，新增浮点native退出码、bool活动数、缺TimedOut、顺序倒置、缺结果、浮点validator退出码、非法摘要字符、缺files和自洽超限诊断，全部拒绝；正例及自洽业务失败保留均通过。待审补丁与三个源码摘要复核未变。曾试验从已提交产物派生request回放，因不能证明独立固定请求已弃用该入口；正式保留脚本仍读取原run/input/request.json，不把自派生回放作为绑定认证。无VM运行或B联系，formal=false。
