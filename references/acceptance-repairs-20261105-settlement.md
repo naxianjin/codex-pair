@@ -195,3 +195,9 @@ Invoke-ValidatorRawModuleDiagnostic在terminal receipt前调用真实check-restr
 真实受限VM run 698b8bbda9574536bb11e923cfe0d9dc通过：13进程、46程序集配对、106映像及46原始模块配对门槛全部在回执前完成。receipt的Native、Controller、SourceInventory SHA256逐项与实跑文件核对一致；结果raw-module-gate-live-summary.json。首次测试生成命令被自动执行策略拒绝，改为无递归删除的一次性夹具后执行；未绕过拒绝。整体formal=false，动态内容及正式宿主身份认证仍未完成，未联系B。
 
 新增七项来源真实入口拒绝测试：七个单独摘要错配和集合缺项/多项共九例，准确错误均在VM访问及派发前返回；每次摘要失败后，清单和所有源码均可独占只读打开，确认句柄释放。仅入口负例，不涉及新VM运行。证据seven-source-failure-results.json，formal=false。
+
+## 模块字段一致性漏检及待审核修订
+
+新增负例发现：保持身份键不变、只篡改卸载事件IL路径，原检查器仍接受。真实46对模块全部字段一致。已在本地补完整字段一致性约束，增加IL路径、Native路径及标志变化拒绝，正例及九负例通过。真实run 5f69277694e64130ac1f32ad34914dac亦通过，receipt原始证据和来源清单摘要核对一致；VM Off、无pending。
+
+独立官方审核因You’ve hit your usage limit中断，未完成复审。修订检查器、负例及其来源清单保留本地未提交，不将此修复记为已审核发布；本次仅同步问题、实际测试和待审核状态。已发布门槛仍保留该已知漏检，formal=false，不影响恒false正式放行限制。未联系B。
