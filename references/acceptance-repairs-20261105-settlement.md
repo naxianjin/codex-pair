@@ -55,3 +55,5 @@ b9dcc1b完整120文件包在两个新建隔离home安装，逐文件清单一致
 官方独立只读复审未发现本次实现阻塞，明确非正式范围；建议的历史validator引用epoch用例随后补充通过。修复实现再次真实VM到Store通过（run 8ff98f7c520e4c0c914ea0369db85f74），formal=false且needs_validation；记录overlay摘要，不把基础HEAD冒充已提交修复版本。VM关闭、无pending。
 
 修复实现冻结快照全量1212项，0失败0错误3跳过；快照早于最后扩展context字段及历史validator epoch断言，最终测试文件58项相关回归另行通过。全量日志及摘要已保存，未将最后断言称为全量覆盖。
+
+准确提交1bf559a再次完整打包并安装至新隔离home：120文件摘要一致，pair.py --help实际加载返回0。未改活动home，原窗口加载仍未验收；证据exact-install.json。
