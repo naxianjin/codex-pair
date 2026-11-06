@@ -1,0 +1,15 @@
+{
+  "guest_files": 786,
+  "expected_files": 782,
+  "mismatch": [
+    "python/Lib/encodings/__pycache__/aliases.cpython-312.pyc",
+    "python/Lib/encodings/__pycache__/gbk.cpython-312.pyc",
+    "python/Lib/encodings/__pycache__/utf_8.cpython-312.pyc",
+    "python/Lib/encodings/__pycache__/__init__.cpython-312.pyc"
+  ],
+  "missing": [],
+  "formal": false,
+  "computer": "PAIR-LAB",
+  "classification": "All baseline files match; four additional Python encoding bytecode caches are outside registered archive",
+  "accepted_as_complete_identity": false
+}

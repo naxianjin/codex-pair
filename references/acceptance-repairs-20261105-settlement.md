@@ -65,3 +65,5 @@ b9dcc1b完整120文件包在两个新建隔离home安装，逐文件清单一致
 工具归档10322个文件逐项大小/SHA256匹配（Git9540、Python781、Node1）；仅归档基线，不涵盖Windows系统库或实际加载模块，formal=false。只读客体库存探针New-PSSession失败，未执行查询，finally已关闭VM；不记通过。未触碰活动库、安装或B。
 
 最终epoch类型修复快照全量1212项，0失败0错误3跳过，包含本轮最终测试文件。独立真实诊断夹具确认数据库前后SHA256不变，read_only=true、runtime_observed=false；不代表活动库验收。
+
+客体清单重试取得结果：786文件，原归档782个Python/Node文件全部存在且摘要匹配，但额外4个encoding __pycache__/*.pyc不在基线。精确库存比较失败，保留现场和差异，未删除缓存后冒称通过。VM Off、无pending。Python -I -B不等于禁用既有pyc读取，工具链正式身份仍未成立。运行器shell参数未改变实际PowerShell7承载，兼容代理警告已记录；显式子进程powershell.exe版本实测5.1。

@@ -1,0 +1,7 @@
+{
+  "python": "3.13.9",
+  "isolated_and_no_write_flags": true,
+  "existing_bytecode_loaded": true,
+  "scope": "host Python mechanism probe; guest cache provenance and exact guest behavior not verified",
+  "formal": false
+}
