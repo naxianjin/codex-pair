@@ -1,0 +1,86 @@
+{
+  "formal": false,
+  "checks": [
+    {
+      "script": "check-clr-raw-properties.py",
+      "sha256": "405a8a4dd831ea4f30a552145586d30660960257b4a4aeba9d2ed0ad5c088237",
+      "exit_code": 0,
+      "stdout_sha256": "653b788ff4be3944e9773b28f2838c8b64a822303b9f5a2e3b39355068ba0c8d",
+      "stderr": "",
+      "local_pending_review": false
+    },
+    {
+      "script": "check-combined-evidence.py",
+      "sha256": "5bd431d8dcd2c58c3d786ed82527414bc75f65cd5e3506c3cbc353d0a9e01871",
+      "exit_code": 0,
+      "stdout_sha256": "54672503c840aa4797ae036022270efefa0229ce4968110abd43391858ba807b",
+      "stderr": "",
+      "local_pending_review": false
+    },
+    {
+      "script": "check-combined-negative-cases.py",
+      "sha256": "9f8a6faefb160ce6a17cf5c477d1123a26693c03ea8fbc23219c3b5bb02cdc72",
+      "exit_code": 0,
+      "stdout_sha256": "69104f9e871c6f744614cf29195e27600c5ddb61bd3d82c1d79702709dc8663b",
+      "stderr": "",
+      "local_pending_review": false
+    },
+    {
+      "script": "check-native-il-links.py",
+      "sha256": "b12828412d38581f6ec4edfcc4c6d8a99fe7528c005f76c2d00a880106bf13db",
+      "exit_code": 0,
+      "stdout_sha256": "62a931a8d17ebf9b78958dea9ab0273b75502e440d96abd116283175c861c1c2",
+      "stderr": "",
+      "local_pending_review": false
+    },
+    {
+      "script": "check-restricted-etw.py",
+      "sha256": "5bc78b01d38f2f32b311f741185cf493af68bb3be89795410c45436464acd25c",
+      "exit_code": 0,
+      "stdout_sha256": "88db9d53f9afdd1a00b69100bd692f797519d49128a0e8799c5fabe7eb884dc8",
+      "stderr": "",
+      "local_pending_review": false
+    },
+    {
+      "script": "check-root-identity.py",
+      "sha256": "429b040278e219a2e57161665ed223790ef10cfbe17bccefbd5f21b487c61b92",
+      "exit_code": 0,
+      "stdout_sha256": "0551d29a381dc35be98d37520c52b32350cc2380062673684cf4c894935f3d08",
+      "stderr": "",
+      "local_pending_review": false
+    },
+    {
+      "script": "check-source-inventory.py",
+      "sha256": "b8c5b5d87460a2d495e893bee58be087dbe5f9fa68d86e824709254583fe7440",
+      "exit_code": 1,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr": "Traceback (most recent call last):\n  File \"D:\\Codex_No_Projects\\work\\github\\codex-pair\\.codex-pair\\worktrees\\next-recovery-20261101\\validation\\bytecode-provenance-20261105\\check-source-inventory.py\", line 17, in <module>\n    check(expected, actual)\n    ~~~~~^^^^^^^^^^^^^^^^^^\n  File \"D:\\Codex_No_Projects\\work\\github\\codex-pair\\.codex-pair\\worktrees\\next-recovery-20261101\\validation\\bytecode-provenance-20261105\\check-source-inventory.py\", line 9, in check\n    raise ValueError('Diagnostic source inventory mismatch')\nValueError: Diagnostic source inventory mismatch\n",
+      "local_pending_review": false
+    },
+    {
+      "script": "check-restricted-raw-negative-cases.py",
+      "sha256": "568f11b0a00d778bfa8287d0958a1335f640983b5ffe918a358c5a0831053ba6",
+      "exit_code": 0,
+      "stdout_sha256": "44719444f7a7c6be30304ee37f8b82c4158a384bc79eea9c792f647b4bb7999c",
+      "stderr": "",
+      "local_pending_review": true
+    },
+    {
+      "script": "check-restricted-raw-modules.py",
+      "sha256": "ce642357ff38315f181d80292aee0f7439ff110c658795ee191de0a9b21a961e",
+      "exit_code": 0,
+      "stdout_sha256": "0e3744cb469c18479fdff7fe6b070bd31547cecf8aebbebf6afc7d72f2badd81",
+      "stderr": "",
+      "local_pending_review": true
+    },
+    {
+      "script": "check-live-artifact-boundaries.py",
+      "sha256": "011fa534c6abb1153d370011fccf23cbfbaa171abcbfec8b6c4df782510dd5c1",
+      "exit_code": 0,
+      "stdout_sha256": "dcbd57d89835be8bd1fe0c26a588d30087a4dfe9d79c05337db5d1ddd919d435",
+      "stderr": "",
+      "local_pending_review": false
+    }
+  ],
+  "passed": false
+}

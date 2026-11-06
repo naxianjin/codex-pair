@@ -1,0 +1,30 @@
+{
+  "formal": false,
+  "checks": [
+    {
+      "script": "check-root-trace-cases.ps1",
+      "exit_code": 0,
+      "stdout": "Root trace positive and eight negative cases passed; formal=false\n",
+      "stderr": ""
+    },
+    {
+      "script": "check-seven-source-failures.ps1",
+      "exit_code": 0,
+      "stdout": "{\n    \"Cases\":  [\n                  {\n                      \"RejectedBeforeDispatch\":  true,\n                      \"Source\":  \"Test-RootTrace.ps1\"\n                  },\n                  {\n                      \"RejectedBeforeDispatch\":  true,\n                      \"Source\":  \"PairValidatorIdentityDiagnostic.cs\"\n                  },\n                  {\n                      \"RejectedBeforeDispatch\":  true,\n                      \"Source\":  \"root-identity-baseline.json\"\n                  },\n                  {\n                      \"RejectedBeforeDispatch\":  true,\n                      \"Source\":  \"check-combined-evidence.py\"\n                  },\n                  {\n                      \"RejectedBeforeDispatch\":  true,\n                      \"Source\":  \"Invoke-ValidatorRawModuleDiagnostic.ps1\"\n                  },\n                  {\n                      \"RejectedBeforeDispatch\":  true,\n                      \"Source\":  \"run-raw-module-etw.ps1\"\n                  },\n                  {\n                      \"RejectedBeforeDispatch\":  true,\n                      \"Source\":  \"check-restricted-raw-modules.py\"\n                  }\n              ],\n    \"Formal\":  false\n}\nmissing source set rejected before dispatch\nextra source set rejected before dispatch\n",
+      "stderr": ""
+    },
+    {
+      "script": "check-source-locks.ps1",
+      "exit_code": 0,
+      "stdout": "Invoke-ValidatorRootDiagnostic.ps1: mutation rejected; every handle released after success, digest mismatch and partial acquisition\nInvoke-ValidatorCombinedDiagnostic.ps1: mutation rejected; every handle released after success, digest mismatch and partial acquisition\n",
+      "stderr": ""
+    },
+    {
+      "script": "check-raw-module-receipt-gate.ps1",
+      "exit_code": 0,
+      "stdout": "positive accepted=True; fixture receipt/pending correct; formal=false\nmissing_events accepted=False; fixture receipt/pending correct; formal=false\nunknown_version accepted=False; fixture receipt/pending correct; formal=false\n",
+      "stderr": "Traceback (most recent call last):\n  File \"D:\\Codex_No_Projects\\work\\github\\codex-pair\\.codex-pair\\worktrees\\next-recovery-20261101\\validation\\bytecode-provenance-20261105\\check-restricted-raw-modules.py\", line 62, in <module>\n    print(json.dumps(check(data), indent=2))\n                     ~~~~~^^^^^^\n  File \"D:\\Codex_No_Projects\\work\\github\\codex-pair\\.codex-pair\\worktrees\\next-recovery-20261101\\validation\\bytecode-provenance-20261105\\check-restricted-raw-modules.py\", line 55, in check\n    assert len(balance) == 46 and all(v == 0 for v in balance.values())\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\nTraceback (most recent call last):\n  File \"D:\\Codex_No_Projects\\work\\github\\codex-pair\\.codex-pair\\worktrees\\next-recovery-20261101\\validation\\bytecode-provenance-20261105\\check-restricted-raw-modules.py\", line 62, in <module>\n    print(json.dumps(check(data), indent=2))\n                     ~~~~~^^^^^^\n  File \"D:\\Codex_No_Projects\\work\\github\\codex-pair\\.codex-pair\\worktrees\\next-recovery-20261101\\validation\\bytecode-provenance-20261105\\check-restricted-raw-modules.py\", line 43, in check\n    names = templates[(event[\"Id\"], event[\"Version\"])]\n            ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nKeyError: (152, 999)\n"
+    }
+  ],
+  "passed": true
+}

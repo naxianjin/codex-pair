@@ -221,3 +221,5 @@ Invoke-ValidatorRawModuleDiagnostic在terminal receipt前调用真实check-restr
 真实run38fb91ca产物边界续测扩至16负例，新增浮点native退出码、bool活动数、缺TimedOut、顺序倒置、缺结果、浮点validator退出码、非法摘要字符、缺files和自洽超限诊断，全部拒绝；正例及自洽业务失败保留均通过。待审补丁与三个源码摘要复核未变。曾试验从已提交产物派生request回放，因不能证明独立固定请求已弃用该入口；正式保留脚本仍读取原run/input/request.json，不把自派生回放作为绑定认证。无VM运行或B联系，formal=false。
 
 产物诊断字节上限续测：直接调用生产verify_validator_result，ASCII和中文诊断恰好1048576字节均接受，中文1048578字节拒绝；16个既有负例仍拒绝，自洽业务失败状态保留。证据diagnostic-byte-limit-results.json；tests.test_validator_worker五项通过。仅扩展验收脚本，无生产实现修改，无VM运行，未联系B，formal=false。待审模块修订仍未发布；动态内容、加载瞬间字节身份、正式宿主身份接线及依赖B的窗口验收仍未完成。
+
+不依赖B的独立测试批次：全量 `python -X utf8 -m unittest discover -s tests -p test_*.py` 实跑1212项，0失败、0错误、3跳过，207.360秒；结果见validation/remaining-tests-20261105/independent-final-regression.log。PowerShell四项check-root-trace-cases、check-seven-source-failures、check-source-locks、check-raw-module-receipt-gate均退出0，结果见independent-powershell-batch-results.json。Python证据复核10项中9项退出0，包含CLR、组合证据、Native/IL关联、ETW、根身份、原始模块负例/正例及产物边界；结果见independent-batch-replay-results.json。check-source-inventory.py唯一失败：历史五项清单与当前控制器/runner字节不匹配，保留失败，不修改历史清单。历史版本f0093dd复放同样不匹配。整体formal=false，未联系B、未运行VM；待审三个模块修订仍未发布。
