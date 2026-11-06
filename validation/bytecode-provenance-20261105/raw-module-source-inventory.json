@@ -7,6 +7,6 @@
     "check-combined-evidence.py": "5bd431d8dcd2c58c3d786ed82527414bc75f65cd5e3506c3cbc353d0a9e01871",
     "Invoke-ValidatorRawModuleDiagnostic.ps1": "1d7a98774493c7d0ec623b7a31b475f23594991ea3ac1f73fa2391ae8b8b11a7",
     "run-raw-module-etw.ps1": "924a499e4349f9911ec4acc8b26f00f2c12ac3bf42dffa2f448ad80dda55f5be",
-    "check-restricted-raw-modules.py": "c27e7b6840767fb436173816e6523392aaa507a266058c8ee52b2f7579ea127d"
+    "check-restricted-raw-modules.py": "ce642357ff38315f181d80292aee0f7439ff110c658795ee191de0a9b21a961e"
   }
 }

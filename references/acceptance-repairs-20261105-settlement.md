@@ -231,3 +231,5 @@ Invoke-ValidatorRawModuleDiagnostic在terminal receipt前调用真实check-restr
 继续完成不依赖B的验证：Core、Integration、Transport及回执提供方相关本地单元测试共85项通过、0失败、0错误、3项既有跳过（25.471秒）。这些是本地fixture单元测试，不等于真实CLI、真实Transport或原B窗口。Host→Store实现复核确认record_validator_run固定写入formal_checks_verified=false，settle_audit在缺正式回执时保留needs_validation；167项严格回执/绑定测试和38项auxiliary_v14已通过。当前正式接线缺口是可信宿主终态与验证器官方回执的接入，不是测试未运行。未联系B、未运行VM，formal=false。
 
 补充正式标记伪造测试：对Store record_validator_run分别注入True、1、字符串和null四种formal_checks_verified伪造值，生产verify_validator_result均拒绝，且未留下validator_run记录；tests.test_auxiliary_v14与tests.test_validator_worker共43项通过（8.275秒）。未改生产逻辑，仅补拒绝回归。formal=false，未联系B。
+
+三文件独立复审已完成：准确会话01a1b0ae-5e37-7c80-812b-9953f2b0371f，openai/gpt-6.1-sol，第三轮限定修复passed，第四轮机器摘要纠正前三轮首文件转录错误。r4三项摘要与冻结清单及发布前现场逐字节一致；正例13进程/46配对、13类负例发布前再次退出0。四轮原报告完整保留为independent-module-review-r1至r4；前两轮needs_validation及错误摘要不覆盖。此次提交字段一致性和严格整数检查、负例及匹配来源清单，解除这三文件的待审发布状态。不扩大为动态内容、加载字节、时序、宿主身份或正式阶段认证，formal=false；未联系B。

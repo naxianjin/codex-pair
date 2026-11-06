@@ -13,7 +13,7 @@ result = module.check(data)
 pids = {item["pid"] for item in result["modules"]}
 index = next(i for i,e in enumerate(data["Trace"]["ModuleEvents"]) if e["PID"] in pids)
 cases = []
-for case in ("missing_property", "wrong_assembly", "wrong_clr", "missing_event", "duplicate_complete_pair", "unknown_version"):
+for case in ("missing_property", "wrong_assembly", "wrong_clr", "missing_event", "duplicate_complete_pair", "unknown_version", "changed_il_path", "changed_native_path", "changed_flags", "float_event_version", "float_event_id", "float_template_version", "bool_pid"):
     changed = copy.deepcopy(data)
     event = changed["Trace"]["ModuleEvents"][index]
     if case == "missing_property": event["Properties"].pop(3)
@@ -21,6 +21,14 @@ for case in ("missing_property", "wrong_assembly", "wrong_clr", "missing_event",
     elif case == "wrong_clr": event["Properties"][6] = "9999"
     elif case == "missing_event": changed["Trace"]["ModuleEvents"].pop(index)
     elif case == "unknown_version": event["Version"] = 999
+    elif case == "float_template_version":
+        for template in changed["Trace"]["ModuleTemplates"]: template["Version"] = float(template["Version"])
+    elif case == "float_event_version": event["Version"] = float(event["Version"])
+    elif case == "float_event_id": event["Id"] = float(event["Id"])
+    elif case == "bool_pid": event["PID"] = True
+    elif case in ("changed_il_path", "changed_native_path", "changed_flags", "float_event_version", "float_event_id", "float_template_version", "bool_pid"):
+        position = {"changed_il_path": 4, "changed_native_path": 5, "changed_flags": 2}[case]
+        event["Properties"][position] = "changed"
     else:
         changed["Trace"]["ModuleEvents"] += copy.deepcopy([e for e in data["Trace"]["ModuleEvents"] if e["PID"] == event["PID"] and e["Properties"][0] == event["Properties"][0]])
     try: module.check(changed)

@@ -1,0 +1,45 @@
+{
+  "report": "r4",
+  "conclusion": "passed",
+  "scope": "准确三文件修复",
+  "identity": {
+    "session_id": "01a1b0ae-5e37-7c80-812b-9953f2b0371f",
+    "thread_id": "01a1b0ae-5e37-7c80-812b-9953f2b0371f",
+    "model": "gpt-6.1-sol",
+    "model_provider": "openai",
+    "cli_version": "0.166.0-alpha.6"
+  },
+  "files": [
+    {
+      "file": "check-restricted-raw-modules.py",
+      "actual_sha256": "ce642357ff38315f181d80292aee0f7439ff110c658795ee191de0a9b21a961e",
+      "expected_sha256": "ce642357ff38315f181d80292aee0f7439ff110c658795ee191de0a9b21a961e",
+      "equal": true
+    },
+    {
+      "file": "check-restricted-raw-negative-cases.py",
+      "actual_sha256": "568f11b0a00d778bfa8287d0958a1335f640983b5ffe918a358c5a0831053ba6",
+      "expected_sha256": "568f11b0a00d778bfa8287d0958a1335f640983b5ffe918a358c5a0831053ba6",
+      "equal": true
+    },
+    {
+      "file": "raw-module-source-inventory.json",
+      "actual_sha256": "c9a7307f82f457d431ff021fae5b4bc25bb4b14f7efd0a4509df0f4a05539cde",
+      "expected_sha256": "c9a7307f82f457d431ff021fae5b4bc25bb4b14f7efd0a4509df0f4a05539cde",
+      "equal": true
+    }
+  ],
+  "checks": {
+    "negative_checker": {
+      "exit_code": 0,
+      "positive_pairs": 46,
+      "rejected_cases": 13
+    },
+    "positive_checker": {
+      "exit_code": 0,
+      "tree_processes": 13,
+      "module_pairs": 46
+    }
+  },
+  "formal": false
+}

@@ -28,11 +28,16 @@ def check(data):
         if pid in pids and event.find("e:System/e:Provider", ns).get("Name") == "Microsoft-Windows-DotNETRuntime" and event.findtext("e:System/e:EventID", namespaces=ns) == "154":
             fields = {x.tag.split("}")[-1]: x.text for x in event.findall("e:UserData/*/*", ns)}
             assemblies.add((pid, int(fields["AssemblyID"], 0), fields["ClrInstanceID"]))
+    for template in data["Trace"]["ModuleTemplates"]:
+        assert type(template["Id"]) is int and type(template["Version"]) is int
     templates = {(x["Id"], x["Version"]): [f.get("name") for f in ET.fromstring(x["Template"])] for x in data["Trace"]["ModuleTemplates"]}
     balance = collections.Counter()
     counts = collections.Counter()
     rows = []
+    identities = {}
     for event in data["Trace"]["ModuleEvents"]:
+        assert type(event["Id"]) is int and type(event["Version"]) is int
+        assert type(event["PID"]) is int
         if str(event["PID"]) not in pids:
             continue
         names = templates[(event["Id"], event["Version"])]
@@ -42,6 +47,8 @@ def check(data):
         assert not fields["ModuleILPath"].isdigit()
         assert (str(event["PID"]), int(fields["AssemblyID"]), fields["ClrInstanceID"]) in assemblies
         key = (event["PID"], fields["ModuleID"], fields["AssemblyID"], fields["ClrInstanceID"])
+        assert key not in identities or identities[key] == fields
+        identities[key] = fields
         balance[key] += 1 if event["Id"] == 152 else -1
         counts[(key, event["Id"])] += 1
         rows.append({"event_id": event["Id"], "pid": event["PID"], "fields": fields})
