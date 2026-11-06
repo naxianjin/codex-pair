@@ -1,0 +1,933 @@
+{
+  "Formal": false,
+  "NodeModules": [
+    {
+      "Sha256": "5c976096e04e5c2c1f091938926234cc9fbebfe9787ddd149351b3b0ecc707b5",
+      "Path": "C:\\PairLab\\Tools\\node\\node.exe"
+    },
+    {
+      "Sha256": "4dfbbd3d58225196603c6e61a9a61a7f71b9712ee63c79431998e51b393b63e6",
+      "Path": "C:\\Windows\\SYSTEM32\\ntdll.dll"
+    },
+    {
+      "Sha256": "f694ab9ccf9d8c0b24003d14788b864a97c0f1ffe697ee043174626c30b96e2b",
+      "Path": "C:\\Windows\\System32\\KERNEL32.DLL"
+    },
+    {
+      "Sha256": "6a2b921dd5b1cca7c96903d4e03eaa8ac980a067ea3b69c4c485cb99b5ae7584",
+      "Path": "C:\\Windows\\System32\\KERNELBASE.dll"
+    },
+    {
+      "Sha256": "b3f1b4cec3ec6c72acc20b23a6cb6891cd4800dfc9159b40e00b008a46e3f88d",
+      "Path": "C:\\Windows\\System32\\CRYPT32.dll"
+    },
+    {
+      "Sha256": "c43e5b334a71341c639912ed40bd0029edc283d96a36958f4b33d1c010fe04bc",
+      "Path": "C:\\Windows\\System32\\ucrtbase.dll"
+    },
+    {
+      "Sha256": "198d705f131e88e2c246e794faae253f7cfcd43804fd64f8c4f85aca4f0247f3",
+      "Path": "C:\\Windows\\System32\\WS2_32.dll"
+    },
+    {
+      "Sha256": "6ce9a729d5053902315f86616a6e459981b699fcea64f28531b6d4e3dceefd68",
+      "Path": "C:\\Windows\\System32\\RPCRT4.dll"
+    },
+    {
+      "Sha256": "15ec212ea7753b907bc171e10d649e8275b0dc648ef15ce7a33461a3466d3516",
+      "Path": "C:\\Windows\\System32\\USER32.dll"
+    },
+    {
+      "Sha256": "a28d67a52706184189b2267398743cb94103c84e35194bec24d6c80d25098647",
+      "Path": "C:\\Windows\\System32\\win32u.dll"
+    },
+    {
+      "Sha256": "1203b4ac2519f2ff862a42f70b0aba9dc378abb74048c1ba0f220c8c456ef884",
+      "Path": "C:\\Windows\\System32\\GDI32.dll"
+    },
+    {
+      "Sha256": "6191328ada2433b19562b255f90d84b5029e7c155ba6a9d471c6cdf98d6eb670",
+      "Path": "C:\\Windows\\System32\\gdi32full.dll"
+    },
+    {
+      "Sha256": "b1544e1f3f52ff5546ffd5934b5ff5c2569b9a1826271f1f1d48ef249db90b69",
+      "Path": "C:\\Windows\\System32\\msvcp_win.dll"
+    },
+    {
+      "Sha256": "9d3b59400a91b58f359d2a79874ec17d7cb6c6753012e7377c9bfd26b080d14a",
+      "Path": "C:\\Windows\\System32\\ADVAPI32.dll"
+    },
+    {
+      "Sha256": "167b5e6185a070e15795ebce91b24f34b526ba48b5685a50837a31f435e62461",
+      "Path": "C:\\Windows\\System32\\msvcrt.dll"
+    },
+    {
+      "Sha256": "190c3747f4fc54639f9769d574fe4390e6c96933991816dd51d553134cc745b4",
+      "Path": "C:\\Windows\\System32\\sechost.dll"
+    },
+    {
+      "Sha256": "26c9f8f8e50db2023c394759fc76c7d66230dc90d95557601087f82b29509bc9",
+      "Path": "C:\\Windows\\System32\\SHELL32.dll"
+    },
+    {
+      "Sha256": "d52c99cf522519cd16a2d8835d14bf786904339f803b040ce7c9e2c77214941e",
+      "Path": "C:\\Windows\\System32\\ole32.dll"
+    },
+    {
+      "Sha256": "2586976ade0aa0382a8c4a01ea08ee7ae9453d2c0973d4573d41eb2fa4659e9c",
+      "Path": "C:\\Windows\\System32\\combase.dll"
+    },
+    {
+      "Sha256": "01073fe81f394f4c2b3db97dbb6e376223e59bb8de875b5e68f20648f2cdf4ae",
+      "Path": "C:\\Windows\\SYSTEM32\\dbghelp.dll"
+    },
+    {
+      "Sha256": "d7c72316da8225011861d5fd66696fc0a74da6bfa002662834797699173126f8",
+      "Path": "C:\\Windows\\SYSTEM32\\IPHLPAPI.DLL"
+    },
+    {
+      "Sha256": "b88292af8d91bc50f94d8a262c5186e1c935b10c003f523f7685f3906af6116a",
+      "Path": "C:\\Windows\\System32\\OLEAUT32.dll"
+    },
+    {
+      "Sha256": "481ceb3a966be4724454dfce9c991c0af640731ccebd5d11b5e37a0547f17148",
+      "Path": "C:\\Windows\\SYSTEM32\\USERENV.dll"
+    },
+    {
+      "Sha256": "cf11f64c9aab255e99956088bccdbccae0d408e56c262037ff4a6c5feda559ec",
+      "Path": "C:\\Windows\\SYSTEM32\\WINMM.dll"
+    },
+    {
+      "Sha256": "4d484cbfc8af6b7e65c4fed75a5d9707c54f541c6f0ebd9013917aa33c50ee43",
+      "Path": "C:\\Windows\\SYSTEM32\\dbgcore.DLL"
+    },
+    {
+      "Sha256": "ff1376d320c66e6577fe4a71d13bb2db359ee8787c1735a582685909b84154bb",
+      "Path": "C:\\Windows\\SYSTEM32\\CRYPTBASE.DLL"
+    },
+    {
+      "Sha256": "0d071ac4a98a80c85fb95d23a865941a3e6c0d84f421929e6b0181ab77f8aee6",
+      "Path": "C:\\Windows\\SYSTEM32\\powrprof.dll"
+    },
+    {
+      "Sha256": "da54b37b385ef773ca764fd8affa918050482bd9b964681c640e6d39241ba474",
+      "Path": "C:\\Windows\\SYSTEM32\\UMPDC.dll"
+    },
+    {
+      "Sha256": "0e4328bd638171737873636b36ce97dda21a9585940e3066e20ba99d10dedee1",
+      "Path": "C:\\Windows\\System32\\bcryptprimitives.dll"
+    },
+    {
+      "Sha256": "6b988bfe20cb3f2264bd5e38730553e7f1c65f0dff5e0d86936fbdcf4c099a32",
+      "Path": "C:\\Windows\\system32\\mswsock.dll"
+    },
+    {
+      "Sha256": "e99abd6c80a062285c5f737b62ca5a7c4eede11074611fd2d43505d54ef2237a",
+      "Path": "C:\\Windows\\SYSTEM32\\CRYPTSP.dll"
+    },
+    {
+      "Sha256": "96f6a1d712a68f238964d50fd6504cce58ff04594a4d77e8a5c89e34f55fc66a",
+      "Path": "C:\\Windows\\system32\\rsaenh.dll"
+    },
+    {
+      "Sha256": "fa56ce9e50b27aa10a666bd64279a027a724bce04c1243c0399eb4f1f2868cfa",
+      "Path": "C:\\Windows\\SYSTEM32\\kernel.appcore.dll"
+    }
+  ],
+  "PowerShellBefore": [
+    {
+      "Sha256": "d3b4b97c2bf97d70e5655ff4c4ca1d8cef9ded51685cfd764247cfda98ee68df",
+      "Path": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+    },
+    {
+      "Sha256": "4dfbbd3d58225196603c6e61a9a61a7f71b9712ee63c79431998e51b393b63e6",
+      "Path": "C:\\Windows\\SYSTEM32\\ntdll.dll"
+    },
+    {
+      "Sha256": "f694ab9ccf9d8c0b24003d14788b864a97c0f1ffe697ee043174626c30b96e2b",
+      "Path": "C:\\Windows\\System32\\KERNEL32.DLL"
+    },
+    {
+      "Sha256": "6a2b921dd5b1cca7c96903d4e03eaa8ac980a067ea3b69c4c485cb99b5ae7584",
+      "Path": "C:\\Windows\\System32\\KERNELBASE.dll"
+    },
+    {
+      "Sha256": "167b5e6185a070e15795ebce91b24f34b526ba48b5685a50837a31f435e62461",
+      "Path": "C:\\Windows\\System32\\msvcrt.dll"
+    },
+    {
+      "Sha256": "b88292af8d91bc50f94d8a262c5186e1c935b10c003f523f7685f3906af6116a",
+      "Path": "C:\\Windows\\System32\\OLEAUT32.dll"
+    },
+    {
+      "Sha256": "b1544e1f3f52ff5546ffd5934b5ff5c2569b9a1826271f1f1d48ef249db90b69",
+      "Path": "C:\\Windows\\System32\\msvcp_win.dll"
+    },
+    {
+      "Sha256": "c43e5b334a71341c639912ed40bd0029edc283d96a36958f4b33d1c010fe04bc",
+      "Path": "C:\\Windows\\System32\\ucrtbase.dll"
+    },
+    {
+      "Sha256": "2586976ade0aa0382a8c4a01ea08ee7ae9453d2c0973d4573d41eb2fa4659e9c",
+      "Path": "C:\\Windows\\System32\\combase.dll"
+    },
+    {
+      "Sha256": "6ce9a729d5053902315f86616a6e459981b699fcea64f28531b6d4e3dceefd68",
+      "Path": "C:\\Windows\\System32\\RPCRT4.dll"
+    },
+    {
+      "Sha256": "9d3b59400a91b58f359d2a79874ec17d7cb6c6753012e7377c9bfd26b080d14a",
+      "Path": "C:\\Windows\\System32\\ADVAPI32.dll"
+    },
+    {
+      "Sha256": "190c3747f4fc54639f9769d574fe4390e6c96933991816dd51d553134cc745b4",
+      "Path": "C:\\Windows\\System32\\sechost.dll"
+    },
+    {
+      "Sha256": "d52c99cf522519cd16a2d8835d14bf786904339f803b040ce7c9e2c77214941e",
+      "Path": "C:\\Windows\\System32\\OLE32.dll"
+    },
+    {
+      "Sha256": "1203b4ac2519f2ff862a42f70b0aba9dc378abb74048c1ba0f220c8c456ef884",
+      "Path": "C:\\Windows\\System32\\GDI32.dll"
+    },
+    {
+      "Sha256": "a28d67a52706184189b2267398743cb94103c84e35194bec24d6c80d25098647",
+      "Path": "C:\\Windows\\System32\\win32u.dll"
+    },
+    {
+      "Sha256": "6191328ada2433b19562b255f90d84b5029e7c155ba6a9d471c6cdf98d6eb670",
+      "Path": "C:\\Windows\\System32\\gdi32full.dll"
+    },
+    {
+      "Sha256": "15ec212ea7753b907bc171e10d649e8275b0dc648ef15ce7a33461a3466d3516",
+      "Path": "C:\\Windows\\System32\\USER32.dll"
+    },
+    {
+      "Sha256": "533cc900baa6825b260c39bc7873130c55a8dbe62d8072516db66d1a90af8ed1",
+      "Path": "C:\\Windows\\SYSTEM32\\ATL.DLL"
+    },
+    {
+      "Sha256": "f9a9faf7aaa44b1cbaa987cab28169ae43b1e68e87ab4517dfc2d7bcaa6fe289",
+      "Path": "C:\\Windows\\SYSTEM32\\mscoree.dll"
+    },
+    {
+      "Sha256": "bc19c902fe2d59344687338a412d687fac950f8c0e1aead7bd051573e2c62a15",
+      "Path": "C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\mscoreei.dll"
+    },
+    {
+      "Sha256": "4d9761ec8b6c752cdad267a08b87675a87c6495ea18decc2f3af880f573fc3c9",
+      "Path": "C:\\Windows\\System32\\SHLWAPI.dll"
+    },
+    {
+      "Sha256": "fa56ce9e50b27aa10a666bd64279a027a724bce04c1243c0399eb4f1f2868cfa",
+      "Path": "C:\\Windows\\SYSTEM32\\kernel.appcore.dll"
+    },
+    {
+      "Sha256": "cea99f212af557a9613150c5509631403ed0f05f5d9a06ac42039bd59b40e39a",
+      "Path": "C:\\Windows\\SYSTEM32\\VERSION.dll"
+    },
+    {
+      "Sha256": "49f9f13966c176c8f8943fbaa73d420192543a892bfb28259598d18de8316d86",
+      "Path": "C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\clr.dll"
+    },
+    {
+      "Sha256": "b25ec2affbefc2b2009502f7445625df9e8aeb16c3e56e4c816946049396c320",
+      "Path": "C:\\Windows\\SYSTEM32\\VCRUNTIME140_1_CLR0400.dll"
+    },
+    {
+      "Sha256": "7fc846abd97d7112d6cd1973d5c9f250331a1413a57a1e1456ae55308ca843c0",
+      "Path": "C:\\Windows\\SYSTEM32\\VCRUNTIME140_CLR0400.dll"
+    },
+    {
+      "Sha256": "f5189277b5ac83b754462f259188b0e876706cec5a56bf6f5c35539f1d6510cd",
+      "Path": "C:\\Windows\\SYSTEM32\\ucrtbase_clr0400.dll"
+    },
+    {
+      "Sha256": "e38c3fbf47a44bb29a5be7c4e37922696f55320c7de0d67ac12a427e649b9b16",
+      "Path": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\mscorlib\\ca4838b4fee6fda983bf8ca7c1b41582\\mscorlib.ni.dll"
+    },
+    {
+      "Sha256": "0e4328bd638171737873636b36ce97dda21a9585940e3066e20ba99d10dedee1",
+      "Path": "C:\\Windows\\System32\\bcryptPrimitives.dll"
+    },
+    {
+      "Sha256": "b6e704f2f5ea18c817ecdcd323ebf27d876802e25235d92a4d7249e08b3158a4",
+      "Path": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System\\45689b966cb35d73224432bacf80da91\\System.ni.dll"
+    },
+    {
+      "Sha256": "16ba7407fb17226d93aa8a13d16b052700c4ff480460bdb70dad78ac30025971",
+      "Path": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Core\\2d550862ce4c9745f1ec2785d34258ac\\System.Core.ni.dll"
+    },
+    {
+      "Sha256": "5feed4e0c37a01c7658b0de3a0bbb7f3c96d6d84958eee34fa3d310c7ef7227c",
+      "Path": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\Microsoft.Pb378ec07#\\860f036fdb796eaa38d52d7c8f912562\\Microsoft.PowerShell.ConsoleHost.ni.dll"
+    },
+    {
+      "Sha256": "e99abd6c80a062285c5f737b62ca5a7c4eede11074611fd2d43505d54ef2237a",
+      "Path": "C:\\Windows\\SYSTEM32\\CRYPTSP.dll"
+    },
+    {
+      "Sha256": "96f6a1d712a68f238964d50fd6504cce58ff04594a4d77e8a5c89e34f55fc66a",
+      "Path": "C:\\Windows\\system32\\rsaenh.dll"
+    },
+    {
+      "Sha256": "ff1376d320c66e6577fe4a71d13bb2db359ee8787c1735a582685909b84154bb",
+      "Path": "C:\\Windows\\SYSTEM32\\CRYPTBASE.dll"
+    },
+    {
+      "Sha256": "f7e4de6c82fd808cdd6dcec639a60a6d99222420e0d0d45db24aea2e728b9b9c",
+      "Path": "C:\\Windows\\SYSTEM32\\bcrypt.dll"
+    },
+    {
+      "Sha256": "ff57a618d03da63b4223fd2e8e51ad4507e0520b56bf18e8daafbc2d26f57029",
+      "Path": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Manaa57fc8cc#\\021537811b25d09909593f37faf9e713\\System.Management.Automation.ni.dll"
+    },
+    {
+      "Sha256": "7dab94c9dda7861e270ad781b803172028800aefd81190d313b967dd45e275c7",
+      "Path": "C:\\Windows\\System32\\clbcatq.dll"
+    },
+    {
+      "Sha256": "aee47f2535e0196552513d37be8411a9b9c649a50c3d847488162580d8b88793",
+      "Path": "C:\\Windows\\System32\\psapi.dll"
+    },
+    {
+      "Sha256": "20b97c7f39f2e9aad406d4df68f9d58fb9e75a95a809de25c1d0c8d57f0cdfaf",
+      "Path": "C:\\Windows\\SYSTEM32\\amsi.dll"
+    },
+    {
+      "Sha256": "481ceb3a966be4724454dfce9c991c0af640731ccebd5d11b5e37a0547f17148",
+      "Path": "C:\\Windows\\SYSTEM32\\USERENV.dll"
+    },
+    {
+      "Sha256": "2db3be92245c13c496e631116d7cd6724225dd0b31d6a7a26c94bf16e27b0f30",
+      "Path": "C:\\Windows\\SYSTEM32\\profapi.dll"
+    },
+    {
+      "Sha256": "5de8ea039a656037ea6470132decdbb11012e6f84d07060a36cd3ac029ceb15c",
+      "Path": "C:\\Program Files\\Windows Defender\\MpOav.dll"
+    },
+    {
+      "Sha256": "26c9f8f8e50db2023c394759fc76c7d66230dc90d95557601087f82b29509bc9",
+      "Path": "C:\\Windows\\System32\\shell32.dll"
+    },
+    {
+      "Sha256": "39c73800ec523783c67cd743b3f55403708515bd055bbf909ab4648eb6cad76e",
+      "Path": "C:\\Windows\\SYSTEM32\\windows.storage.dll"
+    },
+    {
+      "Sha256": "c03e778c025859db20fb6a8c799f0cc93bdd2f2807c42cbcbf8649f3ba16950a",
+      "Path": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\Microsoft.Mf49f6405#\\08ab12cea70c2d02df7073fa6f73703e\\Microsoft.Management.Infrastructure.ni.dll"
+    },
+    {
+      "Sha256": "7fe4a80e79d13f2bcaedb8d4f9d6dcde78f1525b68e165c069610502384189f7",
+      "Path": "C:\\Windows\\System32\\SHCORE.dll"
+    },
+    {
+      "Sha256": "748c9ec208a159211563113447563fac54f868a479659d10d9e4b01890a004ae",
+      "Path": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Xml\\9f5174b58465a67acb58ccaa54a46f15\\System.Xml.ni.dll"
+    },
+    {
+      "Sha256": "63082ea05b9593aa7e06a4445bd2a7afc9d3fa3504249e4eb4f5ae60022f315f",
+      "Path": "C:\\Windows\\System32\\wintrust.dll"
+    },
+    {
+      "Sha256": "b3f1b4cec3ec6c72acc20b23a6cb6891cd4800dfc9159b40e00b008a46e3f88d",
+      "Path": "C:\\Windows\\System32\\CRYPT32.dll"
+    },
+    {
+      "Sha256": "36234d0b73f914d9c814ba7bca59dd78fb1cc6c11b66f4cc5c23ff1882ab327d",
+      "Path": "C:\\Windows\\SYSTEM32\\MSASN1.dll"
+    },
+    {
+      "Sha256": "964a616431a8d243829c3d58f16f4c141293a8dcbefd4728f735a708605bcbe6",
+      "Path": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Management\\8a454799ab5bbc2b2fe2b22e64c1f06c\\System.Management.ni.dll"
+    },
+    {
+      "Sha256": "e98336ad08d370da53fd9a27a9df151bda91e1ad8855347fe2e1ed53868cb938",
+      "Path": "C:\\Windows\\SYSTEM32\\gpapi.dll"
+    },
+    {
+      "Sha256": "e33bbc817d3776053fd10908f22667789c511749bfbf55140e57445524cc685b",
+      "Path": "C:\\Windows\\SYSTEM32\\wldp.dll"
+    },
+    {
+      "Sha256": "632ff48867c251dd45e78dad3edcefdd805a7ae0de6d542de59be33becad99d9",
+      "Path": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Dired13b18a9#\\8896ee2a874b493fefecca12bdc2097d\\System.DirectoryServices.ni.dll"
+    },
+    {
+      "Sha256": "8cc0dbd14f926fce756adad67eb6ce0cb0d69ee003c85a464252fa4c21107411",
+      "Path": "C:\\Windows\\system32\\appidapi.dll"
+    },
+    {
+      "Sha256": "12f1147216a8465da39184c682cc2530dba354d2e5a4ec0ddca62012347f6069",
+      "Path": "C:\\Windows\\SYSTEM32\\srpapi.dll"
+    },
+    {
+      "Sha256": "a3a4746b5e416c71de1d490c162f2a61b80b6254721e2b1e0fd9233d6417f43c",
+      "Path": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Configuration\\d4814540c1857595f441988c91150a28\\System.Configuration.ni.dll"
+    },
+    {
+      "Sha256": "86fac62d7aa765949dd6e94ccaa76622b3809f749857e0bd5c3f1f40a28a2c6e",
+      "Path": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Data\\bf9d5e129974ec144d643d259d0f8fd4\\System.Data.ni.dll"
+    },
+    {
+      "Sha256": "d479439eaba17fdff2ff0423c3f729dfabdf8ab9c675957cab136da94f81b62a",
+      "Path": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_64\\System.Data\\v4.0_4.0.0.0__b77a5c561934e089\\System.Data.dll"
+    },
+    {
+      "Sha256": "198d705f131e88e2c246e794faae253f7cfcd43804fd64f8c4f85aca4f0247f3",
+      "Path": "C:\\Windows\\System32\\WS2_32.dll"
+    },
+    {
+      "Sha256": "6b988bfe20cb3f2264bd5e38730553e7f1c65f0dff5e0d86936fbdcf4c099a32",
+      "Path": "C:\\Windows\\system32\\mswsock.dll"
+    },
+    {
+      "Sha256": "0e01bd8386df69fda8774fe09aab974fa7c295a3cc3f57f6744dda3a44a6e152",
+      "Path": "C:\\Windows\\system32\\wshhyperv.dll"
+    },
+    {
+      "Sha256": "258c11e05821e522f64fa862fbecfcdbef609aa9a2cb0bcc3d1ee287ba8f1dc3",
+      "Path": "C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\clrjit.dll"
+    },
+    {
+      "Sha256": "49b6c17d098e0f8d731694e425d39780b9d7cccb19ad1ff1610bbd580e703664",
+      "Path": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\Microsoft.P6f792626#\\9229da9c95d298d7ea0acc0b3d8f25fa\\Microsoft.PowerShell.Security.ni.dll"
+    },
+    {
+      "Sha256": "8852207bf137db7a9594728e203e614c958272ff9c10b6d965a68c5ef9c89c02",
+      "Path": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Transactions\\e2d002211b727266d0c6289112700897\\System.Transactions.ni.dll"
+    },
+    {
+      "Sha256": "5cd2991507c3a0d61e99f2bf83dc5708721a12b9f2553ba6615cfbefcb9d175b",
+      "Path": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_64\\System.Transactions\\v4.0_4.0.0.0__b77a5c561934e089\\System.Transactions.dll"
+    },
+    {
+      "Sha256": "4275d397a6152ac32db969e873378f8650008407f61b5790202c08c2f30846c5",
+      "Path": "C:\\Windows\\SYSTEM32\\secur32.dll"
+    },
+    {
+      "Sha256": "f8b768451029ed012bf6f508960e8d8c5b36896063edc2996e7d93fad7e9c850",
+      "Path": "C:\\Windows\\SYSTEM32\\SSPICLI.DLL"
+    },
+    {
+      "Sha256": "b25b004d1c5d0b69509b185fee070ed2fdbfa4d8ad5975aaf165a3f54118fb0d",
+      "Path": "C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\diasymreader.dll"
+    },
+    {
+      "Sha256": "25a064f85965968585e56fcd06c62d1ff0dee4ea6b09eebc725ba5fe1292c865",
+      "Path": "C:\\Program Files\\Windows Defender\\MPCLIENT.DLL"
+    },
+    {
+      "Sha256": "1ad3c94adca66b22546e4d1dea455cb66f78cc14d971ef4fd8fafae10614f79a",
+      "Path": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\Microsoft.Pae3498d9#\\1636a569b6dd7d91d7643a3de248893b\\Microsoft.PowerShell.Commands.Management.ni.dll"
+    },
+    {
+      "Sha256": "0db012f90faeb65025079effa0e3b174760338678c9f4afca42bbd70cdb574f6",
+      "Path": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Confe64a9051#\\43d6670eb9862f8121ada3dbde5632cb\\System.Configuration.Install.ni.dll"
+    },
+    {
+      "Sha256": "513439745cc75f6f2922fbd64e99e9c2f17ae749b61ad301c436b0bdb5994c7f",
+      "Path": "C:\\Windows\\SYSTEM32\\PROPSYS.dll"
+    },
+    {
+      "Sha256": "a8027c8671a07b130d72d145254b3417c8e816f53547b8ecde4f5fc189439bfb",
+      "Path": "C:\\Windows\\SYSTEM32\\CFGMGR32.dll"
+    },
+    {
+      "Sha256": "ccca3dfafa32015c0c3e2f870c02ead15e23f727ed2f52b2f82c410fdbf87263",
+      "Path": "C:\\Windows\\SYSTEM32\\edputil.dll"
+    },
+    {
+      "Sha256": "1f0a92cd703a506487973483cbd0ae5b461f804fc3f2aca32df91edc2e302a1c",
+      "Path": "C:\\Windows\\SYSTEM32\\urlmon.dll"
+    },
+    {
+      "Sha256": "f6edf39b0faee19ee0d4bf5a7a905571416b85b19b01332493daf1d0b481c4f8",
+      "Path": "C:\\Windows\\SYSTEM32\\iertutil.dll"
+    },
+    {
+      "Sha256": "79083f42b8975273a86c241b6c41caf6ed3ae8223e2a004f636d2213a0a7f843",
+      "Path": "C:\\Windows\\SYSTEM32\\netutils.dll"
+    },
+    {
+      "Sha256": "6170dddf6a03b2b3e9520e301fb3a06fae7fb4c617b2c7d7cceb2160e829fd4d",
+      "Path": "C:\\Windows\\SYSTEM32\\srvcli.dll"
+    },
+    {
+      "Sha256": "5902ef5244abadc53f85cf882aeaea606afaa0e319d7d6331055e2e783d66615",
+      "Path": "C:\\Windows\\System32\\Windows.StateRepositoryPS.dll"
+    },
+    {
+      "Sha256": "2fb443adc0b40f89dee5b9bd4752aa9689e532bd28426da4f64d2ef4a536614c",
+      "Path": "C:\\Windows\\SYSTEM32\\virtdisk.dll"
+    },
+    {
+      "Sha256": "4b404b29607a60c81759b223a94a1e06bfddba7b67a2e9aec3ea4bc57f1ce8ee",
+      "Path": "C:\\Windows\\System32\\smartscreenps.dll"
+    },
+    {
+      "Sha256": "8ee7e2a5d191cd3293aa4630067da642ab5461b0e56f0f3cd915ea5749ca4e64",
+      "Path": "C:\\Windows\\SYSTEM32\\shdocvw.dll"
+    },
+    {
+      "Sha256": "066f36b3d7eafca656b1cbd7c7de4862fc56e94f14202d49f21436fcf4f8c20b",
+      "Path": "C:\\Windows\\System32\\wintypes.dll"
+    },
+    {
+      "Sha256": "db041acc25d689eeff2805fcf410d5de91f854866ed2eb42f1af81e79389a720",
+      "Path": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\Microsoft.P521220ea#\\543f75d36bbf6d900552a6a5d24487c1\\Microsoft.PowerShell.Commands.Utility.ni.dll"
+    }
+  ],
+  "PowerShell": "5.1.26100.1591",
+  "AddTypeValue": 42,
+  "Scope": "Diagnostic snapshots, not restricted validator process tree or complete loader trace",
+  "LogmanExit": 0,
+  "PowerShellAfter": [
+    {
+      "Sha256": "d3b4b97c2bf97d70e5655ff4c4ca1d8cef9ded51685cfd764247cfda98ee68df",
+      "Path": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"
+    },
+    {
+      "Sha256": "4dfbbd3d58225196603c6e61a9a61a7f71b9712ee63c79431998e51b393b63e6",
+      "Path": "C:\\Windows\\SYSTEM32\\ntdll.dll"
+    },
+    {
+      "Sha256": "f694ab9ccf9d8c0b24003d14788b864a97c0f1ffe697ee043174626c30b96e2b",
+      "Path": "C:\\Windows\\System32\\KERNEL32.DLL"
+    },
+    {
+      "Sha256": "6a2b921dd5b1cca7c96903d4e03eaa8ac980a067ea3b69c4c485cb99b5ae7584",
+      "Path": "C:\\Windows\\System32\\KERNELBASE.dll"
+    },
+    {
+      "Sha256": "167b5e6185a070e15795ebce91b24f34b526ba48b5685a50837a31f435e62461",
+      "Path": "C:\\Windows\\System32\\msvcrt.dll"
+    },
+    {
+      "Sha256": "b88292af8d91bc50f94d8a262c5186e1c935b10c003f523f7685f3906af6116a",
+      "Path": "C:\\Windows\\System32\\OLEAUT32.dll"
+    },
+    {
+      "Sha256": "b1544e1f3f52ff5546ffd5934b5ff5c2569b9a1826271f1f1d48ef249db90b69",
+      "Path": "C:\\Windows\\System32\\msvcp_win.dll"
+    },
+    {
+      "Sha256": "c43e5b334a71341c639912ed40bd0029edc283d96a36958f4b33d1c010fe04bc",
+      "Path": "C:\\Windows\\System32\\ucrtbase.dll"
+    },
+    {
+      "Sha256": "2586976ade0aa0382a8c4a01ea08ee7ae9453d2c0973d4573d41eb2fa4659e9c",
+      "Path": "C:\\Windows\\System32\\combase.dll"
+    },
+    {
+      "Sha256": "6ce9a729d5053902315f86616a6e459981b699fcea64f28531b6d4e3dceefd68",
+      "Path": "C:\\Windows\\System32\\RPCRT4.dll"
+    },
+    {
+      "Sha256": "9d3b59400a91b58f359d2a79874ec17d7cb6c6753012e7377c9bfd26b080d14a",
+      "Path": "C:\\Windows\\System32\\ADVAPI32.dll"
+    },
+    {
+      "Sha256": "190c3747f4fc54639f9769d574fe4390e6c96933991816dd51d553134cc745b4",
+      "Path": "C:\\Windows\\System32\\sechost.dll"
+    },
+    {
+      "Sha256": "d52c99cf522519cd16a2d8835d14bf786904339f803b040ce7c9e2c77214941e",
+      "Path": "C:\\Windows\\System32\\OLE32.dll"
+    },
+    {
+      "Sha256": "1203b4ac2519f2ff862a42f70b0aba9dc378abb74048c1ba0f220c8c456ef884",
+      "Path": "C:\\Windows\\System32\\GDI32.dll"
+    },
+    {
+      "Sha256": "a28d67a52706184189b2267398743cb94103c84e35194bec24d6c80d25098647",
+      "Path": "C:\\Windows\\System32\\win32u.dll"
+    },
+    {
+      "Sha256": "6191328ada2433b19562b255f90d84b5029e7c155ba6a9d471c6cdf98d6eb670",
+      "Path": "C:\\Windows\\System32\\gdi32full.dll"
+    },
+    {
+      "Sha256": "15ec212ea7753b907bc171e10d649e8275b0dc648ef15ce7a33461a3466d3516",
+      "Path": "C:\\Windows\\System32\\USER32.dll"
+    },
+    {
+      "Sha256": "533cc900baa6825b260c39bc7873130c55a8dbe62d8072516db66d1a90af8ed1",
+      "Path": "C:\\Windows\\SYSTEM32\\ATL.DLL"
+    },
+    {
+      "Sha256": "f9a9faf7aaa44b1cbaa987cab28169ae43b1e68e87ab4517dfc2d7bcaa6fe289",
+      "Path": "C:\\Windows\\SYSTEM32\\mscoree.dll"
+    },
+    {
+      "Sha256": "bc19c902fe2d59344687338a412d687fac950f8c0e1aead7bd051573e2c62a15",
+      "Path": "C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\mscoreei.dll"
+    },
+    {
+      "Sha256": "4d9761ec8b6c752cdad267a08b87675a87c6495ea18decc2f3af880f573fc3c9",
+      "Path": "C:\\Windows\\System32\\SHLWAPI.dll"
+    },
+    {
+      "Sha256": "fa56ce9e50b27aa10a666bd64279a027a724bce04c1243c0399eb4f1f2868cfa",
+      "Path": "C:\\Windows\\SYSTEM32\\kernel.appcore.dll"
+    },
+    {
+      "Sha256": "cea99f212af557a9613150c5509631403ed0f05f5d9a06ac42039bd59b40e39a",
+      "Path": "C:\\Windows\\SYSTEM32\\VERSION.dll"
+    },
+    {
+      "Sha256": "49f9f13966c176c8f8943fbaa73d420192543a892bfb28259598d18de8316d86",
+      "Path": "C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\clr.dll"
+    },
+    {
+      "Sha256": "b25ec2affbefc2b2009502f7445625df9e8aeb16c3e56e4c816946049396c320",
+      "Path": "C:\\Windows\\SYSTEM32\\VCRUNTIME140_1_CLR0400.dll"
+    },
+    {
+      "Sha256": "7fc846abd97d7112d6cd1973d5c9f250331a1413a57a1e1456ae55308ca843c0",
+      "Path": "C:\\Windows\\SYSTEM32\\VCRUNTIME140_CLR0400.dll"
+    },
+    {
+      "Sha256": "f5189277b5ac83b754462f259188b0e876706cec5a56bf6f5c35539f1d6510cd",
+      "Path": "C:\\Windows\\SYSTEM32\\ucrtbase_clr0400.dll"
+    },
+    {
+      "Sha256": "e38c3fbf47a44bb29a5be7c4e37922696f55320c7de0d67ac12a427e649b9b16",
+      "Path": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\mscorlib\\ca4838b4fee6fda983bf8ca7c1b41582\\mscorlib.ni.dll"
+    },
+    {
+      "Sha256": "0e4328bd638171737873636b36ce97dda21a9585940e3066e20ba99d10dedee1",
+      "Path": "C:\\Windows\\System32\\bcryptPrimitives.dll"
+    },
+    {
+      "Sha256": "b6e704f2f5ea18c817ecdcd323ebf27d876802e25235d92a4d7249e08b3158a4",
+      "Path": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System\\45689b966cb35d73224432bacf80da91\\System.ni.dll"
+    },
+    {
+      "Sha256": "16ba7407fb17226d93aa8a13d16b052700c4ff480460bdb70dad78ac30025971",
+      "Path": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Core\\2d550862ce4c9745f1ec2785d34258ac\\System.Core.ni.dll"
+    },
+    {
+      "Sha256": "5feed4e0c37a01c7658b0de3a0bbb7f3c96d6d84958eee34fa3d310c7ef7227c",
+      "Path": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\Microsoft.Pb378ec07#\\860f036fdb796eaa38d52d7c8f912562\\Microsoft.PowerShell.ConsoleHost.ni.dll"
+    },
+    {
+      "Sha256": "e99abd6c80a062285c5f737b62ca5a7c4eede11074611fd2d43505d54ef2237a",
+      "Path": "C:\\Windows\\SYSTEM32\\CRYPTSP.dll"
+    },
+    {
+      "Sha256": "96f6a1d712a68f238964d50fd6504cce58ff04594a4d77e8a5c89e34f55fc66a",
+      "Path": "C:\\Windows\\system32\\rsaenh.dll"
+    },
+    {
+      "Sha256": "ff1376d320c66e6577fe4a71d13bb2db359ee8787c1735a582685909b84154bb",
+      "Path": "C:\\Windows\\SYSTEM32\\CRYPTBASE.dll"
+    },
+    {
+      "Sha256": "f7e4de6c82fd808cdd6dcec639a60a6d99222420e0d0d45db24aea2e728b9b9c",
+      "Path": "C:\\Windows\\SYSTEM32\\bcrypt.dll"
+    },
+    {
+      "Sha256": "ff57a618d03da63b4223fd2e8e51ad4507e0520b56bf18e8daafbc2d26f57029",
+      "Path": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Manaa57fc8cc#\\021537811b25d09909593f37faf9e713\\System.Management.Automation.ni.dll"
+    },
+    {
+      "Sha256": "7dab94c9dda7861e270ad781b803172028800aefd81190d313b967dd45e275c7",
+      "Path": "C:\\Windows\\System32\\clbcatq.dll"
+    },
+    {
+      "Sha256": "aee47f2535e0196552513d37be8411a9b9c649a50c3d847488162580d8b88793",
+      "Path": "C:\\Windows\\System32\\psapi.dll"
+    },
+    {
+      "Sha256": "20b97c7f39f2e9aad406d4df68f9d58fb9e75a95a809de25c1d0c8d57f0cdfaf",
+      "Path": "C:\\Windows\\SYSTEM32\\amsi.dll"
+    },
+    {
+      "Sha256": "481ceb3a966be4724454dfce9c991c0af640731ccebd5d11b5e37a0547f17148",
+      "Path": "C:\\Windows\\SYSTEM32\\USERENV.dll"
+    },
+    {
+      "Sha256": "2db3be92245c13c496e631116d7cd6724225dd0b31d6a7a26c94bf16e27b0f30",
+      "Path": "C:\\Windows\\SYSTEM32\\profapi.dll"
+    },
+    {
+      "Sha256": "5de8ea039a656037ea6470132decdbb11012e6f84d07060a36cd3ac029ceb15c",
+      "Path": "C:\\Program Files\\Windows Defender\\MpOav.dll"
+    },
+    {
+      "Sha256": "26c9f8f8e50db2023c394759fc76c7d66230dc90d95557601087f82b29509bc9",
+      "Path": "C:\\Windows\\System32\\shell32.dll"
+    },
+    {
+      "Sha256": "39c73800ec523783c67cd743b3f55403708515bd055bbf909ab4648eb6cad76e",
+      "Path": "C:\\Windows\\SYSTEM32\\windows.storage.dll"
+    },
+    {
+      "Sha256": "c03e778c025859db20fb6a8c799f0cc93bdd2f2807c42cbcbf8649f3ba16950a",
+      "Path": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\Microsoft.Mf49f6405#\\08ab12cea70c2d02df7073fa6f73703e\\Microsoft.Management.Infrastructure.ni.dll"
+    },
+    {
+      "Sha256": "7fe4a80e79d13f2bcaedb8d4f9d6dcde78f1525b68e165c069610502384189f7",
+      "Path": "C:\\Windows\\System32\\SHCORE.dll"
+    },
+    {
+      "Sha256": "748c9ec208a159211563113447563fac54f868a479659d10d9e4b01890a004ae",
+      "Path": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Xml\\9f5174b58465a67acb58ccaa54a46f15\\System.Xml.ni.dll"
+    },
+    {
+      "Sha256": "63082ea05b9593aa7e06a4445bd2a7afc9d3fa3504249e4eb4f5ae60022f315f",
+      "Path": "C:\\Windows\\System32\\wintrust.dll"
+    },
+    {
+      "Sha256": "b3f1b4cec3ec6c72acc20b23a6cb6891cd4800dfc9159b40e00b008a46e3f88d",
+      "Path": "C:\\Windows\\System32\\CRYPT32.dll"
+    },
+    {
+      "Sha256": "36234d0b73f914d9c814ba7bca59dd78fb1cc6c11b66f4cc5c23ff1882ab327d",
+      "Path": "C:\\Windows\\SYSTEM32\\MSASN1.dll"
+    },
+    {
+      "Sha256": "964a616431a8d243829c3d58f16f4c141293a8dcbefd4728f735a708605bcbe6",
+      "Path": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Management\\8a454799ab5bbc2b2fe2b22e64c1f06c\\System.Management.ni.dll"
+    },
+    {
+      "Sha256": "e98336ad08d370da53fd9a27a9df151bda91e1ad8855347fe2e1ed53868cb938",
+      "Path": "C:\\Windows\\SYSTEM32\\gpapi.dll"
+    },
+    {
+      "Sha256": "e33bbc817d3776053fd10908f22667789c511749bfbf55140e57445524cc685b",
+      "Path": "C:\\Windows\\SYSTEM32\\wldp.dll"
+    },
+    {
+      "Sha256": "632ff48867c251dd45e78dad3edcefdd805a7ae0de6d542de59be33becad99d9",
+      "Path": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Dired13b18a9#\\8896ee2a874b493fefecca12bdc2097d\\System.DirectoryServices.ni.dll"
+    },
+    {
+      "Sha256": "8cc0dbd14f926fce756adad67eb6ce0cb0d69ee003c85a464252fa4c21107411",
+      "Path": "C:\\Windows\\system32\\appidapi.dll"
+    },
+    {
+      "Sha256": "12f1147216a8465da39184c682cc2530dba354d2e5a4ec0ddca62012347f6069",
+      "Path": "C:\\Windows\\SYSTEM32\\srpapi.dll"
+    },
+    {
+      "Sha256": "a3a4746b5e416c71de1d490c162f2a61b80b6254721e2b1e0fd9233d6417f43c",
+      "Path": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Configuration\\d4814540c1857595f441988c91150a28\\System.Configuration.ni.dll"
+    },
+    {
+      "Sha256": "86fac62d7aa765949dd6e94ccaa76622b3809f749857e0bd5c3f1f40a28a2c6e",
+      "Path": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Data\\bf9d5e129974ec144d643d259d0f8fd4\\System.Data.ni.dll"
+    },
+    {
+      "Sha256": "d479439eaba17fdff2ff0423c3f729dfabdf8ab9c675957cab136da94f81b62a",
+      "Path": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_64\\System.Data\\v4.0_4.0.0.0__b77a5c561934e089\\System.Data.dll"
+    },
+    {
+      "Sha256": "198d705f131e88e2c246e794faae253f7cfcd43804fd64f8c4f85aca4f0247f3",
+      "Path": "C:\\Windows\\System32\\WS2_32.dll"
+    },
+    {
+      "Sha256": "6b988bfe20cb3f2264bd5e38730553e7f1c65f0dff5e0d86936fbdcf4c099a32",
+      "Path": "C:\\Windows\\system32\\mswsock.dll"
+    },
+    {
+      "Sha256": "0e01bd8386df69fda8774fe09aab974fa7c295a3cc3f57f6744dda3a44a6e152",
+      "Path": "C:\\Windows\\system32\\wshhyperv.dll"
+    },
+    {
+      "Sha256": "258c11e05821e522f64fa862fbecfcdbef609aa9a2cb0bcc3d1ee287ba8f1dc3",
+      "Path": "C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\clrjit.dll"
+    },
+    {
+      "Sha256": "49b6c17d098e0f8d731694e425d39780b9d7cccb19ad1ff1610bbd580e703664",
+      "Path": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\Microsoft.P6f792626#\\9229da9c95d298d7ea0acc0b3d8f25fa\\Microsoft.PowerShell.Security.ni.dll"
+    },
+    {
+      "Sha256": "8852207bf137db7a9594728e203e614c958272ff9c10b6d965a68c5ef9c89c02",
+      "Path": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Transactions\\e2d002211b727266d0c6289112700897\\System.Transactions.ni.dll"
+    },
+    {
+      "Sha256": "5cd2991507c3a0d61e99f2bf83dc5708721a12b9f2553ba6615cfbefcb9d175b",
+      "Path": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_64\\System.Transactions\\v4.0_4.0.0.0__b77a5c561934e089\\System.Transactions.dll"
+    },
+    {
+      "Sha256": "4275d397a6152ac32db969e873378f8650008407f61b5790202c08c2f30846c5",
+      "Path": "C:\\Windows\\SYSTEM32\\secur32.dll"
+    },
+    {
+      "Sha256": "f8b768451029ed012bf6f508960e8d8c5b36896063edc2996e7d93fad7e9c850",
+      "Path": "C:\\Windows\\SYSTEM32\\SSPICLI.DLL"
+    },
+    {
+      "Sha256": "b25b004d1c5d0b69509b185fee070ed2fdbfa4d8ad5975aaf165a3f54118fb0d",
+      "Path": "C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\diasymreader.dll"
+    },
+    {
+      "Sha256": "25a064f85965968585e56fcd06c62d1ff0dee4ea6b09eebc725ba5fe1292c865",
+      "Path": "C:\\Program Files\\Windows Defender\\MPCLIENT.DLL"
+    },
+    {
+      "Sha256": "1ad3c94adca66b22546e4d1dea455cb66f78cc14d971ef4fd8fafae10614f79a",
+      "Path": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\Microsoft.Pae3498d9#\\1636a569b6dd7d91d7643a3de248893b\\Microsoft.PowerShell.Commands.Management.ni.dll"
+    },
+    {
+      "Sha256": "0db012f90faeb65025079effa0e3b174760338678c9f4afca42bbd70cdb574f6",
+      "Path": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Confe64a9051#\\43d6670eb9862f8121ada3dbde5632cb\\System.Configuration.Install.ni.dll"
+    },
+    {
+      "Sha256": "513439745cc75f6f2922fbd64e99e9c2f17ae749b61ad301c436b0bdb5994c7f",
+      "Path": "C:\\Windows\\SYSTEM32\\PROPSYS.dll"
+    },
+    {
+      "Sha256": "a8027c8671a07b130d72d145254b3417c8e816f53547b8ecde4f5fc189439bfb",
+      "Path": "C:\\Windows\\SYSTEM32\\CFGMGR32.dll"
+    },
+    {
+      "Sha256": "ccca3dfafa32015c0c3e2f870c02ead15e23f727ed2f52b2f82c410fdbf87263",
+      "Path": "C:\\Windows\\SYSTEM32\\edputil.dll"
+    },
+    {
+      "Sha256": "1f0a92cd703a506487973483cbd0ae5b461f804fc3f2aca32df91edc2e302a1c",
+      "Path": "C:\\Windows\\SYSTEM32\\urlmon.dll"
+    },
+    {
+      "Sha256": "f6edf39b0faee19ee0d4bf5a7a905571416b85b19b01332493daf1d0b481c4f8",
+      "Path": "C:\\Windows\\SYSTEM32\\iertutil.dll"
+    },
+    {
+      "Sha256": "79083f42b8975273a86c241b6c41caf6ed3ae8223e2a004f636d2213a0a7f843",
+      "Path": "C:\\Windows\\SYSTEM32\\netutils.dll"
+    },
+    {
+      "Sha256": "6170dddf6a03b2b3e9520e301fb3a06fae7fb4c617b2c7d7cceb2160e829fd4d",
+      "Path": "C:\\Windows\\SYSTEM32\\srvcli.dll"
+    },
+    {
+      "Sha256": "5902ef5244abadc53f85cf882aeaea606afaa0e319d7d6331055e2e783d66615",
+      "Path": "C:\\Windows\\System32\\Windows.StateRepositoryPS.dll"
+    },
+    {
+      "Sha256": "2fb443adc0b40f89dee5b9bd4752aa9689e532bd28426da4f64d2ef4a536614c",
+      "Path": "C:\\Windows\\SYSTEM32\\virtdisk.dll"
+    },
+    {
+      "Sha256": "4b404b29607a60c81759b223a94a1e06bfddba7b67a2e9aec3ea4bc57f1ce8ee",
+      "Path": "C:\\Windows\\System32\\smartscreenps.dll"
+    },
+    {
+      "Sha256": "8ee7e2a5d191cd3293aa4630067da642ab5461b0e56f0f3cd915ea5749ca4e64",
+      "Path": "C:\\Windows\\SYSTEM32\\shdocvw.dll"
+    },
+    {
+      "Sha256": "066f36b3d7eafca656b1cbd7c7de4862fc56e94f14202d49f21436fcf4f8c20b",
+      "Path": "C:\\Windows\\System32\\wintypes.dll"
+    },
+    {
+      "Sha256": "db041acc25d689eeff2805fcf410d5de91f854866ed2eb42f1af81e79389a720",
+      "Path": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\Microsoft.P521220ea#\\543f75d36bbf6d900552a6a5d24487c1\\Microsoft.PowerShell.Commands.Utility.ni.dll"
+    }
+  ],
+  "RelevantProviders": [
+    "Microsoft-Windows-DotNETRuntime          {E13C0D23-CCBC-4E12-931B-D9CC2EEE27E4}",
+    "Microsoft-Windows-DotNETRuntimeRundown   {A669021C-C450-4609-A035-5AF59AF4DF18}",
+    "Microsoft-Windows-Kernel-Process         {22FB2CD6-0E7B-422B-A0C7-2FAD1FD0E716}",
+    "Microsoft-Windows-Kernel-Processor-Power {0F67E49F-FE51-4E9F-B490-6F2948CC6027}"
+  ],
+  "Assemblies": [
+    {
+      "Name": "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+      "Location": "C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\mscorlib.dll"
+    },
+    {
+      "Name": "Microsoft.PowerShell.ConsoleHost, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35",
+      "Location": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\Microsoft.PowerShell.ConsoleHost\\v4.0_3.0.0.0__31bf3856ad364e35\\Microsoft.PowerShell.ConsoleHost.dll"
+    },
+    {
+      "Name": "System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+      "Location": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System\\v4.0_4.0.0.0__b77a5c561934e089\\System.dll"
+    },
+    {
+      "Name": "System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+      "Location": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.Core\\v4.0_4.0.0.0__b77a5c561934e089\\System.Core.dll"
+    },
+    {
+      "Name": "System.Management.Automation, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35",
+      "Location": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.Management.Automation\\v4.0_3.0.0.0__31bf3856ad364e35\\System.Management.Automation.dll"
+    },
+    {
+      "Name": "System.Management.Automation.resources, Version=3.0.0.0, Culture=zh-Hans, PublicKeyToken=31bf3856ad364e35",
+      "Location": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.Management.Automation.resources\\v4.0_3.0.0.0_zh-Hans_31bf3856ad364e35\\System.Management.Automation.resources.dll"
+    },
+    {
+      "Name": "Microsoft.Management.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35",
+      "Location": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\Microsoft.Management.Infrastructure\\v4.0_1.0.0.0__31bf3856ad364e35\\Microsoft.Management.Infrastructure.dll"
+    },
+    {
+      "Name": "System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+      "Location": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.Xml\\v4.0_4.0.0.0__b77a5c561934e089\\System.Xml.dll"
+    },
+    {
+      "Name": "System.Management, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a",
+      "Location": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.Management\\v4.0_4.0.0.0__b03f5f7f11d50a3a\\System.Management.dll"
+    },
+    {
+      "Name": "System.DirectoryServices, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a",
+      "Location": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.DirectoryServices\\v4.0_4.0.0.0__b03f5f7f11d50a3a\\System.DirectoryServices.dll"
+    },
+    {
+      "Name": "System.Numerics, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+      "Location": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.Numerics\\v4.0_4.0.0.0__b77a5c561934e089\\System.Numerics.dll"
+    },
+    {
+      "Name": "Microsoft.PowerShell.ConsoleHost.resources, Version=3.0.0.0, Culture=zh-Hans, PublicKeyToken=31bf3856ad364e35",
+      "Location": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\Microsoft.PowerShell.ConsoleHost.resources\\v4.0_3.0.0.0_zh-Hans_31bf3856ad364e35\\Microsoft.PowerShell.ConsoleHost.resources.dll"
+    },
+    {
+      "Name": "System.Configuration, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a",
+      "Location": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.Configuration\\v4.0_4.0.0.0__b03f5f7f11d50a3a\\System.Configuration.dll"
+    },
+    {
+      "Name": "System.Data, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+      "Location": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_64\\System.Data\\v4.0_4.0.0.0__b77a5c561934e089\\System.Data.dll"
+    },
+    {
+      "Name": "mscorlib.resources, Version=4.0.0.0, Culture=zh-Hans, PublicKeyToken=b77a5c561934e089",
+      "Location": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\mscorlib.resources\\v4.0_4.0.0.0_zh-Hans_b77a5c561934e089\\mscorlib.resources.dll"
+    },
+    {
+      "Name": "Anonymously Hosted DynamicMethods Assembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null",
+      "Location": ""
+    },
+    {
+      "Name": "Microsoft.PowerShell.Security, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35",
+      "Location": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\Microsoft.PowerShell.Security\\v4.0_3.0.0.0__31bf3856ad364e35\\Microsoft.PowerShell.Security.dll"
+    },
+    {
+      "Name": "System.Transactions, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+      "Location": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_64\\System.Transactions\\v4.0_4.0.0.0__b77a5c561934e089\\System.Transactions.dll"
+    },
+    {
+      "Name": "PSEventHandler, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null",
+      "Location": ""
+    },
+    {
+      "Name": "Microsoft.PowerShell.Commands.Management, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35",
+      "Location": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\Microsoft.PowerShell.Commands.Management\\v4.0_3.0.0.0__31bf3856ad364e35\\Microsoft.PowerShell.Commands.Management.dll"
+    },
+    {
+      "Name": "System.Configuration.Install, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a",
+      "Location": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.Configuration.Install\\v4.0_4.0.0.0__b03f5f7f11d50a3a\\System.Configuration.Install.dll"
+    },
+    {
+      "Name": "Microsoft.PowerShell.Commands.Utility, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35",
+      "Location": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\Microsoft.PowerShell.Commands.Utility\\v4.0_3.0.0.0__31bf3856ad364e35\\Microsoft.PowerShell.Commands.Utility.dll"
+    },
+    {
+      "Name": "k031xxkv, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null",
+      "Location": ""
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "formal": false,
+  "node_module_count": 33,
+  "powershell_module_count": 86,
+  "assembly_count": 23,
+  "add_type_result": 42,
+  "in_memory_assemblies_observed": true,
+  "process_tree_complete": false,
+  "etw_provider_query_succeeded": true,
+  "initial_remote_session_failure": "PSSessionOpenFailed",
+  "retry_succeeded": true
+}

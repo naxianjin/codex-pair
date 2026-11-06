@@ -79,3 +79,9 @@ b9dcc1b完整120文件包在两个新建隔离home安装，逐文件清单一致
 进一步从工具归档PE导入目录读取Python EXE/DLL及Node静态依赖，确认Windows系统DLL/API-set不在工具目录清单内。静态导入表不涵盖delay-load、动态LoadLibrary或实际映射，不能作为完整加载证明。
 
 客体诊断Python进程实际模块枚举成功，共30个模块并保存文件SHA256。仅单进程单时刻，未覆盖受限validator整棵进程树、Node、PowerShell或编译器；不作完整工具链认证。VM关闭且无pending。
+
+## Node与PowerShell依赖续测
+
+未向B发送消息或启动B回合。40项Windows/验证器回归及16项审查适配回归通过；适配首轮缺少测试规定的符号链接夹具，补齐隔离夹具后通过，未修改产品实现。
+
+客体探针首轮PSSessionOpenFailed，未派发命令；延长开机等待后成功。Node单时刻33个模块，PowerShell5.1单时刻86个模块、23个程序集，均保存路径及模块文件摘要；小型Add-Type检查返回42。发现Kernel-Process及.NET ETW事件源，只证明可查询，尚不证明受限验证器进程树完整加载取证。所有诊断Formal=false。

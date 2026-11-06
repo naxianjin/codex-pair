@@ -1,0 +1,21 @@
+{
+  "formal": false,
+  "product_code_changed": false,
+  "checks": [
+    {
+      "command": "python -m unittest tests.test_validator_worker tests.test_windows",
+      "tests": 40,
+      "failures": 0,
+      "errors": 0,
+      "seconds": 35.927
+    },
+    {
+      "command": "tests.test_audit_adapter with seeded reader symlink fixture",
+      "tests": 16,
+      "failures": 0,
+      "errors": 0,
+      "seconds": 2.481
+    }
+  ],
+  "initial_failure": "Direct audit adapter invocation lacked required trusted reader-symlink fixture; rerun with isolated seed passed."
+}
