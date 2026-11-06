@@ -227,3 +227,5 @@ Invoke-ValidatorRawModuleDiagnostic在terminal receipt前调用真实check-restr
 历史来源失败已定位：root-gate清单对应旧版源码及Windows CRLF字节，而非当前控制器。新增check-source-inventory.py --source-directory入口，在一次性目录从Git历史重建五项准确字节；先逐项SHA256匹配，再核对原回执ControllerSHA256，正例通过。内部五摘要负例及逐个文件实际加字节的五负例均拒绝。证据historical-source-byte-reconstruction.json保留每文件提交、字节表示和摘要。不修改旧清单/回执，不将历史通过当作当前来源认证；前轮失败记录保留。修正前轮归因：历史直接导出失败也涉及CRLF表示，不仅是版本差异。formal=false，未联系B、未运行VM。
 
 不依赖B续测：严格回执、argv、最终结算、提供方、验证器、producer兼容及诊断8组167项通过（38.562秒）；auxiliary_v14另38项通过（3.393秒）。新增本地PS5.1动态读取器探针：锁定实际WindowsSafeInput.cs，使用同次读取字节编译，记录源码SHA256、程序集名、MVID和3个托管方法IL摘要，实际读取[]正确，持锁写入拒绝。首次探针误预期4个托管方法而失败，核对源码后修正为实际3个，重跑通过；P/Invoke方法没有IL，不计入。证据local-dynamic-reader-results.json。不认证JIT机器码、历史动态模块或官方宿主身份；formal=false。剩余动态内容/加载时字节/正式Host→Store不是仅待跑测试，而是尚缺可信采集和接线实现，不能以此次探针宣布完成。独立复审额度阻塞仍在，三个旧修订不发布，未联系B。
+
+继续完成不依赖B的验证：Core、Integration、Transport及回执提供方相关本地单元测试共85项通过、0失败、0错误、3项既有跳过（25.471秒）。这些是本地fixture单元测试，不等于真实CLI、真实Transport或原B窗口。Host→Store实现复核确认record_validator_run固定写入formal_checks_verified=false，settle_audit在缺正式回执时保留needs_validation；167项严格回执/绑定测试和38项auxiliary_v14已通过。当前正式接线缺口是可信宿主终态与验证器官方回执的接入，不是测试未运行。未联系B、未运行VM，formal=false。
