@@ -103,3 +103,9 @@ b9dcc1b完整120文件包在两个新建隔离home安装，逐文件清单一致
 诊断副本从创建进程持有句柄取得RootPid与GetProcessTimes创建FILETIME，在恢复线程前读取，原限制及清理保留。真实run cc23fcf635854ae39e8ddb2288437abf退出0、活动0、总进程13；原生PID792及创建时间134384057541274136与唯一ETW启动事件精确匹配至100ns，ETW序号124。PID或创建时间改写两负例均拒绝。最初生成脚本默认GBK读取失败，指定UTF-8后完成，未将失败算通过。
 
 独立CLI元数据确认openai/gpt-6.1-sol，会话01a1aeaf-e777-7f70-b7d7-7aa87ac0c065。静态审核确认C#保留限制及清理；指出控制器本身不强制匹配、基线及ETW工具来源绑定不足。补充离线核对不消除这些控制器阻塞，保持formal=false，未整合正式能力或活动安装。VM已关闭、无pending，未联系B。
+
+## 根身份诊断门槛接线返修
+
+Test-RootTrace接到native保存后、terminal receipt及pending清理前；无效证据抛错并保留对账。首轮真实run e193d17f83eb4219ae08b89657f288d4通过。独立openai/gpt-6.1-sol复审发现Provider未限定及丢事件声明可矛盾，均保留为阻塞历史。随后限定Kernel-Process GUID、唯一零计数行及XML EventsLost；正例及8负例在PowerShell7和原生5.1通过，最新真实证据离线复核通过，尚未把修订后门槛称为再次VM实跑。脚本首次夹具运算符、空白匹配及重复回车问题已修正；不记首次失败为通过。测试脚本改名避免大小写路径冲突。来源基线/helper摘要、映像及程序集身份仍未完成，formal=false。
+
+独立复审第二轮在原生5.1及7.6.6实际执行正例和8负例全部通过，确认上述两阻塞已修复，仅通过诊断门槛；VM接线仍为静态复核，来源绑定与formal未通过。VM Off、无pending，未联系B。

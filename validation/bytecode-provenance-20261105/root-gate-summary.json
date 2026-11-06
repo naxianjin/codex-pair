@@ -1,0 +1,18 @@
+{
+  "formal": false,
+  "run": "e193d17f83eb4219ae08b89657f288d4",
+  "tests": {
+    "positive": true,
+    "negative_cases": 8,
+    "powershell_7": true,
+    "windows_powershell_5_1": true
+  },
+  "latest_real_trace_passes_revised_gate": true,
+  "gate_before_receipt": true,
+  "revised_gate_live_run": false,
+  "remaining": [
+    "Source baseline and helper digest binding",
+    "Image SHA256 and managed assembly evidence",
+    "Formal host-to-Store integration"
+  ]
+}

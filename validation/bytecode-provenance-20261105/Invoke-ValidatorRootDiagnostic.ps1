@@ -1,5 +1,6 @@
 ﻿param([Parameter(Mandatory)][string]$InputDirectory)
 $ErrorActionPreference='Stop'
+. (Join-Path $PSScriptRoot 'Test-RootTrace.ps1')
 $lab='E:\codex-pair\.codex-pair\isolation'
 $vmName='codex-pair-isolation-20261102'
 $base='D:\Codex_No_Projects\work\github\codex-pair-real-wokey-20261104\.codex-pair\worktrees\windows-f93e3110d73b-a\validation\direct-tests-v4\hyperv-validator'
@@ -77,6 +78,7 @@ try{
  $result=$text | ConvertFrom-Json
  if($result.Run -ne $run -or $result.Native.ActiveProcesses -ne 0){throw 'Run/terminal mismatch'}
  Save-NewJson "$output\native.json" $result
+ Test-RootTrace $result
  if($result.Native.ArtifactBase64){
   $bytes=[Convert]::FromBase64String($result.Native.ArtifactBase64)
   if($bytes.Length -gt 1048576){throw 'Artifact exceeds limit'}
