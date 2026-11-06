@@ -9,3 +9,5 @@ validation/bytecode-provenance-20261105/check-combined-evidence.py -text whitesp
 validation/bytecode-provenance-20261105/root-identity-baseline.json -text whitespace=cr-at-eol
 validation/bytecode-provenance-20261105/run-combined-etw.ps1 -text whitespace=cr-at-eol
 validation/bytecode-provenance-20261105/run-root-etw.ps1 -text whitespace=cr-at-eol
+validation/bytecode-provenance-20261105/Invoke-ValidatorRawModuleDiagnostic.ps1 -text whitespace=cr-at-eol
+validation/bytecode-provenance-20261105/run-raw-module-etw.ps1 -text whitespace=cr-at-eol

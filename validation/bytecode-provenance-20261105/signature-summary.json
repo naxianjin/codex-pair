@@ -1,0 +1,9 @@
+{
+  "formal": false,
+  "files": 108,
+  "previous_image_hashes_match": 106,
+  "valid": 93,
+  "not_signed": 15,
+  "unsigned_all_native_images": true,
+  "limitation": "Guest Windows trust evaluation only; probe does not enforce offline trust flags. VM has no network adapters as separately checked. No independent trusted baseline, revocation guarantee, loaded-byte identity or native-image-to-IL binding."
+}

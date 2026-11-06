@@ -1,0 +1,60 @@
+{
+    "Formal":  false,
+    "Scope":  "Guest Windows trust evaluation; no independent publisher baseline",
+    "Files":  [
+                  {
+                      "SHA256":  "A6325762ED7725748DF62D9BF3478596DA03AA8CE0A9EB8E07087EEBFA52CDAC",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "71F53A26BB1625E466727183409A30D03D7923DF",
+                      "Path":  "C:\\Windows\\System32\\logman.exe",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "EA5D0C93A0BBF9ACB7A01DC574238EDA7ECAD3E1EF9F33F8180A8F70F369E469",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "71F53A26BB1625E466727183409A30D03D7923DF",
+                      "Path":  "C:\\Windows\\System32\\tracerpt.exe",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "D3B4B97C2BF97D70E5655FF4C4CA1D8CEF9DED51685CFD764247CFDA98EE68DF",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "71F53A26BB1625E466727183409A30D03D7923DF",
+                      "Path":  "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "A13D6716D12E17F2D5721CC1F8891E08305B5B009F8D3736E078A01AB19AB7CF",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\mscorlib.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "B7A12C3AF0B4DB44191EEC14EA095EBA731B7328917F570806183093D19DDCA2",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "076340E812ED105E9FBB9FD1B7F5C6E985896B62",
+                      "Path":  "C:\\PairLab\\Tools\\python\\python.exe",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=\"OpenAI OpCo, LLC\", O=\"OpenAI OpCo, LLC\", L=San Francisco, S=California, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "5C976096E04E5C2C1F091938926234CC9FBEBFE9787DDD149351B3B0ECC707B5",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D1DC7755FAB17F01224CCCEA1C2FAEDC6F963E12",
+                      "Path":  "C:\\PairLab\\Tools\\node\\node.exe",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=OpenJS Foundation, O=OpenJS Foundation, L=San Francisco, S=California, C=US",
+                      "Status":  "Valid"
+                  }
+              ]
+}

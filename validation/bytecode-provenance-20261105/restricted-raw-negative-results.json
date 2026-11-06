@@ -1,0 +1,25 @@
+{
+  "formal": false,
+  "cases": [
+    {
+      "case": "missing_property",
+      "rejected": true
+    },
+    {
+      "case": "wrong_assembly",
+      "rejected": true
+    },
+    {
+      "case": "wrong_clr",
+      "rejected": true
+    },
+    {
+      "case": "missing_event",
+      "rejected": true
+    },
+    {
+      "case": "duplicate_complete_pair",
+      "rejected": true
+    }
+  ]
+}

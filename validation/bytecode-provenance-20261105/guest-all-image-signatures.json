@@ -1,0 +1,978 @@
+{
+    "Formal":  false,
+    "Scope":  "Guest Windows trust evaluation; no independent publisher baseline",
+    "Files":  [
+                  {
+                      "SHA256":  "5C976096E04E5C2C1F091938926234CC9FBEBFE9787DDD149351B3B0ECC707B5",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D1DC7755FAB17F01224CCCEA1C2FAEDC6F963E12",
+                      "Path":  "C:\\PairLab\\Tools\\node\\node.exe",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=OpenJS Foundation, O=OpenJS Foundation, L=San Francisco, S=California, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "81328BA4B09D5E8A22BADFC8379FFBDDCD84900E1580384B0B7A190C2804F267",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "076340E812ED105E9FBB9FD1B7F5C6E985896B62",
+                      "Path":  "C:\\PairLab\\Tools\\python\\DLLs\\_bz2.pyd",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=\"OpenAI OpCo, LLC\", O=\"OpenAI OpCo, LLC\", L=San Francisco, S=California, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "52716A0FC8BBF645D1F9A279BD87D1FC1EFF1739916655C466121B34B04E537D",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "076340E812ED105E9FBB9FD1B7F5C6E985896B62",
+                      "Path":  "C:\\PairLab\\Tools\\python\\DLLs\\_ctypes.pyd",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=\"OpenAI OpCo, LLC\", O=\"OpenAI OpCo, LLC\", L=San Francisco, S=California, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "48B476758C3C50FD6B44B4497A9D1368F7E75E550A983B6854E14B3E0D0EA7D6",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "076340E812ED105E9FBB9FD1B7F5C6E985896B62",
+                      "Path":  "C:\\PairLab\\Tools\\python\\DLLs\\_hashlib.pyd",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=\"OpenAI OpCo, LLC\", O=\"OpenAI OpCo, LLC\", L=San Francisco, S=California, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "C334128B7BE6C0D8C3BB7F8A6FA76573A331976520CCF4DA6DC401225AF30947",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "076340E812ED105E9FBB9FD1B7F5C6E985896B62",
+                      "Path":  "C:\\PairLab\\Tools\\python\\DLLs\\_lzma.pyd",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=\"OpenAI OpCo, LLC\", O=\"OpenAI OpCo, LLC\", L=San Francisco, S=California, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "276E6A57D4EC0DD50F47A6C1AE3E91BB7CF50D2356F8C81E01B97BE1187AB098",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "076340E812ED105E9FBB9FD1B7F5C6E985896B62",
+                      "Path":  "C:\\PairLab\\Tools\\python\\DLLs\\libcrypto-3-x64.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=\"OpenAI OpCo, LLC\", O=\"OpenAI OpCo, LLC\", L=San Francisco, S=California, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "3D9A8C0E1170EDB0480F11D2058B4538F3BD0EEDFDE8B67059FB5AF21B435E78",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "076340E812ED105E9FBB9FD1B7F5C6E985896B62",
+                      "Path":  "C:\\PairLab\\Tools\\python\\DLLs\\libffi-8.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=\"OpenAI OpCo, LLC\", O=\"OpenAI OpCo, LLC\", L=San Francisco, S=California, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "B7A12C3AF0B4DB44191EEC14EA095EBA731B7328917F570806183093D19DDCA2",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "076340E812ED105E9FBB9FD1B7F5C6E985896B62",
+                      "Path":  "C:\\PairLab\\Tools\\python\\python.exe",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=\"OpenAI OpCo, LLC\", O=\"OpenAI OpCo, LLC\", L=San Francisco, S=California, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "D59B99938EB86479C9DEFA3E8C42F1BD54F8EBE94B99DD086A4FA34089C9ED07",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "076340E812ED105E9FBB9FD1B7F5C6E985896B62",
+                      "Path":  "C:\\PairLab\\Tools\\python\\python3.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=\"OpenAI OpCo, LLC\", O=\"OpenAI OpCo, LLC\", L=San Francisco, S=California, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "B354A5CAED2B89F811C5A7A1262ACA49F7132D9D9C631607280D50F1036838FE",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "076340E812ED105E9FBB9FD1B7F5C6E985896B62",
+                      "Path":  "C:\\PairLab\\Tools\\python\\python312.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=\"OpenAI OpCo, LLC\", O=\"OpenAI OpCo, LLC\", L=San Francisco, S=California, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "D5E4D9A3E835FA679450145D6A7D94E36573A509317111904D9B3712C30D9066",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "EC5F0D7EE2327688384B4FDF5D7633553A0D055F",
+                      "Path":  "C:\\PairLab\\Tools\\python\\vcruntime140.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows Software Compatibility Publisher, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "25A064F85965968585E56FCD06C62D1FF0DEE4EA6B09EEBC725BA5FE1292C865",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "71F53A26BB1625E466727183409A30D03D7923DF",
+                      "Path":  "C:\\Program Files\\Windows Defender\\MpClient.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "5DE8EA039A656037EA6470132DECDBB11012E6F84D07060A36CD3AC029CEB15C",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "71F53A26BB1625E466727183409A30D03D7923DF",
+                      "Path":  "C:\\Program Files\\Windows Defender\\MpOAV.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "14C9A56CC8C3D4BB112DF8E7A4B94EE0730BAC8A6528511E6F75B663B6C5A180",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\alink.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "49F9F13966C176C8F8943FBAA73D420192543A892BFB28259598D18DE8316D86",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\clr.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "258C11E05821E522F64FA862FBECFCDBEF609AA9A2CB0BCC3D1EE287BA8F1DC3",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\clrjit.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "AAE1DB57F898CA8BDA18590C56F86CED6D0EAD80C22033B76FDFE9119706F116",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\csc.exe",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "FD3EF1B4C91B2E85CCD05724A7CD527A3A27D7D549B0DCDB70D3D78BE120C560",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\cvtres.exe",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "BC19C902FE2D59344687338A412D687FAC950F8C0E1AEAD7BD051573E2C62A15",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\mscoreei.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "9E451B0F75B91D62559AA025466EEFBD30BF5E3590BA6810227B8E152465849E",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\mscorpehost.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "D479439EABA17FDFF2FF0423C3F729DFABDF8AB9C675957CAB136DA94F81B62A",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\Microsoft.NET\\assembly\\GAC_64\\System.Data\\v4.0_4.0.0.0__b77a5c561934e089\\System.Data.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "5CD2991507C3A0D61E99F2BF83DC5708721A12B9F2553BA6615CFBEFCB9D175B",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\Microsoft.NET\\assembly\\GAC_64\\System.Transactions\\v4.0_4.0.0.0__b77a5c561934e089\\System.Transactions.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "0B66E97286EB6D16D2585E4106A920F60FB0F106D5514240BAC5250A0358E62F",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\Microsoft.NET\\assembly\\GAC_MSIL\\Microsoft.PowerShell.ConsoleHost.Resources\\v4.0_3.0.0.0_zh-HANS_31bf3856ad364e35\\Microsoft.PowerShell.ConsoleHost.Resources.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "0EBA69AAB099E824C9F378AE8D2026822F2054F7552A7F1A9AA8CC64C3EE8255",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\Microsoft.NET\\assembly\\GAC_MSIL\\System.Management.Automation.Resources\\v4.0_3.0.0.0_zh-HANS_31bf3856ad364e35\\System.Management.Automation.Resources.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "7318EC6DDCF5C3725425617EFFAE5514B3EC03399A03473BE95BF59CB41D15DF",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\Microsoft.NET\\assembly\\GAC_MSIL\\System.Numerics\\v4.0_4.0.0.0__b77a5c561934e089\\System.Numerics.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "12F139B36961C47B8C7D89633FAA156BDEACD6D6D7627C3A29BFEADCD476F2FD",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\Microsoft.NET\\assembly\\GAC_MSIL\\System.resources\\v4.0_4.0.0.0_zh-Hans_b77a5c561934e089\\System.resources.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "078C1C8D6FAD15B75374DC431336FDD3A12F91C6F369535D6618712ED564239A",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\Microsoft.NET\\assembly\\GAC_MSIL\\mscorlib.resources\\v4.0_4.0.0.0_zh-Hans_b77a5c561934e089\\mscorlib.resources.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "D7C72316DA8225011861D5FD66696FC0A74DA6BFA002662834797699173126F8",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\System32\\IPHLPAPI.DLL",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "6A2B921DD5B1CCA7C96903D4E03EAA8AC980A067EA3B69C4C485CB99B5AE7584",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\System32\\KernelBase.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "7FE4A80E79D13F2BCAEDB8D4F9D6DCDE78F1525B68E165C069610502384189F7",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "71F53A26BB1625E466727183409A30D03D7923DF",
+                      "Path":  "C:\\Windows\\System32\\SHCore.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "D3B4B97C2BF97D70E5655FF4C4CA1D8CEF9DED51685CFD764247CFDA98EE68DF",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "71F53A26BB1625E466727183409A30D03D7923DF",
+                      "Path":  "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "9D3B59400A91B58F359D2A79874EC17D7CB6C6753012E7377C9BFD26B080D14A",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "71F53A26BB1625E466727183409A30D03D7923DF",
+                      "Path":  "C:\\Windows\\System32\\advapi32.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "20B97C7F39F2E9AAD406D4DF68F9D58FB9E75A95A809DE25C1D0C8D57F0CDFAF",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\System32\\amsi.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "8CC0DBD14F926FCE756ADAD67EB6CE0CB0D69EE003C85A464252FA4C21107411",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\System32\\appidapi.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "533CC900BAA6825B260C39BC7873130C55A8DBE62D8072516DB66D1A90AF8ED1",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\System32\\atl.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "F7E4DE6C82FD808CDD6DCEC639A60A6D99222420E0D0D45DB24AEA2E728B9B9C",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\System32\\bcrypt.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "0E4328BD638171737873636B36CE97DDA21A9585940E3066E20BA99D10DEDEE1",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\System32\\bcryptprimitives.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "7DAB94C9DDA7861E270AD781B803172028800AEFD81190D313B967DD45E275C7",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\System32\\clbcatq.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "2586976ADE0AA0382A8C4A01EA08EE7AE9453D2C0973D4573D41EB2FA4659E9C",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\System32\\combase.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "0EB777256A7336E65607EB7CCB5772E37B7A4921C75FF1979AF42C3B23CA679B",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\System32\\conhost.exe",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "B3F1B4CEC3EC6C72ACC20B23A6CB6891CD4800DFC9159B40E00B008A46E3F88D",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\System32\\crypt32.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "FF1376D320C66E6577FE4A71D13BB2DB359EE8787C1735A582685909B84154BB",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "71F53A26BB1625E466727183409A30D03D7923DF",
+                      "Path":  "C:\\Windows\\System32\\cryptbase.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "E99ABD6C80A062285C5F737B62CA5A7C4EEDE11074611FD2D43505D54EF2237A",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\System32\\cryptsp.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "4D484CBFC8AF6B7E65C4FED75A5D9707C54F541C6F0EBD9013917AA33C50EE43",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\System32\\dbgcore.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "01073FE81F394F4C2B3DB97DBB6E376223E59BB8DE875B5E68F20648F2CDF4AE",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "71F53A26BB1625E466727183409A30D03D7923DF",
+                      "Path":  "C:\\Windows\\System32\\dbghelp.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "1203B4AC2519F2FF862A42F70B0ABA9DC378ABB74048C1BA0F220C8C456EF884",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "71F53A26BB1625E466727183409A30D03D7923DF",
+                      "Path":  "C:\\Windows\\System32\\gdi32.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "6191328ADA2433B19562B255F90D84B5029E7C155BA6A9D471C6CDF98D6EB670",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "71F53A26BB1625E466727183409A30D03D7923DF",
+                      "Path":  "C:\\Windows\\System32\\gdi32full.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "E98336AD08D370DA53FD9A27A9DF151BDA91E1AD8855347FE2E1ED53868CB938",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\System32\\gpapi.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "F6EDF39B0FAEE19EE0D4BF5A7A905571416B85B19B01332493DAF1D0B481C4F8",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\System32\\iertutil.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "C580E629A60D6BE0E64DBD07E07C7D602C44BD36415A33221BF0A0B2506AD3A6",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\System32\\imagehlp.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "FA56CE9E50B27AA10A666BD64279A027A724BCE04C1243C0399EB4F1F2868CFA",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\System32\\kernel.appcore.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "F694AB9CCF9D8C0B24003D14788B864A97C0F1FFE697EE043174626C30B96E2B",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "71F53A26BB1625E466727183409A30D03D7923DF",
+                      "Path":  "C:\\Windows\\System32\\kernel32.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "A6325762ED7725748DF62D9BF3478596DA03AA8CE0A9EB8E07087EEBFA52CDAC",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "71F53A26BB1625E466727183409A30D03D7923DF",
+                      "Path":  "C:\\Windows\\System32\\logman.exe",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "36234D0B73F914D9C814BA7BCA59DD78FB1CC6C11B66F4CC5C23FF1882AB327D",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\System32\\msasn1.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "F9A9FAF7AAA44B1CBAA987CAB28169AE43B1E68E87AB4517DFC2D7BCAA6FE289",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\System32\\mscoree.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "B1544E1F3F52FF5546FFD5934B5FF5C2569B9A1826271F1F1D48EF249DB90B69",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\System32\\msvcp_win.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "167B5E6185A070E15795EBCE91B24F34B526BA48B5685A50837A31F435E62461",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "71F53A26BB1625E466727183409A30D03D7923DF",
+                      "Path":  "C:\\Windows\\System32\\msvcrt.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "6B988BFE20CB3F2264BD5E38730553E7F1C65F0DFF5E0D86936FBDCF4C099A32",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\System32\\mswsock.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "79083F42B8975273A86C241B6C41CAF6ED3AE8223E2A004F636D2213A0A7F843",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\System32\\netutils.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "4DFBBD3D58225196603C6E61A9A61A7F71B9712EE63C79431998E51B393B63E6",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "71F53A26BB1625E466727183409A30D03D7923DF",
+                      "Path":  "C:\\Windows\\System32\\ntdll.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "D52C99CF522519CD16A2D8835D14BF786904339F803B040CE7C9E2C77214941E",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\System32\\ole32.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "B88292AF8D91BC50F94D8A262C5186E1C935B10C003F523F7685F3906AF6116A",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\System32\\oleaut32.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "0D071AC4A98A80C85FB95D23A865941A3E6C0D84F421929E6B0181AB77F8AEE6",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\System32\\powrprof.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "2DB3BE92245C13C496E631116D7CD6724225DD0B31D6A7A26C94BF16E27B0F30",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "71F53A26BB1625E466727183409A30D03D7923DF",
+                      "Path":  "C:\\Windows\\System32\\profapi.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "513439745CC75F6F2922FBD64E99E9C2F17AE749B61AD301C436B0BDB5994C7F",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "71F53A26BB1625E466727183409A30D03D7923DF",
+                      "Path":  "C:\\Windows\\System32\\propsys.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "AEE47F2535E0196552513D37BE8411A9B9C649A50C3D847488162580D8B88793",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\System32\\psapi.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "6CE9A729D5053902315F86616A6E459981B699FCEA64F28531B6D4E3DCEEFD68",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "71F53A26BB1625E466727183409A30D03D7923DF",
+                      "Path":  "C:\\Windows\\System32\\rpcrt4.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "96F6A1D712A68F238964D50FD6504CCE58FF04594A4D77E8A5C89E34F55FC66A",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\System32\\rsaenh.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "190C3747F4FC54639F9769D574FE4390E6C96933991816DD51D553134CC745B4",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "71F53A26BB1625E466727183409A30D03D7923DF",
+                      "Path":  "C:\\Windows\\System32\\sechost.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "4275D397A6152AC32DB969E873378F8650008407F61B5790202C08C2F30846C5",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\System32\\secur32.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "26C9F8F8E50DB2023C394759FC76C7D66230DC90D95557601087F82B29509BC9",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\System32\\shell32.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "4D9761EC8B6C752CDAD267A08B87675A87C6495EA18DECC2F3AF880F573FC3C9",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\System32\\shlwapi.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "12F1147216A8465DA39184C682CC2530DBA354D2E5A4EC0DDCA62012347F6069",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\System32\\srpapi.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "6170DDDF6A03B2B3E9520E301FB3A06FAE7FB4C617B2C7D7CCEB2160E829FD4D",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\System32\\srvcli.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "F8B768451029ED012BF6F508960E8D8C5B36896063EDC2996E7D93FAD7E9C850",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "71F53A26BB1625E466727183409A30D03D7923DF",
+                      "Path":  "C:\\Windows\\System32\\sspicli.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "EA5D0C93A0BBF9ACB7A01DC574238EDA7ECAD3E1EF9F33F8180A8F70F369E469",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "71F53A26BB1625E466727183409A30D03D7923DF",
+                      "Path":  "C:\\Windows\\System32\\tracerpt.exe",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "C43E5B334A71341C639912ED40BD0029EDC283D96A36958F4B33D1C010FE04BC",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\System32\\ucrtbase.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "F5189277B5AC83B754462F259188B0E876706CEC5A56BF6F5C35539F1D6510CD",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\System32\\ucrtbase_clr0400.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "DA54B37B385EF773CA764FD8AFFA918050482BD9B964681C640E6D39241BA474",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "71F53A26BB1625E466727183409A30D03D7923DF",
+                      "Path":  "C:\\Windows\\System32\\umpdc.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "1F0A92CD703A506487973483CBD0AE5B461F804FC3F2ACA32DF91EDC2E302A1C",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\System32\\urlmon.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "15EC212EA7753B907BC171E10D649E8275B0DC648EF15CE7A33461A3466D3516",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "71F53A26BB1625E466727183409A30D03D7923DF",
+                      "Path":  "C:\\Windows\\System32\\user32.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "481CEB3A966BE4724454DFCE9C991C0AF640731CCEBD5D11B5E37A0547F17148",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\System32\\userenv.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "B25EC2AFFBEFC2B2009502F7445625DF9E8AEB16C3E56E4C816946049396C320",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\System32\\vcruntime140_1_clr0400.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "7FC846ABD97D7112D6CD1973D5C9F250331A1413A57A1E1456AE55308CA843C0",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\System32\\vcruntime140_clr0400.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "CEA99F212AF557A9613150C5509631403ED0F05F5D9A06AC42039BD59B40E39A",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\System32\\version.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "2FB443ADC0B40F89DEE5B9BD4752AA9689E532BD28426DA4F64D2EF4A536614C",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "71F53A26BB1625E466727183409A30D03D7923DF",
+                      "Path":  "C:\\Windows\\System32\\virtdisk.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "A28D67A52706184189B2267398743CB94103C84E35194BEC24D6C80D25098647",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "71F53A26BB1625E466727183409A30D03D7923DF",
+                      "Path":  "C:\\Windows\\System32\\win32u.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "39C73800EC523783C67CD743B3F55403708515BD055BBF909AB4648EB6CAD76E",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "71F53A26BB1625E466727183409A30D03D7923DF",
+                      "Path":  "C:\\Windows\\System32\\windows.storage.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "CF11F64C9AAB255E99956088BCCDBCCAE0D408E56C262037FF4A6C5FEDA559EC",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\System32\\winmm.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "63082EA05B9593AA7E06A4445BD2A7AFC9D3FA3504249E4EB4F5AE60022F315F",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\System32\\wintrust.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "E33BBC817D3776053FD10908F22667789C511749BFBF55140E57445524CC685B",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\System32\\wldp.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "198D705F131E88E2C246E794FAAE253F7CFCD43804FD64F8C4F85ACA4F0247F3",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "71F53A26BB1625E466727183409A30D03D7923DF",
+                      "Path":  "C:\\Windows\\System32\\ws2_32.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  },
+                  {
+                      "SHA256":  "C03E778C025859DB20FB6A8C799F0CC93BDD2F2807C42CBCBF8649F3BA16950A",
+                      "StatusMessage":  "未对文件 C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\Microsoft.Mf49f6405#\\08ab12cea70c2d02df7073fa6f73703e\\Microsoft.Management.Infrastructure.ni.dll 进行数字签名。无法在当前系统上运行该脚本。有关运行脚本和设置执行策略的详细信息，请参阅 https:/go.microsoft.com/fwlink/?LinkID=135170 中的 about_Execution_Policies",
+                      "SignerThumbprint":  null,
+                      "Path":  "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\Microsoft.Mf49f6405#\\08ab12cea70c2d02df7073fa6f73703e\\Microsoft.Management.Infrastructure.ni.dll",
+                      "Formal":  false,
+                      "SignerSubject":  null,
+                      "Status":  "NotSigned"
+                  },
+                  {
+                      "SHA256":  "DB041ACC25D689EEFF2805FCF410D5DE91F854866ED2EB42F1AF81E79389A720",
+                      "StatusMessage":  "未对文件 C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\Microsoft.P521220ea#\\543f75d36bbf6d900552a6a5d24487c1\\Microsoft.PowerShell.Commands.Utility.ni.dll 进行数字签名。无法在当前系统上运行该脚本。有关运行脚本和设置执行策略的详细信息，请参阅 https:/go.microsoft.com/fwlink/?LinkID=135170 中的 about_Execution_Policies",
+                      "SignerThumbprint":  null,
+                      "Path":  "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\Microsoft.P521220ea#\\543f75d36bbf6d900552a6a5d24487c1\\Microsoft.PowerShell.Commands.Utility.ni.dll",
+                      "Formal":  false,
+                      "SignerSubject":  null,
+                      "Status":  "NotSigned"
+                  },
+                  {
+                      "SHA256":  "49B6C17D098E0F8D731694E425D39780B9D7CCCB19AD1FF1610BBD580E703664",
+                      "StatusMessage":  "未对文件 C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\Microsoft.P6f792626#\\9229da9c95d298d7ea0acc0b3d8f25fa\\Microsoft.PowerShell.Security.ni.dll 进行数字签名。无法在当前系统上运行该脚本。有关运行脚本和设置执行策略的详细信息，请参阅 https:/go.microsoft.com/fwlink/?LinkID=135170 中的 about_Execution_Policies",
+                      "SignerThumbprint":  null,
+                      "Path":  "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\Microsoft.P6f792626#\\9229da9c95d298d7ea0acc0b3d8f25fa\\Microsoft.PowerShell.Security.ni.dll",
+                      "Formal":  false,
+                      "SignerSubject":  null,
+                      "Status":  "NotSigned"
+                  },
+                  {
+                      "SHA256":  "1AD3C94ADCA66B22546E4D1DEA455CB66F78CC14D971EF4FD8FAFAE10614F79A",
+                      "StatusMessage":  "未对文件 C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\Microsoft.Pae3498d9#\\1636a569b6dd7d91d7643a3de248893b\\Microsoft.PowerShell.Commands.Management.ni.dll 进行数字签名。无法在当前系统上运行该脚本。有关运行脚本和设置执行策略的详细信息，请参阅 https:/go.microsoft.com/fwlink/?LinkID=135170 中的 about_Execution_Policies",
+                      "SignerThumbprint":  null,
+                      "Path":  "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\Microsoft.Pae3498d9#\\1636a569b6dd7d91d7643a3de248893b\\Microsoft.PowerShell.Commands.Management.ni.dll",
+                      "Formal":  false,
+                      "SignerSubject":  null,
+                      "Status":  "NotSigned"
+                  },
+                  {
+                      "SHA256":  "5FEED4E0C37A01C7658B0DE3A0BBB7F3C96D6D84958EEE34FA3D310C7EF7227C",
+                      "StatusMessage":  "未对文件 C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\Microsoft.Pb378ec07#\\860f036fdb796eaa38d52d7c8f912562\\Microsoft.PowerShell.ConsoleHost.ni.dll 进行数字签名。无法在当前系统上运行该脚本。有关运行脚本和设置执行策略的详细信息，请参阅 https:/go.microsoft.com/fwlink/?LinkID=135170 中的 about_Execution_Policies",
+                      "SignerThumbprint":  null,
+                      "Path":  "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\Microsoft.Pb378ec07#\\860f036fdb796eaa38d52d7c8f912562\\Microsoft.PowerShell.ConsoleHost.ni.dll",
+                      "Formal":  false,
+                      "SignerSubject":  null,
+                      "Status":  "NotSigned"
+                  },
+                  {
+                      "SHA256":  "0DB012F90FAEB65025079EFFA0E3B174760338678C9F4AFCA42BBD70CDB574F6",
+                      "StatusMessage":  "未对文件 C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Confe64a9051#\\43d6670eb9862f8121ada3dbde5632cb\\System.Configuration.Install.ni.dll 进行数字签名。无法在当前系统上运行该脚本。有关运行脚本和设置执行策略的详细信息，请参阅 https:/go.microsoft.com/fwlink/?LinkID=135170 中的 about_Execution_Policies",
+                      "SignerThumbprint":  null,
+                      "Path":  "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Confe64a9051#\\43d6670eb9862f8121ada3dbde5632cb\\System.Configuration.Install.ni.dll",
+                      "Formal":  false,
+                      "SignerSubject":  null,
+                      "Status":  "NotSigned"
+                  },
+                  {
+                      "SHA256":  "A3A4746B5E416C71DE1D490C162F2A61B80B6254721E2B1E0FD9233D6417F43C",
+                      "StatusMessage":  "未对文件 C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Configuration\\d4814540c1857595f441988c91150a28\\System.Configuration.ni.dll 进行数字签名。无法在当前系统上运行该脚本。有关运行脚本和设置执行策略的详细信息，请参阅 https:/go.microsoft.com/fwlink/?LinkID=135170 中的 about_Execution_Policies",
+                      "SignerThumbprint":  null,
+                      "Path":  "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Configuration\\d4814540c1857595f441988c91150a28\\System.Configuration.ni.dll",
+                      "Formal":  false,
+                      "SignerSubject":  null,
+                      "Status":  "NotSigned"
+                  },
+                  {
+                      "SHA256":  "16BA7407FB17226D93AA8A13D16B052700C4FF480460BDB70DAD78AC30025971",
+                      "StatusMessage":  "未对文件 C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Core\\2d550862ce4c9745f1ec2785d34258ac\\System.Core.ni.dll 进行数字签名。无法在当前系统上运行该脚本。有关运行脚本和设置执行策略的详细信息，请参阅 https:/go.microsoft.com/fwlink/?LinkID=135170 中的 about_Execution_Policies",
+                      "SignerThumbprint":  null,
+                      "Path":  "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Core\\2d550862ce4c9745f1ec2785d34258ac\\System.Core.ni.dll",
+                      "Formal":  false,
+                      "SignerSubject":  null,
+                      "Status":  "NotSigned"
+                  },
+                  {
+                      "SHA256":  "86FAC62D7AA765949DD6E94CCAA76622B3809F749857E0BD5C3F1F40A28A2C6E",
+                      "StatusMessage":  "未对文件 C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Data\\bf9d5e129974ec144d643d259d0f8fd4\\System.Data.ni.dll 进行数字签名。无法在当前系统上运行该脚本。有关运行脚本和设置执行策略的详细信息，请参阅 https:/go.microsoft.com/fwlink/?LinkID=135170 中的 about_Execution_Policies",
+                      "SignerThumbprint":  null,
+                      "Path":  "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Data\\bf9d5e129974ec144d643d259d0f8fd4\\System.Data.ni.dll",
+                      "Formal":  false,
+                      "SignerSubject":  null,
+                      "Status":  "NotSigned"
+                  },
+                  {
+                      "SHA256":  "632FF48867C251DD45E78DAD3EDCEFDD805A7AE0DE6D542DE59BE33BECAD99D9",
+                      "StatusMessage":  "未对文件 C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Dired13b18a9#\\8896ee2a874b493fefecca12bdc2097d\\System.DirectoryServices.ni.dll 进行数字签名。无法在当前系统上运行该脚本。有关运行脚本和设置执行策略的详细信息，请参阅 https:/go.microsoft.com/fwlink/?LinkID=135170 中的 about_Execution_Policies",
+                      "SignerThumbprint":  null,
+                      "Path":  "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Dired13b18a9#\\8896ee2a874b493fefecca12bdc2097d\\System.DirectoryServices.ni.dll",
+                      "Formal":  false,
+                      "SignerSubject":  null,
+                      "Status":  "NotSigned"
+                  },
+                  {
+                      "SHA256":  "FF57A618D03DA63B4223FD2E8E51AD4507E0520B56BF18E8DAAFBC2D26F57029",
+                      "StatusMessage":  "未对文件 C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Manaa57fc8cc#\\021537811b25d09909593f37faf9e713\\System.Management.Automation.ni.dll 进行数字签名。无法在当前系统上运行该脚本。有关运行脚本和设置执行策略的详细信息，请参阅 https:/go.microsoft.com/fwlink/?LinkID=135170 中的 about_Execution_Policies",
+                      "SignerThumbprint":  null,
+                      "Path":  "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Manaa57fc8cc#\\021537811b25d09909593f37faf9e713\\System.Management.Automation.ni.dll",
+                      "Formal":  false,
+                      "SignerSubject":  null,
+                      "Status":  "NotSigned"
+                  },
+                  {
+                      "SHA256":  "964A616431A8D243829C3D58F16F4C141293A8DCBEFD4728F735A708605BCBE6",
+                      "StatusMessage":  "未对文件 C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Management\\8a454799ab5bbc2b2fe2b22e64c1f06c\\System.Management.ni.dll 进行数字签名。无法在当前系统上运行该脚本。有关运行脚本和设置执行策略的详细信息，请参阅 https:/go.microsoft.com/fwlink/?LinkID=135170 中的 about_Execution_Policies",
+                      "SignerThumbprint":  null,
+                      "Path":  "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Management\\8a454799ab5bbc2b2fe2b22e64c1f06c\\System.Management.ni.dll",
+                      "Formal":  false,
+                      "SignerSubject":  null,
+                      "Status":  "NotSigned"
+                  },
+                  {
+                      "SHA256":  "8852207BF137DB7A9594728E203E614C958272FF9C10B6D965A68C5EF9C89C02",
+                      "StatusMessage":  "未对文件 C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Transactions\\e2d002211b727266d0c6289112700897\\System.Transactions.ni.dll 进行数字签名。无法在当前系统上运行该脚本。有关运行脚本和设置执行策略的详细信息，请参阅 https:/go.microsoft.com/fwlink/?LinkID=135170 中的 about_Execution_Policies",
+                      "SignerThumbprint":  null,
+                      "Path":  "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Transactions\\e2d002211b727266d0c6289112700897\\System.Transactions.ni.dll",
+                      "Formal":  false,
+                      "SignerSubject":  null,
+                      "Status":  "NotSigned"
+                  },
+                  {
+                      "SHA256":  "748C9EC208A159211563113447563FAC54F868A479659D10D9E4B01890A004AE",
+                      "StatusMessage":  "未对文件 C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Xml\\9f5174b58465a67acb58ccaa54a46f15\\System.Xml.ni.dll 进行数字签名。无法在当前系统上运行该脚本。有关运行脚本和设置执行策略的详细信息，请参阅 https:/go.microsoft.com/fwlink/?LinkID=135170 中的 about_Execution_Policies",
+                      "SignerThumbprint":  null,
+                      "Path":  "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Xml\\9f5174b58465a67acb58ccaa54a46f15\\System.Xml.ni.dll",
+                      "Formal":  false,
+                      "SignerSubject":  null,
+                      "Status":  "NotSigned"
+                  },
+                  {
+                      "SHA256":  "B6E704F2F5EA18C817ECDCD323EBF27D876802E25235D92A4D7249E08B3158A4",
+                      "StatusMessage":  "未对文件 C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System\\45689b966cb35d73224432bacf80da91\\System.ni.dll 进行数字签名。无法在当前系统上运行该脚本。有关运行脚本和设置执行策略的详细信息，请参阅 https:/go.microsoft.com/fwlink/?LinkID=135170 中的 about_Execution_Policies",
+                      "SignerThumbprint":  null,
+                      "Path":  "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System\\45689b966cb35d73224432bacf80da91\\System.ni.dll",
+                      "Formal":  false,
+                      "SignerSubject":  null,
+                      "Status":  "NotSigned"
+                  },
+                  {
+                      "SHA256":  "E38C3FBF47A44BB29A5BE7C4E37922696F55320C7DE0D67AC12A427E649B9B16",
+                      "StatusMessage":  "签名已通过验证。",
+                      "SignerThumbprint":  "D8FB0CC66A08061B42D46D03546F0D42CBC49B7C",
+                      "Path":  "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\mscorlib\\ca4838b4fee6fda983bf8ca7c1b41582\\mscorlib.ni.dll",
+                      "Formal":  false,
+                      "SignerSubject":  "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+                      "Status":  "Valid"
+                  }
+              ]
+}

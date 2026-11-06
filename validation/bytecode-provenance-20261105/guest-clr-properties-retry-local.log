@@ -1,0 +1,9 @@
+
+Original ETL not found
+At D:\Codex_No_Projects\work\github\codex-pair\.codex-pair\worktrees\next-recovery-20261101\validation\bytecode-provena
+nce-20261105\probe-guest-clr-properties.ps1:11 char:1
++ $result=Invoke-Command -Session $s -ScriptBlock {
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (Original ETL not found:String) [], RuntimeException
+    + FullyQualifiedErrorId : Original ETL not found
+ 

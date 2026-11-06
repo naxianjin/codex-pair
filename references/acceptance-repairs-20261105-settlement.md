@@ -149,3 +149,19 @@ check-combined-negative-cases.py使用此次真实证据，正例和六负例通
 真实VM run b970d7ae4dfb42f994e311eda76604ca成功：13进程、46程序集配对键、106映像摘要；receipt绑定当前控制器、清单及原始native字节。独立openai/gpt-6.1-sol复审确认原两测试阻塞消除；未由审核者重跑VM。VM Off，无pending。锁解决当前Windows普通写删路径的来源替换窗口，不代表系统映像加载身份、管理员对抗或独立可信基线。
 
 另核对786项工具观察记录与安装前tools.zip及manifest：782项存在且三方摘要完全一致；4项为归档外生成的Python encodings缓存。归档来源记为existing local application distributions，不能改称发布者认证。保存toolchain-archive-comparison.json。formal始终false，尚缺系统/ETW独立可信来源、加载瞬间内容和程序集digest、正式Host→Store及原窗口验收；未联系B。
+
+## 核心及全映像Windows签名诊断
+
+断网客体Get-AuthenticodeSignature检查108文件（106观察映像及logman/tracerpt）完成：93 Valid、15 NotSigned；15项均为NativeImages目录.ni.dll。106映像当前磁盘摘要全部与既有受限运行观察一致。核心Python签名者为OpenAI OpCo, LLC，Node为OpenJS Foundation，Windows工具为Microsoft；不将Python臆称python.org发行。仅客体Windows信任评估（VM无网卡，未强制离线信任标志），未证明独立基线、吊销最新性、加载字节或native-image与IL对应关系，formal=false。
+
+模块字段问题CLR-MODULE-DECODE-1：受限13进程树92个ModuleLoad/Unload记录中92个ModuleILPath为数字、28个ClrInstanceID空。宿主Get-WinEvent V2模板包含Reserved1，tracerpt XML缺该字段；当前只记录错位线索，尚未依原始事件属性修复，不使用猜测移动字段建立摘要身份。首次树筛选忘记去除ETW PID空白导致StopIteration，修正后取得13进程及92事件。程序集计数配对的先前诊断不等于模块路径解码通过。
+
+独立签名证据审核核对108=93+15及106摘要一致，未发现formal误报；指出全轨迹94模块事件与树内92混用及offline措辞，已分别标注范围和信任标志限制。原始ETL在用户及系统临时目录未找到；新探针首次PSDirect会话建立失败，未派发加载，增加开机等待后再试。
+
+## CLR原始属性解码续测
+
+新小型提升权限Node→PowerShell→Add-Type探针在160秒开机等待后成功，ChildExit0；42个原始Module事件按同次客体V2模板具有13属性，包含Reserved1。新增check-clr-raw-properties.py按模板名字映射原始属性，21模块身份键加载/卸载计数平衡；缺属性、错版本、缺卸载三负例全部拒绝。已确认tracerpt旧XML字段映射错误，未猜测修订历史XML。此为新独立小探针，不是受限验证器重新取证，未解决模块内容digest或正式认证；formal=false。原ETL两次查找均未找到，失败保留，未记为成功。
+
+原始小探针独立openai/gpt-6.1-sol审核通过，并实际复算42事件/21配对/3负例，确认Reserved1映射。随后新建独立raw-module诊断入口，保留旧已审核入口；真实受限run f26f12ac6b5e45049e83ac43cb31dba9成功，13进程、46程序集配对和106映像检查通过。新增原始模块离线核对：92模块事件形成46配对，每项PID/AssemblyID/CLR实例关联同树程序集；缺属性、错AssemblyID、错CLR和缺事件四负例拒绝。模块检查仍在terminal之后离线执行，未称为receipt前门槛。formal=false，内容摘要未完成。
+
+受限原始模块复审确认资源限制保留、六项来源摘要一致、46模块关联及四负例通过；指出导出删ArtifactBase64导致回执摘要不一致及重复完整事件对未拒绝。已保存原始native字节并核对receipt SHA256；增加恰好一次约束及重复完整对拒绝。46加载记录有24个唯一非空IL路径，尚未收集内容摘要。

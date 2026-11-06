@@ -1,0 +1,806 @@
+{
+  "formal": false,
+  "decoded_events": 42,
+  "module_pairs": 21,
+  "negative_cases": 3,
+  "modules": [
+    {
+      "event_id": 152,
+      "pid": 448,
+      "fields": {
+        "ModuleID": "140732751548416",
+        "AssemblyID": "1826080955888",
+        "ModuleFlags": "27",
+        "Reserved1": "0",
+        "ModuleILPath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_64\\mscorlib\\v4.0_4.0.0.0__b77a5c561934e089\\mscorlib.dll",
+        "ModuleNativePath": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\mscorlib\\ca4838b4fee6fda983bf8ca7c1b41582\\mscorlib.ni.dll",
+        "ClrInstanceID": "8",
+        "ManagedPdbSignature": "2b6b4259-de16-4518-9fd5-cf8cb1a5ad4a",
+        "ManagedPdbAge": "2",
+        "ManagedPdbBuildPath": "mscorlib.pdb",
+        "NativePdbSignature": "ca4838b4-fee6-fda9-83bf-8ca7c1b41582",
+        "NativePdbAge": "1",
+        "NativePdbBuildPath": "mscorlib.ni.pdb"
+      }
+    },
+    {
+      "event_id": 152,
+      "pid": 448,
+      "fields": {
+        "ModuleID": "140732727037952",
+        "AssemblyID": "1826081099328",
+        "ModuleFlags": "11",
+        "Reserved1": "0",
+        "ModuleILPath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\Microsoft.PowerShell.ConsoleHost\\v4.0_3.0.0.0__31bf3856ad364e35\\Microsoft.PowerShell.ConsoleHost.dll",
+        "ModuleNativePath": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\Microsoft.Pb378ec07#\\860f036fdb796eaa38d52d7c8f912562\\Microsoft.PowerShell.ConsoleHost.ni.dll",
+        "ClrInstanceID": "8",
+        "ManagedPdbSignature": "1ac6c6e3-6635-4a99-9ec4-78bbb813305c",
+        "ManagedPdbAge": "1",
+        "ManagedPdbBuildPath": "Microsoft.PowerShell.ConsoleHost.pdb",
+        "NativePdbSignature": "860f036f-db79-6eaa-38d5-2d7c8f912562",
+        "NativePdbAge": "1",
+        "NativePdbBuildPath": "Microsoft.PowerShell.ConsoleHost.ni.pdb"
+      }
+    },
+    {
+      "event_id": 152,
+      "pid": 448,
+      "fields": {
+        "ModuleID": "140732738834432",
+        "AssemblyID": "1826081022912",
+        "ModuleFlags": "27",
+        "Reserved1": "0",
+        "ModuleILPath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System\\v4.0_4.0.0.0__b77a5c561934e089\\System.dll",
+        "ModuleNativePath": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System\\45689b966cb35d73224432bacf80da91\\System.ni.dll",
+        "ClrInstanceID": "8",
+        "ManagedPdbSignature": "bae346b2-f711-48b1-b3d6-1f3f400f2134",
+        "ManagedPdbAge": "2",
+        "ManagedPdbBuildPath": "System.pdb",
+        "NativePdbSignature": "45689b96-6cb3-5d73-2244-32bacf80da91",
+        "NativePdbAge": "1",
+        "NativePdbBuildPath": "System.ni.pdb"
+      }
+    },
+    {
+      "event_id": 152,
+      "pid": 448,
+      "fields": {
+        "ModuleID": "140732727758848",
+        "AssemblyID": "1826081102208",
+        "ModuleFlags": "27",
+        "Reserved1": "0",
+        "ModuleILPath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.Core\\v4.0_4.0.0.0__b77a5c561934e089\\System.Core.dll",
+        "ModuleNativePath": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Core\\2d550862ce4c9745f1ec2785d34258ac\\System.Core.ni.dll",
+        "ClrInstanceID": "8",
+        "ManagedPdbSignature": "913f5254-14a0-461f-8c7c-99da2651f143",
+        "ManagedPdbAge": "2",
+        "ManagedPdbBuildPath": "System.Core.pdb",
+        "NativePdbSignature": "2d550862-ce4c-9745-f1ec-2785d34258ac",
+        "NativePdbAge": "1",
+        "NativePdbBuildPath": "System.Core.ni.pdb"
+      }
+    },
+    {
+      "event_id": 152,
+      "pid": 448,
+      "fields": {
+        "ModuleID": "140732692566016",
+        "AssemblyID": "1826081101632",
+        "ModuleFlags": "11",
+        "Reserved1": "0",
+        "ModuleILPath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.Management.Automation\\v4.0_3.0.0.0__31bf3856ad364e35\\System.Management.Automation.dll",
+        "ModuleNativePath": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Manaa57fc8cc#\\021537811b25d09909593f37faf9e713\\System.Management.Automation.ni.dll",
+        "ClrInstanceID": "8",
+        "ManagedPdbSignature": "52131ed9-2a81-4789-b73e-5b86ec97365a",
+        "ManagedPdbAge": "1",
+        "ManagedPdbBuildPath": "System.Management.Automation.pdb",
+        "NativePdbSignature": "02153781-1b25-d099-0959-3f37faf9e713",
+        "NativePdbAge": "1",
+        "NativePdbBuildPath": "System.Management.Automation.ni.pdb"
+      }
+    },
+    {
+      "event_id": 152,
+      "pid": 448,
+      "fields": {
+        "ModuleID": "140731173263776",
+        "AssemblyID": "1826081166880",
+        "ModuleFlags": "9",
+        "Reserved1": "0",
+        "ModuleILPath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.Management.Automation.resources\\v4.0_3.0.0.0_zh-Hans_31bf3856ad364e35\\System.Management.Automation.resources.dll",
+        "ModuleNativePath": "",
+        "ClrInstanceID": "8",
+        "ManagedPdbSignature": "00000000-0000-0000-0000-000000000000",
+        "ManagedPdbAge": "0",
+        "ManagedPdbBuildPath": "",
+        "NativePdbSignature": "00000000-0000-0000-0000-000000000000",
+        "NativePdbAge": "0",
+        "NativePdbBuildPath": ""
+      }
+    },
+    {
+      "event_id": 152,
+      "pid": 448,
+      "fields": {
+        "ModuleID": "140732691845120",
+        "AssemblyID": "1826081166592",
+        "ModuleFlags": "11",
+        "Reserved1": "0",
+        "ModuleILPath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\Microsoft.Management.Infrastructure\\v4.0_1.0.0.0__31bf3856ad364e35\\Microsoft.Management.Infrastructure.dll",
+        "ModuleNativePath": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\Microsoft.Mf49f6405#\\08ab12cea70c2d02df7073fa6f73703e\\Microsoft.Management.Infrastructure.ni.dll",
+        "ClrInstanceID": "8",
+        "ManagedPdbSignature": "2c5db641-47fd-4c66-a9bf-e7541c7491ba",
+        "ManagedPdbAge": "1",
+        "ManagedPdbBuildPath": "Microsoft.Management.Infrastructure.pdb",
+        "NativePdbSignature": "08ab12ce-a70c-2d02-df70-73fa6f73703e",
+        "NativePdbAge": "1",
+        "NativePdbBuildPath": "Microsoft.Management.Infrastructure.ni.pdb"
+      }
+    },
+    {
+      "event_id": 152,
+      "pid": 448,
+      "fields": {
+        "ModuleID": "140732682670080",
+        "AssemblyID": "1826081169472",
+        "ModuleFlags": "27",
+        "Reserved1": "0",
+        "ModuleILPath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.Xml\\v4.0_4.0.0.0__b77a5c561934e089\\System.Xml.dll",
+        "ModuleNativePath": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Xml\\9f5174b58465a67acb58ccaa54a46f15\\System.Xml.ni.dll",
+        "ClrInstanceID": "8",
+        "ManagedPdbSignature": "60efed85-5fff-46b8-ab6b-f371e363f68a",
+        "ManagedPdbAge": "2",
+        "ManagedPdbBuildPath": "System.Xml.pdb",
+        "NativePdbSignature": "9f5174b5-8465-a67a-cb58-ccaa54a46f15",
+        "NativePdbAge": "1",
+        "NativePdbBuildPath": "System.Xml.ni.pdb"
+      }
+    },
+    {
+      "event_id": 152,
+      "pid": 448,
+      "fields": {
+        "ModuleID": "140732681162752",
+        "AssemblyID": "1826081168320",
+        "ModuleFlags": "27",
+        "Reserved1": "0",
+        "ModuleILPath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.Management\\v4.0_4.0.0.0__b03f5f7f11d50a3a\\System.Management.dll",
+        "ModuleNativePath": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Management\\8a454799ab5bbc2b2fe2b22e64c1f06c\\System.Management.ni.dll",
+        "ClrInstanceID": "8",
+        "ManagedPdbSignature": "49d13828-8c5e-417b-b8c7-f47c89b84e3f",
+        "ManagedPdbAge": "1",
+        "ManagedPdbBuildPath": "System.Management.pdb",
+        "NativePdbSignature": "8a454799-ab5b-bc2b-2fe2-b22e64c1f06c",
+        "NativePdbAge": "1",
+        "NativePdbBuildPath": "System.Management.ni.pdb"
+      }
+    },
+    {
+      "event_id": 152,
+      "pid": 448,
+      "fields": {
+        "ModuleID": "140732679655424",
+        "AssemblyID": "1826081164576",
+        "ModuleFlags": "27",
+        "Reserved1": "0",
+        "ModuleILPath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.DirectoryServices\\v4.0_4.0.0.0__b03f5f7f11d50a3a\\System.DirectoryServices.dll",
+        "ModuleNativePath": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Dired13b18a9#\\8896ee2a874b493fefecca12bdc2097d\\System.DirectoryServices.ni.dll",
+        "ClrInstanceID": "8",
+        "ManagedPdbSignature": "daef7bd6-3053-4f5c-8314-d3b270139d9e",
+        "ManagedPdbAge": "1",
+        "ManagedPdbBuildPath": "System.DirectoryServices.pdb",
+        "NativePdbSignature": "8896ee2a-874b-493f-efec-ca12bdc2097d",
+        "NativePdbAge": "1",
+        "NativePdbBuildPath": "System.DirectoryServices.ni.pdb"
+      }
+    },
+    {
+      "event_id": 152,
+      "pid": 448,
+      "fields": {
+        "ModuleID": "140731173269336",
+        "AssemblyID": "1826081167744",
+        "ModuleFlags": "9",
+        "Reserved1": "0",
+        "ModuleILPath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\Microsoft.PowerShell.ConsoleHost.resources\\v4.0_3.0.0.0_zh-Hans_31bf3856ad364e35\\Microsoft.PowerShell.ConsoleHost.resources.dll",
+        "ModuleNativePath": "",
+        "ClrInstanceID": "8",
+        "ManagedPdbSignature": "00000000-0000-0000-0000-000000000000",
+        "ManagedPdbAge": "0",
+        "ManagedPdbBuildPath": "",
+        "NativePdbSignature": "00000000-0000-0000-0000-000000000000",
+        "NativePdbAge": "0",
+        "NativePdbBuildPath": ""
+      }
+    },
+    {
+      "event_id": 152,
+      "pid": 448,
+      "fields": {
+        "ModuleID": "140731173271240",
+        "AssemblyID": "1826081168032",
+        "ModuleFlags": "9",
+        "Reserved1": "0",
+        "ModuleILPath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.Numerics\\v4.0_4.0.0.0__b77a5c561934e089\\System.Numerics.dll",
+        "ModuleNativePath": "",
+        "ClrInstanceID": "8",
+        "ManagedPdbSignature": "660f08b0-a060-4f48-829c-78a083850e11",
+        "ManagedPdbAge": "2",
+        "ManagedPdbBuildPath": "System.Numerics.pdb",
+        "NativePdbSignature": "00000000-0000-0000-0000-000000000000",
+        "NativePdbAge": "0",
+        "NativePdbBuildPath": ""
+      }
+    },
+    {
+      "event_id": 152,
+      "pid": 448,
+      "fields": {
+        "ModuleID": "140732678344704",
+        "AssemblyID": "1826081167168",
+        "ModuleFlags": "27",
+        "Reserved1": "0",
+        "ModuleILPath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.Configuration\\v4.0_4.0.0.0__b03f5f7f11d50a3a\\System.Configuration.dll",
+        "ModuleNativePath": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Configuration\\d4814540c1857595f441988c91150a28\\System.Configuration.ni.dll",
+        "ClrInstanceID": "8",
+        "ManagedPdbSignature": "1a14882d-d376-4fe7-95a2-537f37278e89",
+        "ManagedPdbAge": "1",
+        "ManagedPdbBuildPath": "System.Configuration.pdb",
+        "NativePdbSignature": "d4814540-c185-7595-f441-988c91150a28",
+        "NativePdbAge": "1",
+        "NativePdbBuildPath": "System.Configuration.ni.pdb"
+      }
+    },
+    {
+      "event_id": 152,
+      "pid": 448,
+      "fields": {
+        "ModuleID": "140732668317696",
+        "AssemblyID": "1826496840912",
+        "ModuleFlags": "27",
+        "Reserved1": "0",
+        "ModuleILPath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_64\\System.Data\\v4.0_4.0.0.0__b77a5c561934e089\\System.Data.dll",
+        "ModuleNativePath": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Data\\bf9d5e129974ec144d643d259d0f8fd4\\System.Data.ni.dll",
+        "ClrInstanceID": "8",
+        "ManagedPdbSignature": "42cfa3e1-5461-4ce5-bbc4-992a49164bb8",
+        "ManagedPdbAge": "1",
+        "ManagedPdbBuildPath": "System.Data.pdb",
+        "NativePdbSignature": "bf9d5e12-9974-ec14-4d64-3d259d0f8fd4",
+        "NativePdbAge": "1",
+        "NativePdbBuildPath": "System.Data.ni.pdb"
+      }
+    },
+    {
+      "event_id": 152,
+      "pid": 448,
+      "fields": {
+        "ModuleID": "140731173282504",
+        "AssemblyID": "1826496843216",
+        "ModuleFlags": "9",
+        "Reserved1": "0",
+        "ModuleILPath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\mscorlib.resources\\v4.0_4.0.0.0_zh-Hans_b77a5c561934e089\\mscorlib.resources.dll",
+        "ModuleNativePath": "",
+        "ClrInstanceID": "8",
+        "ManagedPdbSignature": "00000000-0000-0000-0000-000000000000",
+        "ManagedPdbAge": "0",
+        "ManagedPdbBuildPath": "",
+        "NativePdbSignature": "00000000-0000-0000-0000-000000000000",
+        "NativePdbAge": "0",
+        "NativePdbBuildPath": ""
+      }
+    },
+    {
+      "event_id": 152,
+      "pid": 448,
+      "fields": {
+        "ModuleID": "140731175055376",
+        "AssemblyID": "1826496843504",
+        "ModuleFlags": "12",
+        "Reserved1": "0",
+        "ModuleILPath": "Anonymously Hosted DynamicMethods Assembly",
+        "ModuleNativePath": "",
+        "ClrInstanceID": "8",
+        "ManagedPdbSignature": "00000000-0000-0000-0000-000000000000",
+        "ManagedPdbAge": "0",
+        "ManagedPdbBuildPath": "",
+        "NativePdbSignature": "00000000-0000-0000-0000-000000000000",
+        "NativePdbAge": "0",
+        "NativePdbBuildPath": ""
+      }
+    },
+    {
+      "event_id": 152,
+      "pid": 448,
+      "fields": {
+        "ModuleID": "140732663009280",
+        "AssemblyID": "1826496844944",
+        "ModuleFlags": "11",
+        "Reserved1": "0",
+        "ModuleILPath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\Microsoft.PowerShell.Security\\v4.0_3.0.0.0__31bf3856ad364e35\\Microsoft.PowerShell.Security.dll",
+        "ModuleNativePath": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\Microsoft.P6f792626#\\9229da9c95d298d7ea0acc0b3d8f25fa\\Microsoft.PowerShell.Security.ni.dll",
+        "ClrInstanceID": "8",
+        "ManagedPdbSignature": "de47d298-c841-47d3-92c2-1cf7fc70a833",
+        "ManagedPdbAge": "1",
+        "ManagedPdbBuildPath": "Microsoft.PowerShell.Security.pdb",
+        "NativePdbSignature": "9229da9c-95d2-98d7-ea0a-cc0b3d8f25fa",
+        "NativePdbAge": "1",
+        "NativePdbBuildPath": "Microsoft.PowerShell.Security.ni.pdb"
+      }
+    },
+    {
+      "event_id": 152,
+      "pid": 448,
+      "fields": {
+        "ModuleID": "140732662091776",
+        "AssemblyID": "1826496842640",
+        "ModuleFlags": "11",
+        "Reserved1": "0",
+        "ModuleILPath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_64\\System.Transactions\\v4.0_4.0.0.0__b77a5c561934e089\\System.Transactions.dll",
+        "ModuleNativePath": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Transactions\\e2d002211b727266d0c6289112700897\\System.Transactions.ni.dll",
+        "ClrInstanceID": "8",
+        "ManagedPdbSignature": "3467a961-9b63-409b-bf36-ec0c449ab128",
+        "ManagedPdbAge": "1",
+        "ManagedPdbBuildPath": "System.Transactions.pdb",
+        "NativePdbSignature": "e2d00221-1b72-7266-d0c6-289112700897",
+        "NativePdbAge": "1",
+        "NativePdbBuildPath": "System.Transactions.ni.pdb"
+      }
+    },
+    {
+      "event_id": 152,
+      "pid": 448,
+      "fields": {
+        "ModuleID": "140732641447936",
+        "AssemblyID": "1826496844368",
+        "ModuleFlags": "11",
+        "Reserved1": "0",
+        "ModuleILPath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\Microsoft.PowerShell.Commands.Utility\\v4.0_3.0.0.0__31bf3856ad364e35\\Microsoft.PowerShell.Commands.Utility.dll",
+        "ModuleNativePath": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\Microsoft.P521220ea#\\543f75d36bbf6d900552a6a5d24487c1\\Microsoft.PowerShell.Commands.Utility.ni.dll",
+        "ClrInstanceID": "8",
+        "ManagedPdbSignature": "1a2e9c40-6906-4b6c-9b8b-a087bf8ecae8",
+        "ManagedPdbAge": "1",
+        "ManagedPdbBuildPath": "Microsoft.PowerShell.Commands.Utility.pdb",
+        "NativePdbSignature": "543f75d3-6bbf-6d90-0552-a6a5d24487c1",
+        "NativePdbAge": "1",
+        "NativePdbBuildPath": "Microsoft.PowerShell.Commands.Utility.ni.pdb"
+      }
+    },
+    {
+      "event_id": 152,
+      "pid": 448,
+      "fields": {
+        "ModuleID": "140732657831936",
+        "AssemblyID": "1826501200592",
+        "ModuleFlags": "11",
+        "Reserved1": "0",
+        "ModuleILPath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.Configuration.Install\\v4.0_4.0.0.0__b03f5f7f11d50a3a\\System.Configuration.Install.dll",
+        "ModuleNativePath": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Confe64a9051#\\43d6670eb9862f8121ada3dbde5632cb\\System.Configuration.Install.ni.dll",
+        "ClrInstanceID": "8",
+        "ManagedPdbSignature": "85731060-63f5-45eb-ac0a-65088e5f62b0",
+        "ManagedPdbAge": "1",
+        "ManagedPdbBuildPath": "System.Configuration.Install.pdb",
+        "NativePdbSignature": "43d6670e-b986-2f81-21ad-a3dbde5632cb",
+        "NativePdbAge": "1",
+        "NativePdbBuildPath": "System.Configuration.Install.ni.pdb"
+      }
+    },
+    {
+      "event_id": 152,
+      "pid": 448,
+      "fields": {
+        "ModuleID": "140731176847600",
+        "AssemblyID": "1826501197136",
+        "ModuleFlags": "8",
+        "Reserved1": "0",
+        "ModuleILPath": "gim3mmm2",
+        "ModuleNativePath": "",
+        "ClrInstanceID": "8",
+        "ManagedPdbSignature": "00000000-0000-0000-0000-000000000000",
+        "ManagedPdbAge": "0",
+        "ManagedPdbBuildPath": "",
+        "NativePdbSignature": "00000000-0000-0000-0000-000000000000",
+        "NativePdbAge": "0",
+        "NativePdbBuildPath": ""
+      }
+    },
+    {
+      "event_id": 153,
+      "pid": 448,
+      "fields": {
+        "ModuleID": "140731175055376",
+        "AssemblyID": "1826496843504",
+        "ModuleFlags": "12",
+        "Reserved1": "0",
+        "ModuleILPath": "Anonymously Hosted DynamicMethods Assembly",
+        "ModuleNativePath": "",
+        "ClrInstanceID": "8",
+        "ManagedPdbSignature": "00000000-0000-0000-0000-000000000000",
+        "ManagedPdbAge": "0",
+        "ManagedPdbBuildPath": "",
+        "NativePdbSignature": "00000000-0000-0000-0000-000000000000",
+        "NativePdbAge": "0",
+        "NativePdbBuildPath": ""
+      }
+    },
+    {
+      "event_id": 153,
+      "pid": 448,
+      "fields": {
+        "ModuleID": "140731176847600",
+        "AssemblyID": "1826501197136",
+        "ModuleFlags": "8",
+        "Reserved1": "0",
+        "ModuleILPath": "gim3mmm2",
+        "ModuleNativePath": "",
+        "ClrInstanceID": "8",
+        "ManagedPdbSignature": "00000000-0000-0000-0000-000000000000",
+        "ManagedPdbAge": "0",
+        "ManagedPdbBuildPath": "",
+        "NativePdbSignature": "00000000-0000-0000-0000-000000000000",
+        "NativePdbAge": "0",
+        "NativePdbBuildPath": ""
+      }
+    },
+    {
+      "event_id": 153,
+      "pid": 448,
+      "fields": {
+        "ModuleID": "140732641447936",
+        "AssemblyID": "1826496844368",
+        "ModuleFlags": "11",
+        "Reserved1": "0",
+        "ModuleILPath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\Microsoft.PowerShell.Commands.Utility\\v4.0_3.0.0.0__31bf3856ad364e35\\Microsoft.PowerShell.Commands.Utility.dll",
+        "ModuleNativePath": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\Microsoft.P521220ea#\\543f75d36bbf6d900552a6a5d24487c1\\Microsoft.PowerShell.Commands.Utility.ni.dll",
+        "ClrInstanceID": "8",
+        "ManagedPdbSignature": "1a2e9c40-6906-4b6c-9b8b-a087bf8ecae8",
+        "ManagedPdbAge": "1",
+        "ManagedPdbBuildPath": "Microsoft.PowerShell.Commands.Utility.pdb",
+        "NativePdbSignature": "543f75d3-6bbf-6d90-0552-a6a5d24487c1",
+        "NativePdbAge": "1",
+        "NativePdbBuildPath": "Microsoft.PowerShell.Commands.Utility.ni.pdb"
+      }
+    },
+    {
+      "event_id": 153,
+      "pid": 448,
+      "fields": {
+        "ModuleID": "140732727037952",
+        "AssemblyID": "1826081099328",
+        "ModuleFlags": "11",
+        "Reserved1": "0",
+        "ModuleILPath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\Microsoft.PowerShell.ConsoleHost\\v4.0_3.0.0.0__31bf3856ad364e35\\Microsoft.PowerShell.ConsoleHost.dll",
+        "ModuleNativePath": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\Microsoft.Pb378ec07#\\860f036fdb796eaa38d52d7c8f912562\\Microsoft.PowerShell.ConsoleHost.ni.dll",
+        "ClrInstanceID": "8",
+        "ManagedPdbSignature": "1ac6c6e3-6635-4a99-9ec4-78bbb813305c",
+        "ManagedPdbAge": "1",
+        "ManagedPdbBuildPath": "Microsoft.PowerShell.ConsoleHost.pdb",
+        "NativePdbSignature": "860f036f-db79-6eaa-38d5-2d7c8f912562",
+        "NativePdbAge": "1",
+        "NativePdbBuildPath": "Microsoft.PowerShell.ConsoleHost.ni.pdb"
+      }
+    },
+    {
+      "event_id": 153,
+      "pid": 448,
+      "fields": {
+        "ModuleID": "140732668317696",
+        "AssemblyID": "1826496840912",
+        "ModuleFlags": "27",
+        "Reserved1": "0",
+        "ModuleILPath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_64\\System.Data\\v4.0_4.0.0.0__b77a5c561934e089\\System.Data.dll",
+        "ModuleNativePath": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Data\\bf9d5e129974ec144d643d259d0f8fd4\\System.Data.ni.dll",
+        "ClrInstanceID": "8",
+        "ManagedPdbSignature": "42cfa3e1-5461-4ce5-bbc4-992a49164bb8",
+        "ManagedPdbAge": "1",
+        "ManagedPdbBuildPath": "System.Data.pdb",
+        "NativePdbSignature": "bf9d5e12-9974-ec14-4d64-3d259d0f8fd4",
+        "NativePdbAge": "1",
+        "NativePdbBuildPath": "System.Data.ni.pdb"
+      }
+    },
+    {
+      "event_id": 153,
+      "pid": 448,
+      "fields": {
+        "ModuleID": "140732678344704",
+        "AssemblyID": "1826081167168",
+        "ModuleFlags": "27",
+        "Reserved1": "0",
+        "ModuleILPath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.Configuration\\v4.0_4.0.0.0__b03f5f7f11d50a3a\\System.Configuration.dll",
+        "ModuleNativePath": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Configuration\\d4814540c1857595f441988c91150a28\\System.Configuration.ni.dll",
+        "ClrInstanceID": "8",
+        "ManagedPdbSignature": "1a14882d-d376-4fe7-95a2-537f37278e89",
+        "ManagedPdbAge": "1",
+        "ManagedPdbBuildPath": "System.Configuration.pdb",
+        "NativePdbSignature": "d4814540-c185-7595-f441-988c91150a28",
+        "NativePdbAge": "1",
+        "NativePdbBuildPath": "System.Configuration.ni.pdb"
+      }
+    },
+    {
+      "event_id": 153,
+      "pid": 448,
+      "fields": {
+        "ModuleID": "140731173271240",
+        "AssemblyID": "1826081168032",
+        "ModuleFlags": "9",
+        "Reserved1": "0",
+        "ModuleILPath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.Numerics\\v4.0_4.0.0.0__b77a5c561934e089\\System.Numerics.dll",
+        "ModuleNativePath": "",
+        "ClrInstanceID": "8",
+        "ManagedPdbSignature": "660f08b0-a060-4f48-829c-78a083850e11",
+        "ManagedPdbAge": "2",
+        "ManagedPdbBuildPath": "System.Numerics.pdb",
+        "NativePdbSignature": "00000000-0000-0000-0000-000000000000",
+        "NativePdbAge": "0",
+        "NativePdbBuildPath": ""
+      }
+    },
+    {
+      "event_id": 153,
+      "pid": 448,
+      "fields": {
+        "ModuleID": "140732662091776",
+        "AssemblyID": "1826496842640",
+        "ModuleFlags": "11",
+        "Reserved1": "0",
+        "ModuleILPath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_64\\System.Transactions\\v4.0_4.0.0.0__b77a5c561934e089\\System.Transactions.dll",
+        "ModuleNativePath": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Transactions\\e2d002211b727266d0c6289112700897\\System.Transactions.ni.dll",
+        "ClrInstanceID": "8",
+        "ManagedPdbSignature": "3467a961-9b63-409b-bf36-ec0c449ab128",
+        "ManagedPdbAge": "1",
+        "ManagedPdbBuildPath": "System.Transactions.pdb",
+        "NativePdbSignature": "e2d00221-1b72-7266-d0c6-289112700897",
+        "NativePdbAge": "1",
+        "NativePdbBuildPath": "System.Transactions.ni.pdb"
+      }
+    },
+    {
+      "event_id": 153,
+      "pid": 448,
+      "fields": {
+        "ModuleID": "140731173263776",
+        "AssemblyID": "1826081166880",
+        "ModuleFlags": "9",
+        "Reserved1": "0",
+        "ModuleILPath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.Management.Automation.resources\\v4.0_3.0.0.0_zh-Hans_31bf3856ad364e35\\System.Management.Automation.resources.dll",
+        "ModuleNativePath": "",
+        "ClrInstanceID": "8",
+        "ManagedPdbSignature": "00000000-0000-0000-0000-000000000000",
+        "ManagedPdbAge": "0",
+        "ManagedPdbBuildPath": "",
+        "NativePdbSignature": "00000000-0000-0000-0000-000000000000",
+        "NativePdbAge": "0",
+        "NativePdbBuildPath": ""
+      }
+    },
+    {
+      "event_id": 153,
+      "pid": 448,
+      "fields": {
+        "ModuleID": "140732738834432",
+        "AssemblyID": "1826081022912",
+        "ModuleFlags": "27",
+        "Reserved1": "0",
+        "ModuleILPath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System\\v4.0_4.0.0.0__b77a5c561934e089\\System.dll",
+        "ModuleNativePath": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System\\45689b966cb35d73224432bacf80da91\\System.ni.dll",
+        "ClrInstanceID": "8",
+        "ManagedPdbSignature": "bae346b2-f711-48b1-b3d6-1f3f400f2134",
+        "ManagedPdbAge": "2",
+        "ManagedPdbBuildPath": "System.pdb",
+        "NativePdbSignature": "45689b96-6cb3-5d73-2244-32bacf80da91",
+        "NativePdbAge": "1",
+        "NativePdbBuildPath": "System.ni.pdb"
+      }
+    },
+    {
+      "event_id": 153,
+      "pid": 448,
+      "fields": {
+        "ModuleID": "140732657831936",
+        "AssemblyID": "1826501200592",
+        "ModuleFlags": "11",
+        "Reserved1": "0",
+        "ModuleILPath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.Configuration.Install\\v4.0_4.0.0.0__b03f5f7f11d50a3a\\System.Configuration.Install.dll",
+        "ModuleNativePath": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Confe64a9051#\\43d6670eb9862f8121ada3dbde5632cb\\System.Configuration.Install.ni.dll",
+        "ClrInstanceID": "8",
+        "ManagedPdbSignature": "85731060-63f5-45eb-ac0a-65088e5f62b0",
+        "ManagedPdbAge": "1",
+        "ManagedPdbBuildPath": "System.Configuration.Install.pdb",
+        "NativePdbSignature": "43d6670e-b986-2f81-21ad-a3dbde5632cb",
+        "NativePdbAge": "1",
+        "NativePdbBuildPath": "System.Configuration.Install.ni.pdb"
+      }
+    },
+    {
+      "event_id": 153,
+      "pid": 448,
+      "fields": {
+        "ModuleID": "140732751548416",
+        "AssemblyID": "1826080955888",
+        "ModuleFlags": "27",
+        "Reserved1": "0",
+        "ModuleILPath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_64\\mscorlib\\v4.0_4.0.0.0__b77a5c561934e089\\mscorlib.dll",
+        "ModuleNativePath": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\mscorlib\\ca4838b4fee6fda983bf8ca7c1b41582\\mscorlib.ni.dll",
+        "ClrInstanceID": "8",
+        "ManagedPdbSignature": "2b6b4259-de16-4518-9fd5-cf8cb1a5ad4a",
+        "ManagedPdbAge": "2",
+        "ManagedPdbBuildPath": "mscorlib.pdb",
+        "NativePdbSignature": "ca4838b4-fee6-fda9-83bf-8ca7c1b41582",
+        "NativePdbAge": "1",
+        "NativePdbBuildPath": "mscorlib.ni.pdb"
+      }
+    },
+    {
+      "event_id": 153,
+      "pid": 448,
+      "fields": {
+        "ModuleID": "140732681162752",
+        "AssemblyID": "1826081168320",
+        "ModuleFlags": "27",
+        "Reserved1": "0",
+        "ModuleILPath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.Management\\v4.0_4.0.0.0__b03f5f7f11d50a3a\\System.Management.dll",
+        "ModuleNativePath": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Management\\8a454799ab5bbc2b2fe2b22e64c1f06c\\System.Management.ni.dll",
+        "ClrInstanceID": "8",
+        "ManagedPdbSignature": "49d13828-8c5e-417b-b8c7-f47c89b84e3f",
+        "ManagedPdbAge": "1",
+        "ManagedPdbBuildPath": "System.Management.pdb",
+        "NativePdbSignature": "8a454799-ab5b-bc2b-2fe2-b22e64c1f06c",
+        "NativePdbAge": "1",
+        "NativePdbBuildPath": "System.Management.ni.pdb"
+      }
+    },
+    {
+      "event_id": 153,
+      "pid": 448,
+      "fields": {
+        "ModuleID": "140731173282504",
+        "AssemblyID": "1826496843216",
+        "ModuleFlags": "9",
+        "Reserved1": "0",
+        "ModuleILPath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\mscorlib.resources\\v4.0_4.0.0.0_zh-Hans_b77a5c561934e089\\mscorlib.resources.dll",
+        "ModuleNativePath": "",
+        "ClrInstanceID": "8",
+        "ManagedPdbSignature": "00000000-0000-0000-0000-000000000000",
+        "ManagedPdbAge": "0",
+        "ManagedPdbBuildPath": "",
+        "NativePdbSignature": "00000000-0000-0000-0000-000000000000",
+        "NativePdbAge": "0",
+        "NativePdbBuildPath": ""
+      }
+    },
+    {
+      "event_id": 153,
+      "pid": 448,
+      "fields": {
+        "ModuleID": "140732679655424",
+        "AssemblyID": "1826081164576",
+        "ModuleFlags": "27",
+        "Reserved1": "0",
+        "ModuleILPath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.DirectoryServices\\v4.0_4.0.0.0__b03f5f7f11d50a3a\\System.DirectoryServices.dll",
+        "ModuleNativePath": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Dired13b18a9#\\8896ee2a874b493fefecca12bdc2097d\\System.DirectoryServices.ni.dll",
+        "ClrInstanceID": "8",
+        "ManagedPdbSignature": "daef7bd6-3053-4f5c-8314-d3b270139d9e",
+        "ManagedPdbAge": "1",
+        "ManagedPdbBuildPath": "System.DirectoryServices.pdb",
+        "NativePdbSignature": "8896ee2a-874b-493f-efec-ca12bdc2097d",
+        "NativePdbAge": "1",
+        "NativePdbBuildPath": "System.DirectoryServices.ni.pdb"
+      }
+    },
+    {
+      "event_id": 153,
+      "pid": 448,
+      "fields": {
+        "ModuleID": "140731173269336",
+        "AssemblyID": "1826081167744",
+        "ModuleFlags": "9",
+        "Reserved1": "0",
+        "ModuleILPath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\Microsoft.PowerShell.ConsoleHost.resources\\v4.0_3.0.0.0_zh-Hans_31bf3856ad364e35\\Microsoft.PowerShell.ConsoleHost.resources.dll",
+        "ModuleNativePath": "",
+        "ClrInstanceID": "8",
+        "ManagedPdbSignature": "00000000-0000-0000-0000-000000000000",
+        "ManagedPdbAge": "0",
+        "ManagedPdbBuildPath": "",
+        "NativePdbSignature": "00000000-0000-0000-0000-000000000000",
+        "NativePdbAge": "0",
+        "NativePdbBuildPath": ""
+      }
+    },
+    {
+      "event_id": 153,
+      "pid": 448,
+      "fields": {
+        "ModuleID": "140732692566016",
+        "AssemblyID": "1826081101632",
+        "ModuleFlags": "11",
+        "Reserved1": "0",
+        "ModuleILPath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.Management.Automation\\v4.0_3.0.0.0__31bf3856ad364e35\\System.Management.Automation.dll",
+        "ModuleNativePath": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Manaa57fc8cc#\\021537811b25d09909593f37faf9e713\\System.Management.Automation.ni.dll",
+        "ClrInstanceID": "8",
+        "ManagedPdbSignature": "52131ed9-2a81-4789-b73e-5b86ec97365a",
+        "ManagedPdbAge": "1",
+        "ManagedPdbBuildPath": "System.Management.Automation.pdb",
+        "NativePdbSignature": "02153781-1b25-d099-0959-3f37faf9e713",
+        "NativePdbAge": "1",
+        "NativePdbBuildPath": "System.Management.Automation.ni.pdb"
+      }
+    },
+    {
+      "event_id": 153,
+      "pid": 448,
+      "fields": {
+        "ModuleID": "140732727758848",
+        "AssemblyID": "1826081102208",
+        "ModuleFlags": "27",
+        "Reserved1": "0",
+        "ModuleILPath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.Core\\v4.0_4.0.0.0__b77a5c561934e089\\System.Core.dll",
+        "ModuleNativePath": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Core\\2d550862ce4c9745f1ec2785d34258ac\\System.Core.ni.dll",
+        "ClrInstanceID": "8",
+        "ManagedPdbSignature": "913f5254-14a0-461f-8c7c-99da2651f143",
+        "ManagedPdbAge": "2",
+        "ManagedPdbBuildPath": "System.Core.pdb",
+        "NativePdbSignature": "2d550862-ce4c-9745-f1ec-2785d34258ac",
+        "NativePdbAge": "1",
+        "NativePdbBuildPath": "System.Core.ni.pdb"
+      }
+    },
+    {
+      "event_id": 153,
+      "pid": 448,
+      "fields": {
+        "ModuleID": "140732682670080",
+        "AssemblyID": "1826081169472",
+        "ModuleFlags": "27",
+        "Reserved1": "0",
+        "ModuleILPath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\System.Xml\\v4.0_4.0.0.0__b77a5c561934e089\\System.Xml.dll",
+        "ModuleNativePath": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\System.Xml\\9f5174b58465a67acb58ccaa54a46f15\\System.Xml.ni.dll",
+        "ClrInstanceID": "8",
+        "ManagedPdbSignature": "60efed85-5fff-46b8-ab6b-f371e363f68a",
+        "ManagedPdbAge": "2",
+        "ManagedPdbBuildPath": "System.Xml.pdb",
+        "NativePdbSignature": "9f5174b5-8465-a67a-cb58-ccaa54a46f15",
+        "NativePdbAge": "1",
+        "NativePdbBuildPath": "System.Xml.ni.pdb"
+      }
+    },
+    {
+      "event_id": 153,
+      "pid": 448,
+      "fields": {
+        "ModuleID": "140732663009280",
+        "AssemblyID": "1826496844944",
+        "ModuleFlags": "11",
+        "Reserved1": "0",
+        "ModuleILPath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\Microsoft.PowerShell.Security\\v4.0_3.0.0.0__31bf3856ad364e35\\Microsoft.PowerShell.Security.dll",
+        "ModuleNativePath": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\Microsoft.P6f792626#\\9229da9c95d298d7ea0acc0b3d8f25fa\\Microsoft.PowerShell.Security.ni.dll",
+        "ClrInstanceID": "8",
+        "ManagedPdbSignature": "de47d298-c841-47d3-92c2-1cf7fc70a833",
+        "ManagedPdbAge": "1",
+        "ManagedPdbBuildPath": "Microsoft.PowerShell.Security.pdb",
+        "NativePdbSignature": "9229da9c-95d2-98d7-ea0a-cc0b3d8f25fa",
+        "NativePdbAge": "1",
+        "NativePdbBuildPath": "Microsoft.PowerShell.Security.ni.pdb"
+      }
+    },
+    {
+      "event_id": 153,
+      "pid": 448,
+      "fields": {
+        "ModuleID": "140732691845120",
+        "AssemblyID": "1826081166592",
+        "ModuleFlags": "11",
+        "Reserved1": "0",
+        "ModuleILPath": "C:\\Windows\\Microsoft.Net\\assembly\\GAC_MSIL\\Microsoft.Management.Infrastructure\\v4.0_1.0.0.0__31bf3856ad364e35\\Microsoft.Management.Infrastructure.dll",
+        "ModuleNativePath": "C:\\Windows\\assembly\\NativeImages_v4.0.30319_64\\Microsoft.Mf49f6405#\\08ab12cea70c2d02df7073fa6f73703e\\Microsoft.Management.Infrastructure.ni.dll",
+        "ClrInstanceID": "8",
+        "ManagedPdbSignature": "2c5db641-47fd-4c66-a9bf-e7541c7491ba",
+        "ManagedPdbAge": "1",
+        "ManagedPdbBuildPath": "Microsoft.Management.Infrastructure.pdb",
+        "NativePdbSignature": "08ab12ce-a70c-2d02-df70-73fa6f73703e",
+        "NativePdbAge": "1",
+        "NativePdbBuildPath": "Microsoft.Management.Infrastructure.ni.pdb"
+      }
+    }
+  ]
+}
