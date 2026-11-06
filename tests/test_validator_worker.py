@@ -145,6 +145,14 @@ class ValidatorWorkerTests(unittest.TestCase):
         self.assertTrue(valid['validators_succeeded'])
         self.assertEqual([item['exit_code'] for item in valid['results']], [0, 0])
 
+    @unittest.skipUnless(os.name == 'nt', 'Windows source sharing required')
+    def test_reader_rejects_active_source_writer(self):
+        source = self.root / 'WindowsSafeInput.cs'
+        with source.open('r+b'):
+            result = run_validators(self.root, self.request, node=self.node)
+        self.assertFalse(result['validators_succeeded'])
+        self.assertTrue(run_validators(self.root, self.request, node=self.node)['validators_succeeded'])
+
     def test_relative_root_runs_checked_scripts_instead_of_nested_scripts(self):
         nested = self.root / self.root.name
         nested.mkdir()

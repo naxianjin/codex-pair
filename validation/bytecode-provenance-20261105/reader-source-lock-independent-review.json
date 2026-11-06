@@ -1,0 +1,45 @@
+{
+  "conclusion": "passed",
+  "scope": "本轮源码锁修复",
+  "identity": {
+    "session_id": "01a1b0ae-5e37-7c80-812b-9953f2b0371f",
+    "thread_id": "01a1b0ae-5e37-7c80-812b-9953f2b0371f",
+    "model": "gpt-6.1-sol",
+    "model_provider": "openai",
+    "cli_version": "0.167.0-alpha.3.2"
+  },
+  "files": [
+    {
+      "file": "assets/audit/read-windows-input.ps1",
+      "actual_sha256": "a6622fcc97061924d6cf55c8e5835f618b8409cc72b9cfd29a58eb5b8ff14966",
+      "expected_sha256": "a6622fcc97061924d6cf55c8e5835f618b8409cc72b9cfd29a58eb5b8ff14966",
+      "equal": true
+    },
+    {
+      "file": "tests/test_validator_worker.py",
+      "actual_sha256": "7b45cdeefe214d2bb32fefbb4d3f7d3b582534714759c406e1355c5258412239",
+      "expected_sha256": "7b45cdeefe214d2bb32fefbb4d3f7d3b582534714759c406e1355c5258412239",
+      "equal": true
+    },
+    {
+      "file": "package-manifest.json",
+      "actual_sha256": "4bddfd045f862fc96389969413e4ec23b77087796ba9ece417eeba20210aa9c4",
+      "expected_sha256": "4bddfd045f862fc96389969413e4ec23b77087796ba9ece417eeba20210aa9c4",
+      "equal": true
+    }
+  ],
+  "checks": {
+    "unittest": {
+      "command": "D:/Anaconda3/python.exe -X utf8 -m unittest tests.test_validator_worker tests.test_audit_adapter tests.test_auxiliary_v14 tests.test_package tests.test_install",
+      "exit_code": 0,
+      "tests": 65,
+      "result": "OK"
+    },
+    "reader_semantics": "same-read source compiled with Add-Type -TypeDefinition; source stream and reader disposed in finally; outer source handle disposed in finally; Node caller propagates nonzero/oversize/UTF-8 errors",
+    "writer_rejection": "Windows test executed: active source writer rejected, subsequent read passed"
+  },
+  "boundaries": [
+    "不认证JIT机器码或系统DLL",
+    "不宣称正式回执或整体产品通过"
+  ]
+}
