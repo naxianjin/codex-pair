@@ -10,8 +10,8 @@ if($inventoryLock.Read($sourceBytes,0,$sourceBytes.Length) -ne $sourceBytes.Leng
 $sourceRecord=[Text.Encoding]::UTF8.GetString($sourceBytes) | ConvertFrom-Json
 $sha=[Security.Cryptography.SHA256]::Create()
 try {$sourceDigest=([BitConverter]::ToString($sha.ComputeHash($sourceBytes))).Replace('-','')} finally {$sha.Dispose()}
-$requiredSources=@('Invoke-ValidatorRawModuleDiagnostic.ps1','Test-RootTrace.ps1','PairValidatorIdentityDiagnostic.cs','root-identity-baseline.json','run-raw-module-etw.ps1','check-combined-evidence.py')
-if(@($sourceRecord.files.PSObject.Properties).Count -ne 6 -or @($sourceRecord.files.PSObject.Properties.Name | Where-Object {$_ -notin $requiredSources}).Count){throw 'Invalid source inventory set'}
+$requiredSources=@('Invoke-ValidatorRawModuleDiagnostic.ps1','Test-RootTrace.ps1','PairValidatorIdentityDiagnostic.cs','root-identity-baseline.json','run-raw-module-etw.ps1','check-combined-evidence.py','check-restricted-raw-modules.py')
+if(@($sourceRecord.files.PSObject.Properties).Count -ne 7 -or @($sourceRecord.files.PSObject.Properties.Name | Where-Object {$_ -notin $requiredSources}).Count){throw 'Invalid source inventory set'}
 foreach($item in $sourceRecord.files.PSObject.Properties){
  $sourceLock=[IO.File]::Open((Join-Path $PSScriptRoot $item.Name),'Open','Read','Read')
  $sourceLocks.Add($sourceLock)
@@ -110,6 +110,8 @@ try{
  Test-RootTrace $result
  & 'D:\Anaconda3\python.exe' -I (Join-Path $PSScriptRoot 'check-combined-evidence.py') "$output\native.json"
  if($LASTEXITCODE){throw 'Combined evidence verification failed'}
+ & 'D:\Anaconda3\python.exe' -I (Join-Path $PSScriptRoot 'check-restricted-raw-modules.py') "$output\native.json" | Out-Null
+ if($LASTEXITCODE){throw 'Raw module evidence verification failed'}
  if($result.Native.ArtifactBase64){
   $bytes=[Convert]::FromBase64String($result.Native.ArtifactBase64)
   if($bytes.Length -gt 1048576){throw 'Artifact exceeds limit'}

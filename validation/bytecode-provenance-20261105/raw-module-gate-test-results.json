@@ -1,0 +1,6 @@
+{
+  "formal": false,
+  "exit_code": 0,
+  "output": "positive accepted=True; fixture receipt/pending correct; formal=false\nmissing_events accepted=False; fixture receipt/pending correct; formal=false\nunknown_version accepted=False; fixture receipt/pending correct; formal=false\n",
+  "scope": "Extracted actual gate with fixture receipt/pending continuation; not full controller failure injection"
+}

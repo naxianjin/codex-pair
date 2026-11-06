@@ -187,3 +187,9 @@ IL文件续测取得21个绝对路径的磁盘SHA256及Windows签名观察，全
 新增check-native-il-links.py复核现有真实受限模块事件及后续磁盘签名观察：15个NotSigned NativeImage均有模块记录关联到签名Valid的IL路径及两端磁盘摘要。三个负例（缺IL观察、签名无效、缺Native关联）均拒绝，结果native-il-links-results.json。该关联不是NativeImage和IL内容等价证明，不是同次加载字节认证；两端签名/摘要来自后续单独探针。3个动态名称单列，4个加载记录分布在原始进程3948和3936，ETW确认两者是受限PowerShell；与输入读取器Add-Type有关只是实现线索，尚未认证动态内容。无生产代码修改，未联系B、未启动VM；整体formal=false。
 
 从db34bc4全新Git archive复现四个检查器（Native/IL、组合六负例、CLR三负例、受限模块六负例）全部返回0；三份来源清单及原始native回执摘要均匹配。证据combined-fresh-archive-results.json，formal=false。
+
+## 原始模块门槛接入回执前
+
+Invoke-ValidatorRawModuleDiagnostic在terminal receipt前调用真实check-restricted-raw-modules.py并立即核对退出码；七项来源清单包括检查器，持锁贯穿回执。独立openai/gpt-6.1-sol只读复审无阻塞，确认失败在pending清理前抛错。原生PS5.1抽取真实门槛正例通过、缺事件和未知版本拒绝；另用夹具续接receipt/pending行为，正例生成回执清pending，负例无回执且保留pending。该失败注入不是完整控制器失败运行，不冒充端到端负例。
+
+真实受限VM run 698b8bbda9574536bb11e923cfe0d9dc通过：13进程、46程序集配对、106映像及46原始模块配对门槛全部在回执前完成。receipt的Native、Controller、SourceInventory SHA256逐项与实跑文件核对一致；结果raw-module-gate-live-summary.json。首次测试生成命令被自动执行策略拒绝，改为无递归删除的一次性夹具后执行；未绕过拒绝。整体formal=false，动态内容及正式宿主身份认证仍未完成，未联系B。
