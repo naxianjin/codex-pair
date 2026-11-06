@@ -235,3 +235,5 @@ Invoke-ValidatorRawModuleDiagnostic在terminal receipt前调用真实check-restr
 三文件独立复审已完成：准确会话01a1b0ae-5e37-7c80-812b-9953f2b0371f，openai/gpt-6.1-sol，第三轮限定修复passed，第四轮机器摘要纠正前三轮首文件转录错误。r4三项摘要与冻结清单及发布前现场逐字节一致；正例13进程/46配对、13类负例发布前再次退出0。四轮原报告完整保留为independent-module-review-r1至r4；前两轮needs_validation及错误摘要不覆盖。此次提交字段一致性和严格整数检查、负例及匹配来源清单，解除这三文件的待审发布状态。不扩大为动态内容、加载字节、时序、宿主身份或正式阶段认证，formal=false；未联系B。
 
 读取器源码锁修复独立复审passed：官方openai/gpt-6.1-sol会话01a1b0ae-5e37-7c80-812b-9953f2b0371f，CLI 0.167.0-alpha.3.2；三项现场字节与冻结及审核摘要一致，审核者实际65项测试通过。发布修复仅覆盖同次源码读取编译、流清理、写入共享拒绝及释放后恢复；不认证JIT、系统DLL、正式回执或整体产品。审核原件保存reader-source-lock-independent-review.json，未修改活动安装或联系B。
+
+发布字节修正：ab01d46中Git默认换行规范化使三文件提交摘要与已审CRLF工作副本不同；语义归一后相同，但准确字节审核不可沿用。现为三文件增加-text规则并恢复已审核准确字节，提交前机器逐项核对暂存摘要，保留原提交历史，不改写审核结论。
