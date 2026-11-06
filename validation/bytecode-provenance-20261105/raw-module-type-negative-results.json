@@ -1,0 +1,58 @@
+{
+  "formal": false,
+  "positive_pairs": 46,
+  "cases": [
+    {
+      "case": "missing_property",
+      "rejected": true
+    },
+    {
+      "case": "wrong_assembly",
+      "rejected": true
+    },
+    {
+      "case": "wrong_clr",
+      "rejected": true
+    },
+    {
+      "case": "missing_event",
+      "rejected": true
+    },
+    {
+      "case": "duplicate_complete_pair",
+      "rejected": true
+    },
+    {
+      "case": "unknown_version",
+      "rejected": true
+    },
+    {
+      "case": "changed_il_path",
+      "rejected": true
+    },
+    {
+      "case": "changed_native_path",
+      "rejected": true
+    },
+    {
+      "case": "changed_flags",
+      "rejected": true
+    },
+    {
+      "case": "float_event_version",
+      "rejected": true
+    },
+    {
+      "case": "float_event_id",
+      "rejected": true
+    },
+    {
+      "case": "float_template_version",
+      "rejected": true
+    },
+    {
+      "case": "bool_pid",
+      "rejected": true
+    }
+  ]
+}

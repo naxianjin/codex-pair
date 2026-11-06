@@ -1,0 +1,23 @@
+{
+  "formal": false,
+  "scope": "Offline revalidation of historical actual runs; revised checker not newly VM-executed",
+  "checker_sha256": "ce642357ff38315f181d80292aee0f7439ff110c658795ee191de0a9b21a961e",
+  "runs": [
+    {
+      "run": "f26f12ac6b5e45049e83ac43cb31dba9",
+      "pairs": 46,
+      "passed": true
+    },
+    {
+      "run": "698b8bbda9574536bb11e923cfe0d9dc",
+      "pairs": 46,
+      "passed": true
+    },
+    {
+      "run": "5f69277694e64130ac1f32ad34914dac",
+      "pairs": 46,
+      "passed": true
+    }
+  ],
+  "review": "pending; official reviewer usage limit"
+}

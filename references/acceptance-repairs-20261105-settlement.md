@@ -201,3 +201,9 @@ Invoke-ValidatorRawModuleDiagnostic在terminal receipt前调用真实check-restr
 新增负例发现：保持身份键不变、只篡改卸载事件IL路径，原检查器仍接受。真实46对模块全部字段一致。已在本地补完整字段一致性约束，增加IL路径、Native路径及标志变化拒绝，正例及九负例通过。真实run 5f69277694e64130ac1f32ad34914dac亦通过，receipt原始证据和来源清单摘要核对一致；VM Off、无pending。
 
 独立官方审核因You’ve hit your usage limit中断，未完成复审。修订检查器、负例及其来源清单保留本地未提交，不将此修复记为已审核发布；本次仅同步问题、实际测试和待审核状态。已发布门槛仍保留该已知漏检，formal=false，不影响恒false正式放行限制。未联系B。
+
+## 原始模块类型边界续测（本地待审）
+
+新增探针确认事件Id/Version及模板Version改为浮点数仍通过，原因是Python字典键整数/浮点相等。已本地要求事件Id、Version、PID及模板Id/Version为严格整数；46配对正例及13负例通过。新版离线复核f26f12ac、698b8bbd、5f692776三份真实历史native全部通过，未将其称为新版再次VM实跑。摘要和结果见raw-module-type-replay-summary.json及raw-module-type-negative-results.json。
+
+事件列表倒序仍通过；当前只验证身份配对及字段一致，原始模块记录无保存时间戳，未声称生命周期时序验证。重复相同模板被字典合并，未发现由此改变解码，不增加无依据的限制。独立审核仍因额度不足未完成；字段及类型修订源码、负例脚本和来源清单继续本地未提交，本轮仅同步测试记录，不发布待审实现。formal=false，未联系B、未启动VM。
