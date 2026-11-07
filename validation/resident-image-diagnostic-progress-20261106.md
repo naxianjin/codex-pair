@@ -2,6 +2,8 @@
 
 本轮完成的是本地诊断验证。`formal=false`、`restricted_run=false`、`release_eligible=false`，整体结论仍为 `needs_validation`。本记录不发布诊断原型、内存快照或正式验收回执。
 
+后续已完成内核和 CLR 的限定静态来源补审，以及 owned 官方独立命令路径复验，见[原 B 补审与接线进展](owned-command-and-source-review-progress-20261106.md)。下文保留本记录当时的结果和未验证项，不将后续诊断结论追认为正式通过。
+
 审核已按用户要求换回原角色 B。实际核对的提供方为 `openai`，模型为 `gpt-6.1-sol`。旧审核窗口未完成的回合保留，不作为通过依据；原 B 未审核自己先前的产品查询实现。
 
 ## 本轮确认的结果
