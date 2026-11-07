@@ -17,3 +17,19 @@ assets/audit/read-windows-input.ps1 -text whitespace=cr-at-eol
 tests/test_validator_worker.py -text whitespace=cr-at-eol
 package-manifest.json -text whitespace=cr-at-eol
 validation/bytecode-provenance-20261105/probe-loaded-byte-observations.ps1 -text whitespace=cr-at-eol
+
+# Preserve this candidate as reviewed, including diagnostic runtime bytes.
+assets/audit/read-windows-input.cjs -text whitespace=cr-at-eol
+scripts/pair_auxiliary.py -text whitespace=cr-at-eol
+scripts/pair_next_commands.py -text whitespace=cr-at-eol
+scripts/pair_validator_worker.py -text whitespace=cr-at-eol
+scripts/pair_validator_host.py -text whitespace=cr-at-eol
+validation/bytecode-provenance-20261105/check-restricted-raw-modules.py -text whitespace=cr-at-eol
+validation/bytecode-provenance-20261105/check-restricted-raw-negative-cases.py -text whitespace=cr-at-eol
+validation/bytecode-provenance-20261105/probe-system-image-sections.ps1 -text whitespace=cr-at-eol
+validation/bytecode-provenance-20261105/check-system-image-consistency.py -text whitespace=cr-at-eol
+validation/bytecode-provenance-20261105/clr-runtime-contract.json -text whitespace=cr-at-eol
+validation/bytecode-provenance-20261105/clr-guest-runtime-contract.json -text whitespace=cr-at-eol
+validation/bytecode-provenance-20261105/check-system-image-run.py -text whitespace=cr-at-eol
+validation/bytecode-provenance-20261105/Invoke-SystemImageRestrictedDiagnostic.ps1 -text whitespace=cr-at-eol
+validation/bytecode-provenance-20261105/run-system-image-entry.py -text whitespace=cr-at-eol

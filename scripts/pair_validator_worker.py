@@ -3,6 +3,7 @@ import hashlib
 import ctypes
 import json
 import os
+import re
 from pathlib import Path
 import stat
 import subprocess
@@ -64,11 +65,62 @@ def verify_validator_result(request, native, artifact):
         if (not isinstance(stderr, str) or len(stderr.encode('utf-8')) > 1048576
                 or hashlib.sha256(stderr.encode('utf-8')).hexdigest() != item['stderr_sha256']):
             raise ValueError('Validator diagnostic digest mismatch')
+    observed = {item['validator']: reader_observations(item['stderr'], request['files']['WindowsSafeInput.cs'])
+                for item in results}
+    if 'reader_observations' in artifact or any(observed.values()):
+        if json.dumps(observed, sort_keys=True) != json.dumps(artifact.get('reader_observations'), sort_keys=True):
+            raise ValueError('Reader observation receipt mismatch')
     passed = all(item['exit_code'] == 0 for item in results)
     if artifact.get('validators_succeeded') is not passed:
         raise ValueError('Validator outcome inconsistent')
     return {'execution_completed': True, 'validators_succeeded': passed,
             'formal_checks_verified': False}
+
+
+
+_READER_PREFIX = 'PAIR_READER_OBSERVATION:'
+
+
+def reader_observations(stderr, source_sha256):
+    """解析实际读取器的诊断行；内容仍是观察，不能授予正式认证。"""
+    observations = []
+    for line in stderr.splitlines():
+        if not line.startswith(_READER_PREFIX):
+            continue
+        if len(line.encode('utf-8')) > 8192:
+            raise ValueError('Reader observation exceeded limit')
+        value = json.loads(line[len(_READER_PREFIX):])
+        fields = {'schema_version', 'formal', 'pid', 'process_creation_utc',
+                  'source_sha256', 'assembly_input_sha256', 'mvid', 'methods'}
+        if (not isinstance(value, dict) or set(value) != fields
+                or type(value['schema_version']) is not int or value['schema_version'] != 1
+                or value['formal'] is not False or type(value['pid']) is not int or value['pid'] <= 0
+                or not isinstance(value['process_creation_utc'], str)
+                or not re.fullmatch(r'\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{7}Z', value['process_creation_utc'])
+                or value['source_sha256'] != source_sha256
+                or not isinstance(value['assembly_input_sha256'], str)
+                or not re.fullmatch(r'[0-9a-f]{64}', value['assembly_input_sha256'])
+                or not isinstance(value['mvid'], str)
+                or not re.fullmatch(r'[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}', value['mvid'])
+                or not isinstance(value['methods'], list) or len(value['methods']) != 3):
+            raise ValueError('Reader observation binding mismatch')
+        methods = value['methods']
+        for method in methods:
+            if (not isinstance(method, dict) or set(method) != {'metadata_token', 'signature', 'il_sha256', 'il_bytes'}
+                    or type(method['metadata_token']) is not int or method['metadata_token'] >> 24 != 6
+                    or type(method['il_bytes']) is not int or not 1 <= method['il_bytes'] <= 1048576
+                    or not isinstance(method['signature'], str)
+                    or not isinstance(method['il_sha256'], str)
+                    or not re.fullmatch(r'[0-9a-f]{64}', method['il_sha256'])):
+                raise ValueError('Reader method observation invalid')
+        if (len({m['metadata_token'] for m in methods}) != 3
+                or {m['signature'] for m in methods} != {'IntPtr OpenRoot(System.String)',
+                    'Byte[] Read(System.String)', 'Byte[] ReadBytes(IntPtr, System.String)'}):
+            raise ValueError('Reader method set mismatch')
+        observations.append(value)
+    if len(observations) > 2 or len({(v['pid'], v['process_creation_utc']) for v in observations}) != len(observations):
+        raise ValueError('Reader process observations duplicated or excessive')
+    return observations
 
 
 def run_validators(root, request, *, node):
@@ -114,7 +166,12 @@ def run_validators(root, request, *, node):
             raise ValueError('Validator input changed during execution')
     if hashlib.sha256(Path(node).read_bytes()).hexdigest() != request['node_sha256']:
         raise ValueError('Validator Node changed during execution')
+    observed = {item['validator']: reader_observations(item['stderr'], files['WindowsSafeInput.cs'])
+                for item in results}
+    if os.name == 'nt' and any(item['exit_code'] == 0 and not observed[item['validator']] for item in results):
+        raise ValueError('Successful Windows validator omitted reader observation')
     return {'binding': request['binding'], 'files': files, 'results': results,
+            'reader_observations': observed,
             'validators_succeeded': all(item['exit_code'] == 0 for item in results),
             'formal_checks_verified': False}
 

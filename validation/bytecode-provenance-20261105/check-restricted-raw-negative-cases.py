@@ -32,6 +32,6 @@ for case in ("missing_property", "wrong_assembly", "wrong_clr", "missing_event",
     else:
         changed["Trace"]["ModuleEvents"] += copy.deepcopy([e for e in data["Trace"]["ModuleEvents"] if e["PID"] == event["PID"] and e["Properties"][0] == event["Properties"][0]])
     try: module.check(changed)
-    except (AssertionError, KeyError): cases.append({"case": case, "rejected": True})
+    except (AssertionError, KeyError, ValueError): cases.append({"case": case, "rejected": True})
     else: raise AssertionError(case + " accepted")
 print(json.dumps({"formal": False, "positive_pairs": result["module_pairs"], "cases": cases}, indent=2))

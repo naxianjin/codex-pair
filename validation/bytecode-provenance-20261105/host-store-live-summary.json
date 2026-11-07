@@ -1,0 +1,24 @@
+{
+  "conflict_rejected": true,
+  "duplicate_verified": true,
+  "fixture_only": true,
+  "formal": false,
+  "parent_stage_unchanged": true,
+  "parent_verdict": "needs_validation",
+  "remaining_checks": [
+    "host_identity_unverified",
+    "system_image_equivalence_unverified",
+    "jit_content_unverified",
+    "formal_receipt_unverified"
+  ],
+  "run_id": "e0d1e5aaf9e94b74a87c55975ac49598",
+  "saved": true,
+  "validators_succeeded": true,
+  "model_session_boundary": "synthetic_fixture",
+  "state_database": "local_only_not_published",
+  "processes": 13,
+  "assembly_pairs": 52,
+  "module_pairs": 52,
+  "image_hashes": 110,
+  "scope": "real isolated Store report bytes, restricted VM validators, host evidence recomputation and immutable diagnostic storage"
+}

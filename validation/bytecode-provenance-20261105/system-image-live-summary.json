@@ -1,0 +1,98 @@
+{
+  "formal": false,
+  "conclusion": "needs_validation",
+  "host": {
+    "formal": false,
+    "conclusion": "needs_validation",
+    "consistency_verified": true,
+    "capture_id": "9d9e9beeea9d4e30be21c29a687fdf92",
+    "pid": 35060,
+    "process_creation_utc": "2026-11-06T17:33:02.4447742Z",
+    "collector_sha256": "eca7e50c5169db1cdcfd6103b418abdff390ab0e155cc16a28986adb54067044",
+    "contract_sha256": "3d421d0dd8fd929ea345cb06cb550678f045a8e35ed09ea886e78f841bf33f7e",
+    "images": 3,
+    "sections": [
+      {
+        "image": "clr.dll",
+        "section": ".text",
+        "compared_bytes": 7598303,
+        "raw_difference_count": 104,
+        "remaining_difference_count": 0,
+        "normalized_sha256": "fd665d09c1ddcb42ca3bb6eef24c2968608c58e098a46ae8275b43527ebf4412",
+        "actual_sha256": "fd665d09c1ddcb42ca3bb6eef24c2968608c58e098a46ae8275b43527ebf4412"
+      },
+      {
+        "image": "kernel32.dll",
+        "section": ".text",
+        "compared_bytes": 524315,
+        "raw_difference_count": 0,
+        "remaining_difference_count": 0,
+        "normalized_sha256": "5d18f300027af3dc9f6e358b07ad8a29f04b23169fd9aa7a793de212ffcdeefb",
+        "actual_sha256": "5d18f300027af3dc9f6e358b07ad8a29f04b23169fd9aa7a793de212ffcdeefb"
+      },
+      {
+        "image": "ntdll.dll",
+        "section": ".text",
+        "compared_bytes": 1151422,
+        "raw_difference_count": 0,
+        "remaining_difference_count": 0,
+        "normalized_sha256": "4f4565ed484e075e1fc2c3f9b8c4f17dce3476f3f8c641108dc42e341f376fe0",
+        "actual_sha256": "4f4565ed484e075e1fc2c3f9b8c4f17dce3476f3f8c641108dc42e341f376fe0"
+      },
+      {
+        "image": "ntdll.dll",
+        "section": "PAGE",
+        "compared_bytes": 1458,
+        "raw_difference_count": 0,
+        "remaining_difference_count": 0,
+        "normalized_sha256": "cd23d7234e045bca1e0315d375be9970ce270aea1e7b79b910b3da136ebac8f7",
+        "actual_sha256": "cd23d7234e045bca1e0315d375be9970ce270aea1e7b79b910b3da136ebac8f7"
+      },
+      {
+        "image": "ntdll.dll",
+        "section": "RT",
+        "compared_bytes": 505,
+        "raw_difference_count": 0,
+        "remaining_difference_count": 0,
+        "normalized_sha256": "c4319735c07302a7cb18dea474c1bfb59631b340b526170f724a3b5b185cb7c9",
+        "actual_sha256": "c4319735c07302a7cb18dea474c1bfb59631b340b526170f724a3b5b185cb7c9"
+      }
+    ],
+    "compared_bytes": 9276003,
+    "remaining_difference_count": 0,
+    "limit": "Executable-section and mutable-runtime-state consistency only; no independent loaded-byte, JIT, whole-execution or Host-to-Store authentication."
+  },
+  "guest_restricted_run": {
+    "run_id": "4518c0f4262b498e80b80002965eb722",
+    "process_binding": {
+      "formal": false,
+      "processes": 3,
+      "capture_pid": 1764,
+      "process_binding_verified": true,
+      "images": [
+        {
+          "image": "ntdll.dll",
+          "base_address": "140726069100544",
+          "image_size": 2502656
+        },
+        {
+          "image": "kernel32.dll",
+          "base_address": "140726057959424",
+          "image_size": 815104
+        },
+        {
+          "image": "clr.dll",
+          "base_address": "140725581774848",
+          "image_size": 10108928
+        }
+      ]
+    },
+    "checker_exit_code": 1,
+    "error": "ValueError: Unexplained executable bytes remain: kernel32.dll/fothk",
+    "fothk_difference_bytes": {
+      "ntdll.dll": 9,
+      "kernel32.dll": 4
+    },
+    "artifact_recovery": "Original successful native run recovered without redispatch after host guest-drive path parsing failure."
+  }
+}

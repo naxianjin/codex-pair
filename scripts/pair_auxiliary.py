@@ -602,6 +602,15 @@ class AuxiliaryMixin:
         return {'saved': True, 'duplicate': False, 'stage_passed': False,
                 'validation': validation, 'actual_start_counted': bool(execution['charged'])}
 
+    def reconcile_validator_run(self, member, session, cwd, execution_id, lease, run_id):
+        """按固定运行引用重算宿主诊断证据；不授予正式通过。"""
+        try:
+            from .pair_validator_host import reconcile_restricted_validator_run
+        except ImportError:
+            from pair_validator_host import reconcile_restricted_validator_run
+        return reconcile_restricted_validator_run(self, member, session, cwd, execution_id, lease,
+                                                 run_id=run_id)
+
     def record_validator_run(self, member, session, cwd, execution_id, lease, run_id,
                              request, native, artifact, tool_identity):
         """保存可核验的补充证据；诊断执行器不能授予正式通过。"""

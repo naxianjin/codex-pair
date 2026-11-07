@@ -1,4 +1,4 @@
-﻿param([Parameter(Mandatory)][string]$InputDirectory,[Parameter(Mandatory)][string]$SourceInventory)
+﻿param([Parameter(Mandatory)][string]$InputDirectory,[Parameter(Mandatory)][string]$SourceInventory,[ValidateSet("historical","loaded-reader-v1")][string]$EvidenceProfile="historical")
 $ErrorActionPreference='Stop'
 $sourceLocks=New-Object 'System.Collections.Generic.List[System.IDisposable]'
 try {
@@ -48,7 +48,7 @@ try{
  if(@($identity.controls.PSObject.Properties).Count -ne 4 -or @($identity.controls.PSObject.Properties.Name | Where-Object {$_ -notin $controlNames}).Count){throw 'Invalid diagnostic control set'}
  foreach($name in $controlNames){if(-not $identity.controls.$name -or $hashes[$name] -ne $identity.controls.$name){throw 'Registered diagnostic snapshot changed'}}
  $controller=(Get-FileHash -LiteralPath $PSCommandPath).Hash
- Save-NewJson "$output\request.json" ([ordered]@{Run=$run;VM=$vm.Id.ToString();SourceInventorySHA256=$sourceDigest;ControllerSHA256=$controller;Files=$hashes;Formal=$false;Limits=@{Processes=16;ProcessMiB=384;JobMiB=512;CPUSeconds=120;WallSeconds=180;DiskMiB=64}})
+ Save-NewJson "$output\request.json" ([ordered]@{Run=$run;VM=$vm.Id.ToString();SourceInventorySHA256=$sourceDigest;ControllerSHA256=$controller;Files=$hashes;EvidenceProfile=$EvidenceProfile;Formal=$false;Limits=@{Processes=16;ProcessMiB=384;JobMiB=512;CPUSeconds=120;WallSeconds=180;DiskMiB=64}})
  $session=New-PSSession -VMName $vmName -Credential (Import-Clixml "$lab\windows-20261102\guest-credential.dpapi.xml")
  $guest="C:\PairLab\ValidatorRuns\$run"
  Invoke-Command -Session $session -ArgumentList $guest -ScriptBlock {param($path);if(Test-Path -LiteralPath $path){throw 'Run exists'};New-Item -ItemType Directory $path | Out-Null; & icacls.exe 'C:\PairLab\ValidatorRuns' /grant '*S-1-5-32-545:(RX)' | Out-Null; if($LASTEXITCODE){throw 'Run parent traversal ACL failed'}}
@@ -108,9 +108,9 @@ try{
  if($result.Run -ne $run -or $result.Native.ActiveProcesses -ne 0){throw 'Run/terminal mismatch'}
  Save-NewJson "$output\native.json" $result
  Test-RootTrace $result
- & 'D:\Anaconda3\python.exe' -I (Join-Path $PSScriptRoot 'check-combined-evidence.py') "$output\native.json"
+ & 'D:\Anaconda3\python.exe' -I (Join-Path $PSScriptRoot 'check-combined-evidence.py') "$output\native.json" $EvidenceProfile
  if($LASTEXITCODE){throw 'Combined evidence verification failed'}
- & 'D:\Anaconda3\python.exe' -I (Join-Path $PSScriptRoot 'check-restricted-raw-modules.py') "$output\native.json" | Out-Null
+ & 'D:\Anaconda3\python.exe' -I (Join-Path $PSScriptRoot 'check-restricted-raw-modules.py') "$output\native.json" $EvidenceProfile | Out-Null
  if($LASTEXITCODE){throw 'Raw module evidence verification failed'}
  if($result.Native.ArtifactBase64){
   $bytes=[Convert]::FromBase64String($result.Native.ArtifactBase64)

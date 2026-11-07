@@ -153,6 +153,51 @@ class ValidatorWorkerTests(unittest.TestCase):
         self.assertFalse(result['validators_succeeded'])
         self.assertTrue(run_validators(self.root, self.request, node=self.node)['validators_succeeded'])
 
+    @unittest.skipUnless(os.name == 'nt', 'Windows loaded reader required')
+    def test_reader_loaded_bytes_observation_and_cleanup(self):
+        scratch = self.root / 'reader-temp'
+        scratch.mkdir()
+        source_digest = hashlib.sha256((self.root / 'WindowsSafeInput.cs').read_bytes()).hexdigest()
+        environment = dict(os.environ, TEMP=str(scratch), TMP=str(scratch))
+        command = [self.node, '-e',
+                   'const read=require(process.argv[1]);process.stdout.write(read(process.argv[2],2));',
+                   str(self.root / 'read-windows-input.cjs'), str(self.root / 'findings.json')]
+        observed = subprocess.run(command, env=environment, capture_output=True, timeout=20)
+        self.assertEqual(observed.returncode, 0, observed.stderr)
+        self.assertEqual(observed.stdout, b'[]')
+        lines = observed.stderr.decode('utf-8').splitlines()
+        self.assertEqual(len(lines), 1)
+        prefix = 'PAIR_READER_OBSERVATION:'
+        self.assertTrue(lines[0].startswith(prefix))
+        observation = json.loads(lines[0][len(prefix):])
+        self.assertEqual(observation['schema_version'], 1)
+        self.assertIs(observation['formal'], False)
+        self.assertGreater(observation['pid'], 0)
+        self.assertEqual(observation['source_sha256'], source_digest)
+        self.assertRegex(observation['assembly_input_sha256'], r'^[0-9a-f]{64}$')
+        self.assertRegex(observation['mvid'], r'^[0-9a-f-]{36}$')
+        self.assertEqual(len(observation['methods']), 3)
+        self.assertEqual(len({method['metadata_token'] for method in observation['methods']}), 3)
+        for method in observation['methods']:
+            self.assertRegex(method['il_sha256'], r'^[0-9a-f]{64}$')
+            self.assertGreater(method['il_bytes'], 0)
+        self.assertEqual(list(scratch.iterdir()), [])
+
+    @unittest.skipUnless(os.name == 'nt', 'Windows loaded reader required')
+    def test_reader_rejects_assembly_without_expected_type_and_cleans_temp(self):
+        scratch = self.root / 'reader-temp'
+        scratch.mkdir()
+        (self.root / 'WindowsSafeInput.cs').write_text('public static class UnexpectedReader {}', encoding='utf-8')
+        command = [self.node, '-e',
+                   'const read=require(process.argv[1]);process.stdout.write(read(process.argv[2],2));',
+                   str(self.root / 'read-windows-input.cjs'), str(self.root / 'findings.json')]
+        rejected = subprocess.run(command, env=dict(os.environ, TEMP=str(scratch), TMP=str(scratch)),
+                                  capture_output=True, timeout=20)
+        self.assertNotEqual(rejected.returncode, 0)
+        self.assertEqual(rejected.stdout, b'')
+        self.assertNotIn(b'PAIR_READER_OBSERVATION:', rejected.stderr)
+        self.assertEqual(list(scratch.iterdir()), [])
+
     def test_relative_root_runs_checked_scripts_instead_of_nested_scripts(self):
         nested = self.root / self.root.name
         nested.mkdir()

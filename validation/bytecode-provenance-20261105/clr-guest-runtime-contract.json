@@ -1,0 +1,247 @@
+{
+  "schema_version": 1,
+  "formal": false,
+  "clr_sha256": "49f9f13966c176c8f8943fbaa73d420192543a892bfb28259598d18de8316d86",
+  "pdb_sha256": "d6ff399f6a236662f46f74cc303b71449139b5327779eaabcd00dc742a3c59a3",
+  "pdb_guid": "3d3617b5-91ee-4c93-abfd-0201c9a61268",
+  "pdb_age": 3,
+  "symbols": [
+    {
+      "name": "AllocateStringFastMP_InlineGetThread__PatchTLSOffset",
+      "rva": 1638507,
+      "resolved": true
+    },
+    {
+      "name": "CExecutionEngine::TlsIndex",
+      "rva": 9498872,
+      "resolved": true
+    },
+    {
+      "name": "ClrFlsGetBlock",
+      "rva": 1629504,
+      "resolved": true
+    },
+    {
+      "name": "GetAppDomain",
+      "rva": 1629456,
+      "resolved": true
+    },
+    {
+      "name": "GetThread",
+      "rva": 1629424,
+      "resolved": true
+    },
+    {
+      "name": "JIT_BoxFastMPIGT__PatchTLSLabel",
+      "rva": 1638384,
+      "resolved": true
+    },
+    {
+      "name": "JIT_GetSharedGCStaticBaseNoCtor__PatchTLSLabel",
+      "rva": 1640267,
+      "resolved": true
+    },
+    {
+      "name": "JIT_GetSharedGCStaticBase__PatchTLSLabel",
+      "rva": 1640203,
+      "resolved": true
+    },
+    {
+      "name": "JIT_GetSharedNonGCStaticBaseNoCtor__PatchTLSLabel",
+      "rva": 1640155,
+      "resolved": true
+    },
+    {
+      "name": "JIT_GetSharedNonGCStaticBase__PatchTLSLabel",
+      "rva": 1640091,
+      "resolved": true
+    },
+    {
+      "name": "JIT_MonEnterStaticWorker_InlineGetThread_GetThread_PatchLabel_1",
+      "rva": 1639939,
+      "resolved": true
+    },
+    {
+      "name": "JIT_MonEnterStaticWorker_InlineGetThread_GetThread_PatchLabel_2",
+      "rva": 1639968,
+      "resolved": true
+    },
+    {
+      "name": "JIT_MonEnterWorker_InlineGetThread_GetThread_PatchLabel",
+      "rva": 1638765,
+      "resolved": true
+    },
+    {
+      "name": "JIT_MonExitStaticWorker_InlineGetThread_GetThread_PatchLabel",
+      "rva": 1640000,
+      "resolved": true
+    },
+    {
+      "name": "JIT_MonExitWorker_InlineGetThread_GetThread_PatchLabel",
+      "rva": 1639242,
+      "resolved": true
+    },
+    {
+      "name": "JIT_MonTryEnter_GetThread_PatchLabel",
+      "rva": 1639500,
+      "resolved": true
+    },
+    {
+      "name": "JIT_NewArr1OBJ_MP_InlineGetThread__PatchTLSOffset",
+      "rva": 1638691,
+      "resolved": true
+    },
+    {
+      "name": "JIT_NewArr1VC_MP_InlineGetThread__PatchTLSOffset",
+      "rva": 1638606,
+      "resolved": true
+    },
+    {
+      "name": "JIT_TrialAllocSFastMP_InlineGetThread__PatchTLSOffset",
+      "rva": 1638323,
+      "resolved": true
+    },
+    {
+      "name": "JIT_WriteBarrier",
+      "rva": 1629280,
+      "resolved": true
+    },
+    {
+      "name": "JIT_WriteBarrier_PreGrow64",
+      "rva": 1643696,
+      "resolved": true
+    },
+    {
+      "name": "JIT_WriteBarrier_PreGrow64_End",
+      "rva": 1643762,
+      "resolved": true
+    },
+    {
+      "name": "JIT_WriteBarrier_PreGrow64_Patch_Label_CardTable",
+      "rva": 1643718,
+      "resolved": true
+    },
+    {
+      "name": "JIT_WriteBarrier_PreGrow64_Patch_Label_Lower",
+      "rva": 1643702,
+      "resolved": true
+    },
+    {
+      "name": "gAppDomainTLSIndex",
+      "rva": 9498876,
+      "resolved": true
+    },
+    {
+      "name": "gThreadTLSIndex",
+      "rva": 9498880,
+      "resolved": true
+    },
+    {
+      "name": "g_card_table",
+      "rva": 9525360,
+      "resolved": true
+    },
+    {
+      "name": "g_ephemeral_low",
+      "rva": 9498944,
+      "resolved": true
+    }
+  ],
+  "images": {
+    "ntdll.dll": {
+      "DiskSHA256": "4dfbbd3d58225196603c6e61a9a61a7f71b9712ee63c79431998e51b393b63e6",
+      "ImageSize": 2502656,
+      "Sections": [
+        {
+          "Section": ".text",
+          "RVA": 4096,
+          "VirtualSize": 1474828,
+          "RawSize": 1478656,
+          "Flags": 1610612768
+        },
+        {
+          "Section": "SCPCFG",
+          "RVA": 1482752,
+          "VirtualSize": 688,
+          "RawSize": 4096,
+          "Flags": 1610612768
+        },
+        {
+          "Section": "SCPCFGFP",
+          "RVA": 1486848,
+          "VirtualSize": 688,
+          "RawSize": 4096,
+          "Flags": 1610612768
+        },
+        {
+          "Section": "SCPCFGNP",
+          "RVA": 1490944,
+          "VirtualSize": 688,
+          "RawSize": 4096,
+          "Flags": 1610612768
+        },
+        {
+          "Section": "SCPCFGES",
+          "RVA": 1495040,
+          "VirtualSize": 688,
+          "RawSize": 4096,
+          "Flags": 1610612768
+        },
+        {
+          "Section": "RT",
+          "RVA": 1499136,
+          "VirtualSize": 444,
+          "RawSize": 4096,
+          "Flags": 1610612768
+        },
+        {
+          "Section": "PAGE",
+          "RVA": 1503232,
+          "VirtualSize": 1537,
+          "RawSize": 4096,
+          "Flags": 1610612768
+        },
+        {
+          "Section": "fothk",
+          "RVA": 1507328,
+          "VirtualSize": 4096,
+          "RawSize": 4096,
+          "Flags": 1610612768
+        }
+      ]
+    },
+    "kernel32.dll": {
+      "DiskSHA256": "f694ab9ccf9d8c0b24003d14788b864a97c0f1ffe697ee043174626c30b96e2b",
+      "ImageSize": 815104,
+      "Sections": [
+        {
+          "Section": ".text",
+          "RVA": 4096,
+          "VirtualSize": 540490,
+          "RawSize": 540672,
+          "Flags": 1610612768
+        },
+        {
+          "Section": "fothk",
+          "RVA": 544768,
+          "VirtualSize": 4096,
+          "RawSize": 4096,
+          "Flags": 1610612768
+        }
+      ]
+    },
+    "clr.dll": {
+      "DiskSHA256": "49f9f13966c176c8f8943fbaa73d420192543a892bfb28259598d18de8316d86",
+      "ImageSize": 10108928,
+      "Sections": [
+        {
+          "Section": ".text",
+          "RVA": 4096,
+          "VirtualSize": 7598303,
+          "RawSize": 7598592,
+          "Flags": 1610612768
+        }
+      ]
+    }
+  }
+}

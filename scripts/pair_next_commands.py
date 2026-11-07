@@ -52,6 +52,7 @@ COMMANDS = {
     'finish-auxiliary': 'finish_auxiliary',
     'settle-audit': 'settle_audit',
     'record-validator-run': 'record_validator_run',
+    'reconcile-validator-run': 'reconcile_validator_run',
     'auxiliary-status': 'auxiliary_status',
     'recovery-policy': 'recovery_policy',
     'request-pause': 'request_pause',
