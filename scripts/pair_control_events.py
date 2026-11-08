@@ -302,7 +302,7 @@ class _MemberObserver:
                        and isinstance(item.get('content'), list) and len(item['content']) == 1
                        and isinstance(item['content'][0], dict) and item['content'][0].get('type') in ('text', 'inputText')
                        and item['content'][0].get('text') == text
-                       and type(item.get('startedAtMs')) is int and item['startedAtMs'] == int(created * 1000)]
+                       and type(item.get('startedAtMs')) is int and item['startedAtMs'] == round(created * 1000)]
             if len(matches) != 1 or not isinstance(matches[0].get('id'), str) or not matches[0]['id']:
                 raise ValueError('Original API user message required / 新格式用户事件尚无唯一原 API 关联')
             return dict(event, turn_id=turn_id, api_item_id=matches[0]['id'])

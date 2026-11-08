@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "files": {
-    "CHANGELOG.md": "ca5d3e3579f1a180cb2012724f3e8342130c8600da347c74cbfcad77914e4b22",
+    "CHANGELOG.md": "ff8eaebfafdd108609d2713ec642f5b23a3696aa52448efe4ac967c9495c274d",
     "POST_RELEASE_TESTS.md": "20f930df316b42d6fca4c8cf7b86e7c2e80a22d5a517a5a826342a6e469d7a42",
     "README.md": "86d6476f8802724aea2eeb32270bc5512b40938cb275c763a3efa4b8b8e09b5b",
     "SKILL.md": "be24fa14bd5748cec7252e8668c21191aeb9c0f464994d5592ccba3f966fe1ac",
@@ -97,7 +97,7 @@
     "scripts/pair_balance.py": "32a4a2931eb7f95aac9e877f794640763a9b3f4a1f3a19bf48d64a707da443a6",
     "scripts/pair_commands.py": "5f95b3f87bc91992777d7b4959c11126c7ddc1d99f43f10887df7407665f8837",
     "scripts/pair_compatibility.py": "15b214f229ff2e1cdeacb352960459e1feffd859a5af6b84626c358487772aab",
-    "scripts/pair_control_events.py": "85fc4b46bc67cb1edca2f6bc12c379be61f7f802119d47313a6472cdfa5e0367",
+    "scripts/pair_control_events.py": "76a7dcc07210910fbd79453b485b36287b283243e69fd76db39988f021b6e481",
     "scripts/pair_control_hook.py": "8b0007c2a78d8829674c2759cba1490d13b2c396a28a4ab08b5c5e36fd58135d",
     "scripts/pair_control_runtime.py": "ac453923451134524117e04f6ebb593b23c18817b83f7f056f3e123068872de0",
     "scripts/pair_core.py": "7e772b75419af574c405dfb4d857703b503872b45369976610803f437b57be6f",

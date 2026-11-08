@@ -73,6 +73,19 @@ class ControlUserFormatTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'User timestamp mismatch'):
             _MemberObserver._control_event(record, api_turns=[turn])
 
+    def test_api_millisecond_matching_rounds_raw_create_time(self):
+        record = user_record('继续协作 test')
+        record['payload']['internal_chat_message_metadata_passthrough']['create_time'] = 1794144039.1296067
+        record['timestamp'] = '2026-11-08T13:20:39.129Z'
+        turn = api_turn('继续协作 test')
+        turn['items'][0]['startedAtMs'] = 1794144039130
+        event = _MemberObserver._control_event(record, api_turns=[turn])
+        self.assertEqual(event['api_item_id'], 'public-fixture')
+        for milliseconds in (1794144039129, 1794144039131):
+            turn['items'][0]['startedAtMs'] = milliseconds
+            with self.subTest(milliseconds=milliseconds), self.assertRaisesRegex(ValueError, 'Original API user message required'):
+                _MemberObserver._control_event(record, api_turns=[turn])
+
 
 class ControlUserStreamTests(unittest.TestCase):
     setUp = test_core.CoreTests.setUp
