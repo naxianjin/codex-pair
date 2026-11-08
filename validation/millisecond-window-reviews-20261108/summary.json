@@ -55,7 +55,7 @@
         }
       ],
       "accepted": true,
-      "terminal_verified": false
+      "terminal_verified": true
     },
     "D": {
       "verdict": "passed",
