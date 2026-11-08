@@ -1,5 +1,9 @@
 # 更新说明
 
+## 2026-11-08 — 分离原 CLI 会话根目录与计划 Git worktree
+
+修复可见窗口 `join --current-session` 在 CLI 会话根目录与初始化计划 worktree 不同的场景下错误拒绝的问题。会话身份继续使用原窗口的 `CODEX_THREAD_ID`、`CODEX_HOME` 和实际 cwd；Git 证明改用对应成员的计划 worktree。新增跨目录回归测试，完整测试套件 1428 项通过（跳过 3 项）。修复版已通过安装器更新 A、B、D 的技能副本；C 尚待其原窗口使用显式 `--codex` 执行邀请加入。
+
 ## 2026-11-07 — 真实 daemon 测试改用原始可见窗口绑定
 
 真实 Core 和双 CLI 集成测试不再从普通子进程调用 `join --new-session`。测试现在要求先由 A/B 原始 Codex CLI 通过 `start/accept` 建立专用 running pair，再从 A 窗口提供 pair ID 与 state-root；启动 daemon 前会重新核对两个成员的 session、账号目录、工作目录、模型和 Git 绑定。缺少这些环境变量时测试明确跳过，保留 `Original visible CLI required` 身份门禁。

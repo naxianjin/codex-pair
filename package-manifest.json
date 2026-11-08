@@ -87,7 +87,7 @@
     "scripts/build_windows_reader.py": "45299ab8053b30ec40e4bdf6f65d203945cf89b64e795dc68f01c2d1cc35f5a5",
     "scripts/install_skill.py": "7e283e941d3d49c5d961efd88a1592dd3b4d31ddf810382ce3546b3b109143c0",
     "scripts/package_skill.py": "5e647e442eca564abdc7e1a751122ce8ded53d5861aab695d8b68814e53e9f2a",
-    "scripts/pair.py": "f33e948656643163e795cc914cc8c6337589f8d626dff2169ec15abb96297938",
+    "scripts/pair.py": "cbb31b8dcde4f2a22eb812a537d66b2cdc02a9df77465003c8468628ad7db609",
     "scripts/pair_approvals.py": "50368ea75c768baefe43b0af7f80765da80c140ef8677e77efc41434ee695f59",
     "scripts/pair_assistance.py": "634413e594b75270cd9f92e0196dda295ba282ef31c3ce3a739bf4052e87dad3",
     "scripts/pair_audit_adapter.py": "2ff86c994a4e3366f7695ff497bcc0cc8cfe3c0a681e9266ad27fd9f59cf1c23",
