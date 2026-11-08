@@ -1,6 +1,7 @@
 {
+  "schema_version": 1,
   "files": {
-    "CHANGELOG.md": "aee9c47dafec01cf8a3ff53405808a38f57bb2e11c8429cf8a7f52b300dffea8",
+    "CHANGELOG.md": "a56d3cdc4a92d795b0eb42dc56f22add35d9c9d5539f3ccd21907584fdc2a48a",
     "POST_RELEASE_TESTS.md": "20f930df316b42d6fca4c8cf7b86e7c2e80a22d5a517a5a826342a6e469d7a42",
     "README.md": "86d6476f8802724aea2eeb32270bc5512b40938cb275c763a3efa4b8b8e09b5b",
     "SKILL.md": "be24fa14bd5748cec7252e8668c21191aeb9c0f464994d5592ccba3f966fe1ac",
@@ -131,6 +132,5 @@
     "scripts/pair_watchdog.py": "61e375364d347f998608c822510216916f5fad8824e3225071815243e2b7dfcd",
     "scripts/pair_windows.py": "539cc3b64c6a6e092caaf1932815fcaecfa358661456a36af4d41476bcb48527",
     "scripts/pair_workspace.py": "2739ac69156832bb01eba11a55d6a0e8810dadd127c2a4a7dedf42918f9c3717"
-  },
-  "schema_version": 1
+  }
 }

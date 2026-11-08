@@ -414,7 +414,8 @@ class RealCoreTests(unittest.TestCase):
             while time.monotonic()<deadline:
                 self.assertIsNone(daemon.poll(),'daemon exited early')
                 status=store.status()
-                if len(status['messages'])>=2 and all(m['process_status']=='completed' and m['remote_status']=='completed' for m in status['messages']):break
+                task_message=next((m for m in status['messages'] if m['task_id']==task_id),None)
+                if task_message and task_message['process_status']=='completed' and task_message['remote_status']=='completed':break
                 time.sleep(.25)
             (evidence/'core-result.json').write_text(json.dumps(status,ensure_ascii=False,indent=2),encoding='utf-8')
             task_message=next(m for m in status['messages'] if m['task_id']==task_id)
