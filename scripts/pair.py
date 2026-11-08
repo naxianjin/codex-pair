@@ -552,7 +552,11 @@ def execute(args):
             args.session=os.environ.get('CODEX_THREAD_ID')
             if not args.session or canonical_path(Path.cwd())!=cwd:
                 raise PairError('Current session context required / --current-session 必须在目标 Codex 会话及其实际 worktree 内运行')
-        git_proof=worktree_proof(store,args.member,cwd,args.branch)
+        # 原 CLI 的会话根目录可以与项目 Git worktree 不同；身份校验使用
+        # cwd，Git 绑定则使用初始化计划中的成员 worktree。
+        planned=git_context(store)['worktrees'].get(args.member.lower())
+        workspace=canonical_path(planned['path']) if planned else cwd
+        git_proof=worktree_proof(store,args.member,workspace,args.branch)
         backend=args.backend or ('managed' if args.new_session else 'queue')
         if args.new_session:
             raise PairError('Visible sessions must already exist / 可见成员只能使用原窗口；隐藏审核会话由独立控制器创建')

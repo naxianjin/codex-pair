@@ -100,6 +100,24 @@ class MultiAccountTests(unittest.TestCase):
             self.assertEqual(result['session_uuid'],b['session_uuid'])
             self.assertEqual(canonical_path(server.call_args.kwargs['codex_home']),canonical_path(self.homes['B']))
 
+    def test_current_session_join_keeps_cli_root_separate_from_planned_worktree(self):
+        cli_root=self.root/'cli-root';cli_root.mkdir()
+        planned=self.store.git_context()['worktrees']['b']['path']
+        self.assertNotEqual(canonical_path(cli_root),canonical_path(planned))
+        session='00000000-0000-0000-0000-000000000003'
+        args=self.args('join','--member','B','--current-session',
+                       '--member-codex-home',str(self.homes['B']),'--worktree',str(cli_root))
+        with patch.dict('os.environ',{'CODEX_THREAD_ID':session}),\
+                patch('scripts.pair.Path.cwd',return_value=cli_root),\
+                patch('scripts.pair.AppServer') as server,\
+                patch.object(pair.Store,'join',return_value={'session_uuid':session,'cwd':canonical_path(cli_root)}) as join:
+            server.return_value.__enter__.return_value.validate.return_value={
+                'id':session,'cwd':str(cli_root),'modelProvider':'openai'}
+            result=pair.execute(args)
+        self.assertEqual(result['session_uuid'],session)
+        self.assertEqual(join.call_args.args[2],canonical_path(cli_root))
+        self.assertEqual(join.call_args.kwargs['proof']['git']['path'].lower(),canonical_path(planned).lower())
+
     def test_cli_actor_rejects_other_thread_even_with_correct_home(self):
         b=self.store.member('B')
         args=self.args('claim','--member','B','--session',b['session_uuid'],'--worktree',b['cwd'],
