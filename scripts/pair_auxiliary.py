@@ -24,6 +24,9 @@ ACTIVE_EXECUTIONS = ('reserved', 'starting', 'running', 'unknown')
 ROLES = ('analysis', 'discovery', 'validation', 'final_verification', 'conflict_review')
 INDEPENDENT_ROLES = ('validation', 'final_verification', 'conflict_review')
 
+# 只有同一进程内的受信 Host→Store 适配器能持有此对象；JSON/CLI 无法伪造。
+_FORMAL_SUPPLEMENT_AUTHORITY = object()
+
 
 def upgrade_auxiliary_v14(db):
     """由主迁移事务调用；不提交事务、不改 user_version、不覆盖旧审核记录。"""
@@ -602,6 +605,42 @@ class AuxiliaryMixin:
         return {'saved': True, 'duplicate': False, 'stage_passed': False,
                 'validation': validation, 'actual_start_counted': bool(execution['charged'])}
 
+    def dispatch_validator_run(self, member, session, cwd, execution_id, lease):
+        """从当前 Store 输入发起一次固定开发诊断，不授正式通过。"""
+        try:
+            from .pair_validator_host import dispatch_restricted_validator_run
+        except ImportError:
+            from pair_validator_host import dispatch_restricted_validator_run
+        return dispatch_restricted_validator_run(self, member, session, cwd, execution_id, lease)
+
+    def reconcile_admitted_validator_run(self, member, session, cwd, execution_id, lease, run_id):
+        """收回原准入运行；未知或暂停状态不触发重派。"""
+        try:
+            from .pair_validator_host import reconcile_admitted_validator_run
+        except ImportError:
+            from pair_validator_host import reconcile_admitted_validator_run
+        return reconcile_admitted_validator_run(self, member, session, cwd, execution_id, lease,
+                                                run_id=run_id)
+
+    def dispatch_owned_validator_run(self, member, session, cwd, execution_id, lease, *,
+                                     executable, codex_home, run_id=None):
+        """通过独立官方执行器派发固定诊断，不改原会话回执契约。"""
+        try:
+            from .pair_validator_dispatch import dispatch_owned_validator_run
+        except ImportError:
+            from pair_validator_dispatch import dispatch_owned_validator_run
+        return dispatch_owned_validator_run(self, member, session, cwd, execution_id, lease,
+            executable=executable, codex_home=codex_home, run_id=run_id)
+
+    def reconcile_owned_validator_run(self, member, session, cwd, execution_id, lease, run_id):
+        """只回收原 owned 命令对应的同次受限结果。"""
+        try:
+            from .pair_validator_dispatch import reconcile_owned_validator_run
+        except ImportError:
+            from pair_validator_dispatch import reconcile_owned_validator_run
+        return reconcile_owned_validator_run(self, member, session, cwd, execution_id, lease,
+            run_id=run_id)
+
     def reconcile_validator_run(self, member, session, cwd, execution_id, lease, run_id):
         """按固定运行引用重算宿主诊断证据；不授予正式通过。"""
         try:
@@ -610,6 +649,18 @@ class AuxiliaryMixin:
             from pair_validator_host import reconcile_restricted_validator_run
         return reconcile_restricted_validator_run(self, member, session, cwd, execution_id, lease,
                                                  run_id=run_id)
+
+    def register_validator_host_execution(self, member, session, cwd, execution_id, lease, *,
+                                          run_id, turn_id, item_id, command,
+                                          start_producer, final_producer):
+        """登记原宿主工具回执绑定；不启动命令，也不授予正式通过。"""
+        try:
+            from .pair_validator_receipts import register_validator_host_execution
+        except ImportError:
+            from pair_validator_receipts import register_validator_host_execution
+        return register_validator_host_execution(self, member, session, cwd, execution_id, lease,
+            run_id=run_id, turn_id=turn_id, item_id=item_id, command=command,
+            start_producer=start_producer, final_producer=final_producer)
 
     def record_validator_run(self, member, session, cwd, execution_id, lease, run_id,
                              request, native, artifact, tool_identity):
@@ -666,6 +717,100 @@ class AuxiliaryMixin:
             return {'saved': True, 'duplicate': old is not None, 'run_id': run_id,
                     'validators_succeeded': verified['validators_succeeded'], 'formal_checks_verified': False}
 
+    def record_formal_validator_supplement(self, member, session, cwd, execution_id, lease, *,
+                                           run_id, receipt, content, tool_identity,
+                                           authority=None):
+        """追加保存正式认证事实；不改写原报告，缺任一必需来源时保持阻断。
+
+        ``record_validator_run`` 保存的是开发诊断结果。此接口只消费同一 run 的
+        外部 Host/Store 认证适配器输出，并把绑定快照写入独立的不可变记录。
+        认证适配器缺失或返回不完整证据时仍可保存事实，但记录明确为非正式。
+        """
+        if not isinstance(run_id, str) or not re.fullmatch(r'[0-9a-f]{32}', run_id):
+            fail('Invalid validator run ID')
+        if not isinstance(receipt, dict) or not isinstance(content, dict):
+            fail('Formal validator supplement objects required')
+        if (not isinstance(tool_identity, dict) or not tool_identity or 'node' not in tool_identity
+                or any(not isinstance(name, str) or not isinstance(value, str)
+                       or not re.fullmatch(r'[0-9a-f]{64}', value)
+                       for name, value in tool_identity.items())):
+            fail('Invalid formal validator tool identity')
+        try:
+            from .pair_stages import digest as _digest
+            from .pair_auxiliary_runtime import saved_validator_inputs
+        except ImportError:
+            from pair_stages import digest as _digest
+            from pair_auxiliary_runtime import saved_validator_inputs
+        prepared = saved_validator_inputs(self, member, session, cwd, execution_id, lease)
+        key = 'validator_supplement:' + run_id
+        with self.transaction() as db:
+            self._a_actor(db, member, session, cwd)
+            execution = dict(self._auxiliary_execution(db, execution_id, lease))
+            task = dict(self._auxiliary_task(db, execution['task_id']))
+            candidate = dict(self._auxiliary_candidate(db, task['candidate_id']))
+            report = db.execute('SELECT * FROM auxiliary_reports WHERE execution_id=?',
+                                (execution_id,)).fetchone()
+            diagnostic = self._option(db, 'validator_run:' + run_id)
+            admission = self._option(db, 'validator_admission:' + run_id)
+            if (not diagnostic or diagnostic.get('execution_id') != execution_id
+                    or not admission or admission.get('state') != 'dispatching'):
+                fail('Formal validator supplement requires the original admitted run')
+            if (not report or execution['state'] != 'completed'
+                    or task['last_execution'] != execution_id
+                    or any(execution[name] != candidate[name]
+                           for name in ('candidate_digest', 'contract_digest'))):
+                fail('Formal validator supplement source changed')
+            binding = {
+                'execution_id': execution_id,
+                'candidate_digest': candidate['candidate_digest'],
+                'contract_digest': candidate['contract_digest'],
+                'report_digest': report['report_digest'],
+                'stored_report_digest': prepared['stored_report_digest'],
+                'adapted_report_digest': prepared['adapted_report_digest'],
+                'context_digest': _digest(prepared['context']),
+                'session_uuid': execution['session_uuid'],
+                'execution_epoch': execution['epoch'],
+                'control_generation': admission['snapshot']['control_generation'],
+                'authorization_version': admission['snapshot']['authorization_version'],
+                'admission_snapshot_digest': admission['snapshot_digest'],
+            }
+            if receipt.get('binding') != binding or content.get('binding') != binding:
+                fail('Formal validator supplement binding mismatch')
+            required_receipt = ('source', 'run_id', 'host_identity_verified',
+                                'native_start_verified', 'official_receipt_verified')
+            required_content = ('source', 'system_image_equivalence_verified',
+                                'dynamic_content_verified', 'jit_content_verified')
+            if (any(name not in receipt for name in required_receipt)
+                    or any(name not in content for name in required_content)
+                    or receipt.get('run_id') != run_id):
+                formal = False
+            else:
+                formal = (authority is _FORMAL_SUPPLEMENT_AUTHORITY
+                          and receipt.get('source') == 'official_host_store'
+                          and content.get('source') == 'official_content_store'
+                          and all(receipt.get(name) is True for name in required_receipt[2:])
+                          and all(content.get(name) is True for name in required_content[1:]))
+            record = {
+                'schema_version': 1, 'run_id': run_id, 'execution_id': execution_id,
+                'binding': binding, 'receipt': receipt, 'content': content,
+                'tool_identity': dict(tool_identity),
+                'formal_checks_verified': formal,
+            }
+            old = self._option(db, key)
+            if old is not None and old != record:
+                fail('Formal validator supplement conflict / 不得覆盖既有认证事实')
+            if old is None:
+                self._put(db, key, record)
+                runs = self._option(db, 'validator_supplements:' + execution_id, [])
+                self._put(db, 'validator_supplements:' + execution_id, runs + [run_id])
+                self.event(db, 'validator_supplement_saved', execution=execution_id,
+                           run=run_id, supplement_digest=_digest(record),
+                           formal_checks_verified=formal)
+            return {'saved': True, 'duplicate': old is not None, 'run_id': run_id,
+                    'supplement_digest': _digest(record),
+                    'formal_checks_verified': formal,
+                    'status': 'passed' if formal else 'needs_validation'}
+
     def settle_audit(self, member, session, cwd, candidate_id):
         """子报告不写父stage；缺本次准确正式回执时保留 needs_validation。"""
         try:
@@ -701,6 +846,7 @@ class AuxiliaryMixin:
                 self._auxiliary_independent(db, candidate, task, execution['session_uuid'])
                 if validation.get('errors') or not validation.get('coverage_complete'):
                     reasons.append('report_validation_incomplete:' + task['id'])
+                formal_supplement = False
                 for run_id in self._option(db, 'validator_runs:' + execution['id'], []):
                     supplemental = self._option(db, 'validator_run:' + run_id)
                     if (supplemental and supplemental['execution_id'] == execution['id']
@@ -711,7 +857,28 @@ class AuxiliaryMixin:
                             and supplemental['request']['binding']['adapted_report_digest'] == evidence['adapted_report_digest']):
                         validator_runs.append({'run_id': run_id, 'execution_id': execution['id'],
                                                'formal_checks_verified': False})
-                if not evidence.get('formal_checks_verified'):
+                for run_id in self._option(db, 'validator_supplements:' + execution['id'], []):
+                    supplement = self._option(db, 'validator_supplement:' + run_id)
+                    binding = supplement.get('binding', {}) if supplement else {}
+                    current_context = _context(self, {'execution': execution, 'task': task,
+                                                      'candidate': candidate})
+                    if (supplement and supplement.get('execution_id') == execution['id']
+                            and binding.get('candidate_digest') == candidate['candidate_digest']
+                            and binding.get('contract_digest') == candidate['contract_digest']
+                            and binding.get('report_digest') == report['report_digest']
+                            and binding.get('stored_report_digest') == evidence['stored_report_digest']
+                            and binding.get('adapted_report_digest') == evidence['adapted_report_digest']
+                            and binding.get('context_digest') == digest(current_context)
+                            and binding.get('control_generation') == self._control_generation(db)
+                    and binding.get('authorization_version') == self._authorization_version(db)
+                    and binding.get('admission_snapshot_digest') == (
+                        self._option(db, 'validator_admission:' + run_id) or {}
+                    ).get('snapshot_digest')
+                            and supplement.get('formal_checks_verified') is True):
+                        formal_supplement = True
+                        validator_runs.append({'run_id': run_id, 'execution_id': execution['id'],
+                                               'formal_checks_verified': True})
+                if not evidence.get('formal_checks_verified') and not formal_supplement:
                     reasons.append('formal_receipts_missing:' + task['id'])
                 verdicts.add(result.get('verdict', 'needs_validation'))
                 if task['role'] in ('final_verification', 'conflict_review') and not validation.get('errors'):
