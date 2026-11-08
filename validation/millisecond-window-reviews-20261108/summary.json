@@ -1,0 +1,87 @@
+{
+  "candidate_commit": "f96f361a6542aad8436cc92a5241901f7c2449e8",
+  "formal": false,
+  "overall": "needs_validation",
+  "bridge_started": false,
+  "resume_executed": false,
+  "reviews": {
+    "B": {
+      "verdict": "passed",
+      "formal": false,
+      "result_sha256": "4eca6b2fd04dc338da36ebc2f7114f60078b140f2d958c504fc07ae30f164086",
+      "provider": "openai",
+      "model": "gpt-6.1-sol",
+      "checks": [
+        {
+          "name": "actual_isolated_unittest",
+          "exit_code": 0,
+          "tests_run": 14
+        }
+      ],
+      "accepted": true,
+      "terminal_verified": true
+    },
+    "C": {
+      "verdict": "passed",
+      "formal": false,
+      "result_sha256": "d754f9d37a05e802edafbd673db5eb1b178c03d2693bc78c3e2d12c97f17e6c8",
+      "provider": "openai",
+      "model": "gpt-6.1-sol",
+      "checks": [
+        {
+          "name": "candidate_commit_and_source_manifest",
+          "exit_code": 0,
+          "tests_run": null
+        },
+        {
+          "name": "package_manifest",
+          "exit_code": 0,
+          "tests_run": null
+        },
+        {
+          "name": "git_diff_check",
+          "exit_code": 0,
+          "tests_run": null
+        },
+        {
+          "name": "millisecond_isolated_unittest",
+          "exit_code": 0,
+          "tests_run": 14
+        },
+        {
+          "name": "review_record_attribution",
+          "exit_code": 0,
+          "tests_run": null
+        }
+      ],
+      "accepted": true,
+      "terminal_verified": false
+    },
+    "D": {
+      "verdict": "passed",
+      "formal": false,
+      "result_sha256": "a6d190492284ad29f2db974ef0621bad7e087d4ac7da99eb916bc0ee0db8651f",
+      "provider": "openai",
+      "model": "gpt-6.1-sol",
+      "checks": [
+        {
+          "name": "准确版本与源文件核对",
+          "exit_code": 0,
+          "tests_run": null
+        },
+        {
+          "name": "毫秒关联、重基线及停止边界隔离回归",
+          "exit_code": 0,
+          "tests_run": 16
+        },
+        {
+          "name": "测试前后源码摘要",
+          "exit_code": 0,
+          "tests_run": null
+        }
+      ],
+      "accepted": true,
+      "terminal_verified": true
+    }
+  }
+}
