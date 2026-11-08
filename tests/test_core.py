@@ -11,7 +11,7 @@ import time
 import unittest
 
 from scripts.pair_core import Daemon, FileLock, PairError, Store, scopes_overlap
-from scripts.pair_transport import DeliveryUnknown, SessionBusy, TransportError
+from scripts.pair_transport import AppServer, DeliveryUnknown, SessionBusy, TransportError
 from tests.recovery_fixture import resume_for_test
 
 
@@ -377,26 +377,34 @@ class CoreTests(unittest.TestCase):
 class RealCoreTests(unittest.TestCase):
     def test_real_daemon_claim_and_complete(self):
         from scripts.pair_core import effective_home
+        # 真实可见成员必须先由 A 的 start 和 B 的 accept 绑定原始 CLI。
+        # 这里仅复核该绑定并运行 daemon，不在普通测试进程中创建或伪造成员会话。
+        pair_id=os.environ.get('CODEX_PAIR_REAL_PAIR')
+        state_root=os.environ.get('CODEX_PAIR_REAL_STATE_ROOT')
+        if not pair_id or not state_root:
+            self.skipTest('需要先在 A/B 原始 CLI 完成 start/accept，并设置 CODEX_PAIR_REAL_PAIR 与 CODEX_PAIR_REAL_STATE_ROOT')
         home=effective_home()
+        store=Store(pair_id,home=home,state_root=state_root)
+        existing=store.status()
+        self.assertEqual(existing['pair']['status'],'running',existing)
+        self.assertEqual(len(existing['members']),2,existing)
+        self.assertFalse(existing['tasks'],existing)
+        self.assertEqual(os.environ.get('CODEX_THREAD_ID','').lower(),
+                         store.member('A')['session_uuid'].lower(),
+                         '真实 daemon 测试必须从已绑定的 A 原始 CLI 运行')
+        # 交付前再次通过两个成员各自的账号目录只读核对 session、cwd、模型和 Git 绑定。
+        for member in (store.member('A'),store.member('B')):
+            with AppServer(codex_home=member['codex_home'],cwd=member['cwd'],
+                           metadata_only=True,account_metadata=True) as observer:
+                observer.validate(member)
         evidence=Path(os.environ.get('CODEX_PAIR_EVIDENCE',str(home/'codex-pair'/'live-core-validation')))
         evidence.mkdir(parents=True,exist_ok=True)
-        root=evidence/('core-project-'+str(time.time_ns()));root.mkdir()
-        project=root/'main';project.mkdir()
-        def git(*argv):
-            return subprocess.run(['git','-C',str(project),*argv],capture_output=True,encoding='utf-8',check=True).stdout.strip()
-        git('init','-b','main');git('config','user.name','Codex Pair Test');git('config','user.email','codex-pair-test@local.invalid')
-        (project/'seed.txt').write_text('seed\n',encoding='utf-8');git('add','seed.txt');git('commit','-m','test seed')
-        base=git('rev-parse','HEAD')
-        for member in ('a','b'):git('worktree','add','-b',member,str(root/member),base)
-        pair_id='real-core-'+str(time.time_ns())
-        store=Store.initialize(pair_id,str(project),base,home=home)
         script=str(Path(__file__).resolve().parents[1]/'scripts/pair.py')
-        common=[sys.executable,script,'--json','--pair',pair_id,'--codex-home',str(home)]
-        for member in ('A','B'):
-            result=subprocess.run(common+['join','--member',member,'--new-session','--worktree',str(root/member.lower())],capture_output=True,encoding='utf-8',timeout=180)
-            self.assertEqual(result.returncode,0,result.stdout+result.stderr)
+        common=[sys.executable,script,'--json','--pair',pair_id,'--state-root',state_root,'--codex-home',str(home)]
         # 本用例只验真实通信；暂停后的恢复另须正式执行器证据，不能由测试夹具放行。
-        store.assign('proof','真实领取完成闭环','B',['probe.txt'],body='本任务仅验证通信，不修改项目代码，不运行 Git。先按 claim_argv 领取，claimed=true 后用 complete 提交实质结果 PAIR_BUSINESS_OK。结果文件写入协作状态目录，不写入 worktree。不要发送收到或谢谢。')
+        task_id='real-daemon-'+str(time.time_ns())
+        store.assign(task_id,'真实领取完成闭环','B',['validation/'],body='本任务仅验证通信，不修改项目代码，不运行 Git。先按 claim_argv 领取，claimed=true 后用 complete 提交实质结果 PAIR_BUSINESS_OK。结果文件写入协作状态目录，不写入 worktree。不要发送收到或谢谢。',
+                     acceptance=['结果包含 PAIR_BUSINESS_OK'],required_checks=[{'name':'daemon_probe','command':'python -c "print(1)"','argv':[sys.executable,'-c','print(1)'],'required':True}])
         logs=(evidence/'core-daemon.stdout').open('wb');errors=(evidence/'core-daemon.stderr').open('wb')
         daemon=subprocess.Popen(common+['daemon'],stdout=logs,stderr=errors,creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
         try:
@@ -409,32 +417,15 @@ class RealCoreTests(unittest.TestCase):
                 if len(status['messages'])>=2 and all(m['process_status']=='completed' and m['remote_status']=='completed' for m in status['messages']):break
                 time.sleep(.25)
             (evidence/'core-result.json').write_text(json.dumps(status,ensure_ascii=False,indent=2),encoding='utf-8')
-            self.assertTrue(status and len(status['messages'])>=2,status)
-            self.assertTrue(all(m['process_status']=='completed' and m['remote_status']=='completed' for m in status['messages']),status)
-            self.assertEqual(status['tasks'][0]['status'],'completed')
-            self.assertIn('PAIR_BUSINESS_OK',status['tasks'][0]['result'])
-            self.assertTrue(all(m['attempts']==1 for m in status['messages']))
-            # 先让消息被接受，再暂停；已在执行链中的领取不能被暂停丢弃。
-            inflight=store.send('A','B','暂停边界验收：本消息已被投递，按协议 claim 和 complete，实质结果 PAIR_PAUSE_ACCEPTED_OK，不改代码。')
-            deadline=time.monotonic()+30
-            while time.monotonic()<deadline and store.message(inflight['id'])['delivery_status']!='accepted':time.sleep(.02)
-            accepted_snapshot=store.message(inflight['id'])
-            self.assertEqual(accepted_snapshot['delivery_status'],'accepted')
-            store.control('paused')
-            pending=store.send('B','A','暂停期间保留，不得开始投递')
-            deadline=time.monotonic()+180
-            while time.monotonic()<deadline:
-                actual=store.message(inflight['id'])
-                if actual['process_status']=='completed' and actual['remote_status']=='completed':break
-                time.sleep(.25)
-            pause_proof={'accepted_before_pause':{key:value for key,value in accepted_snapshot.items() if key!='claim_token'},
-                         'after':store.status(),'pending_id':pending['id']}
-            (evidence/'pause-after-acceptance.json').write_text(json.dumps(pause_proof,ensure_ascii=False,indent=2),encoding='utf-8')
-            self.assertEqual(actual['process_status'],'completed')
-            self.assertEqual(actual['remote_status'],'completed')
-            self.assertEqual(store.message(pending['id'])['attempts'],0)
+            task_message=next(m for m in status['messages'] if m['task_id']==task_id)
+            self.assertEqual(task_message['process_status'],'completed',status)
+            self.assertEqual(task_message['remote_status'],'completed',status)
+            task=next(t for t in status['tasks'] if t['id']==task_id)
+            self.assertEqual(task['status'],'completed')
+            self.assertIn('PAIR_BUSINESS_OK',task['result'])
         finally:
-            store.control('stopped')
+            if daemon.poll() is None:
+                daemon.terminate()
             try:daemon.wait(timeout=30)
             except subprocess.TimeoutExpired:daemon.terminate();daemon.wait(timeout=10)
             logs.close();errors.close()

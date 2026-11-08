@@ -11,7 +11,7 @@ import unittest
 from unittest.mock import patch
 
 from scripts import pair, pair_git
-from scripts.pair_core import PairError, Store, effective_home
+from scripts.pair_core import PairError, Store, effective_home, member_workspace
 from scripts.pair_transport import AppServer, codex_command
 
 SCRIPT=Path(__file__).resolve().parents[1]/'scripts/pair.py'
@@ -182,6 +182,12 @@ class IntegrationTests(unittest.TestCase):
 @unittest.skipUnless(os.getenv('CODEX_PAIR_REAL_INTEGRATION')=='1','需要显式启用真实双 CLI 集成验收')
 class RealIntegrationTests(unittest.TestCase):
     def test_two_real_clis_parallel_questions_duplicate_restart_and_integration(self):
+        pair_id=os.environ.get('CODEX_PAIR_REAL_INTEGRATION_PAIR')
+        state_root=os.environ.get('CODEX_PAIR_REAL_INTEGRATION_STATE_ROOT')
+        if not pair_id or not state_root:
+            self.skipTest('需要 A/B 原始 CLI 已完成 start/accept，并设置 CODEX_PAIR_REAL_INTEGRATION_PAIR 与 CODEX_PAIR_REAL_INTEGRATION_STATE_ROOT')
+        if os.environ.get('CODEX_PAIR_REAL_INTEGRATION_CONTROL')!='1':
+            self.skipTest('集成验收包含 pause/restart/stop；请为专用 pair 显式设置 CODEX_PAIR_REAL_INTEGRATION_CONTROL=1')
         home=Path(os.environ.get('CODEX_PAIR_HOME_A',str(effective_home()))).resolve()
         self.assertIn('CODEX_PAIR_HOME_B',os.environ,'双账号验收须显式设置 CODEX_PAIR_HOME_B')
         home_b=Path(os.environ['CODEX_PAIR_HOME_B']).resolve()
@@ -189,27 +195,31 @@ class RealIntegrationTests(unittest.TestCase):
         homes={'A':home,'B':home_b}
         evidence=Path(os.environ.get('CODEX_PAIR_EVIDENCE',str(SCRIPT.parents[1]/'.codex-pair'/'archives'/'live-integration')))
         evidence.mkdir(parents=True,exist_ok=True)
-        root=evidence/('project-'+str(time.time_ns()));root.mkdir()
-        project=root/'main';seed(project)
-        state_root=project/'.codex-pair'/'state'
+        store=Store(pair_id,home=home,state_root=state_root)
+        initial_status=store.status()
+        self.assertEqual(initial_status['pair']['status'],'running',initial_status)
+        self.assertEqual(len(initial_status['members']),2,initial_status)
+        self.assertFalse(initial_status['tasks'],initial_status)
+        self.assertEqual(os.environ.get('CODEX_THREAD_ID','').lower(),store.member('A')['session_uuid'].lower(),
+                         '集成验收必须从已绑定的 A 原始 CLI 运行')
+        project=Path(initial_status['pair']['project'])
         account_proof={}
         for member,account_home in homes.items():
-            with AppServer(codex_home=account_home,cwd=str(project)) as observer:
+            bound=store.member(member)
+            self.assertEqual(Path(bound['codex_home']).resolve(),account_home)
+            with AppServer(codex_home=account_home,cwd=bound['cwd'],metadata_only=True,account_metadata=True) as observer:
+                observer.validate(bound)
                 account=observer.rpc('account/read',{}).get('account') or {}
                 identity=account.get('id') or account.get('email')
                 self.assertTrue(identity,'真实验收需要已登录账号')
                 account_proof[member]={'home':str(account_home),'fingerprint':hashlib.sha256(identity.encode()).hexdigest(),'type':account.get('type')}
         self.assertNotEqual(account_proof['A']['fingerprint'],account_proof['B']['fingerprint'],'两个 home 须为不同真实账号')
-        pair_id='real-integration-'+str(time.time_ns())
         common=[sys.executable,str(SCRIPT),'--json','--pair',pair_id,'--state-root',str(state_root),'--codex-home',str(home)]
         def cli(*args,cwd=None):
             result=subprocess.run(common+list(args),cwd=cwd,capture_output=True,encoding='utf-8',timeout=180)
             self.assertEqual(result.returncode,0,result.stdout+result.stderr)
             parsed=json.loads(result.stdout);self.assertTrue(parsed['ok'],parsed);return parsed['result']
-        initial=cli('init','--project',str(project))
-        trees=initial['git']['worktrees']
-        for member in ('A','B'):cli('join','--member',member,'--member-codex-home',str(homes[member]),'--new-session','--worktree',trees[member.lower()]['path'])
-        store=Store(pair_id,home=home,state_root=state_root)
+        trees={member.lower():{'path':member_workspace(store.member(member))} for member in ('A','B')}
         goals={
             'A':('implementation','adder.py','实现 adder.py 的 add(a,b)，使用普通 Python 数字加法，支持负数。只修改 adder.py，测试后 git add -- adder.py 并提交；complete 原任务时附 --commit 完整SHA。若收到 B 的接口问题，按协议 claim 问题，send reply 关联原问题（task 使用问题的 task_id），带 progress-note 说明已确定接口，再 complete 问题。不要等待 B 才实现。使用 claim_argv[0] 的 Python 路径。'),
             'B':('tests','test_adder.py','先向 A 发送一条 kind=question，task=tests，询问 add(a,b) 是否支持负数；保留当前任务 claim_token，写在协作状态目录下的文件中，然后结束回合等待 reply。收到 reply 后领取并完成回复消息，继续原任务：只编写 test_adder.py，用 unittest 测试 add(2,3)==5、add(-2,1)==-1。不要写 adder.py 或桩，不整合 A 的分支。源码尚未整合时可先 py_compile 测试文件并说明等待整合后执行；git add -- test_adder.py 后提交，complete 原任务并附 --commit 完整SHA。使用 claim_argv[0] 的 Python 路径。')}

@@ -1,5 +1,11 @@
 # 更新说明
 
+## 2026-11-07 — 真实 daemon 测试改用原始可见窗口绑定
+
+真实 Core 和双 CLI 集成测试不再从普通子进程调用 `join --new-session`。测试现在要求先由 A/B 原始 Codex CLI 通过 `start/accept` 建立专用 running pair，再从 A 窗口提供 pair ID 与 state-root；启动 daemon 前会重新核对两个成员的 session、账号目录、工作目录、模型和 Git 绑定。缺少这些环境变量时测试明确跳过，保留 `Original visible CLI required` 身份门禁。
+
+Core 验收只在专用 pair 上执行一次领取/完成闭环；包含暂停、重启和停止的集成验收另需显式控制开关，避免测试修改用户正在使用的协作。针对性 Core 26 项和 Integration 11 项通过；真实可见窗口验收本轮未执行，仍待专用 A/B pair 提供运行条件。
+
 ## 2026-11-07 — 动态原始字节复算与一次性准入候选
 
 读取器向工作器和 Host 提供同次加载的程序集原始字节，独立复算 MVID 与三个 IL 方法摘要；固定依赖随受限 VM 快照部署。新增 Store 准入绑定、一次性派发及暂停后原运行回收，真实临时库运行通过，仍保持 formal=false。精确 CLI 0.167.0-alpha.3.2 适配已核对真实 API/rollout 和只读子进程生命周期。保留 PowerShell 模块路径与新增 _uuid.pyd 映像导致的失败，使用独立 v2 证据配置。准确范围与未完成项见 validation/bytecode-provenance-20261105/admitted-reader-progress.md；本轮候选待独立复审。
