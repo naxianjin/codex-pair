@@ -15,12 +15,12 @@ import time
 try:
     from .pair_producer import file_identity, verify_launch, SUPPORTED_VERSIONS, STRICT_VERSIONS
     from .pair_transport import AppServer, canonical_path, session_uuid, command_receipt, redact_diagnostic
-    from .pair_reviewer import fail
+    from .pair_reviewer import fail, safe_evidence
     from .pair_stages import digest, encoded
 except ImportError:
     from pair_producer import file_identity, verify_launch, SUPPORTED_VERSIONS, STRICT_VERSIONS
     from pair_transport import AppServer, canonical_path, session_uuid, command_receipt, redact_diagnostic
-    from pair_reviewer import fail
+    from pair_reviewer import fail, safe_evidence
     from pair_stages import digest, encoded
 
 
@@ -232,25 +232,10 @@ def compatibility_probe(executable, *, expected_binding=None, trusted_executable
 class CompatibilityMixin:
     def _register_original_cli_baseline(self, member, session, cwd, observer, *, executable):
         """仅内部首次登记原绑定的受管只读进程；不接受JSON证明，也不覆盖旧exe基线。"""
-        if (not isinstance(observer, AppServer) or getattr(observer, 'metadata_only', None) is not True
-                or getattr(observer, 'backend', None) != 'managed'
-                or not isinstance(getattr(observer, 'producer_launch', None), dict)):
-            fail('Owned readonly observer required / 只接受实际受管只读AppServer的原生进程证据')
-        launch = observer.producer_launch
-        verify_launch(launch)
-        if file_identity(executable) != launch['file']:
-            fail('Original CLI executable mismatch / 原绑定查询必须使用所指定的同一原生exe')
         with self.transaction() as db:
             actor = dict(self._binding(db, member, session, cwd))
             expected = _expected_binding(_member_binding(actor))
-        actual = observer.read_thread(expected['session_uuid'])
-        view = {'session_uuid': session_uuid(actual['id']), 'cwd': canonical_path(actual['cwd']),
-                'model': actual.get('model'), 'modelProvider': actual.get('modelProvider')}
-        home = observer.identity.get('codexHome')
-        if (not isinstance(home, str) or canonical_path(home) != expected['codex_home'] or actual.get('ephemeral')
-                or any(view[key] != expected[key] for key in view)):
-            fail('Original CLI binding not verified / 实际原会话、配置、cwd、模型或提供方不符')
-        verify_launch(launch)
+        launch = _original_cli_source(observer, executable, expected)
         source = 'original-visible-binding:' + session + ':' + str(actor['binding_version'])
         baseline = {'file': launch['file'], 'version': launch['version'], 'source_reference': source,
                     'source_binding': expected, 'process': launch['process'], 'created': time.time(),
@@ -270,6 +255,62 @@ class CompatibilityMixin:
                        executable_sha256=baseline['file']['sha256'], communication_verified=False)
             return {'registered': True, 'duplicate': False, 'source_reference': source,
                     'communication_verified': False, 'permissions_granted': False}
+
+    def upgrade_cli_baseline(self, member, session, cwd, executable, *, expected_baseline_digest, evidence):
+        """原窗口显式升级准确旧基线；来源核验不代替兼容预检或恢复许可。"""
+        safe_evidence(evidence)
+        if not isinstance(expected_baseline_digest, str) or not re.fullmatch(r'[0-9a-f]{64}', expected_baseline_digest):
+            fail('Exact CLI baseline digest required / 升级须固定准确旧基线摘要')
+        key, compatibility_key = 'cli_trusted_executable:' + member, 'cli_compatibility:' + member
+        with self.transaction() as db:
+            actor = dict(self._binding(db, member, session, cwd))
+            expected = _expected_binding(_member_binding(actor))
+            old, previous = self._option(db, key), self._option(db, compatibility_key)
+        _require_original_cli_environment(expected)
+        if (not isinstance(old, dict) or digest(old) != expected_baseline_digest
+                or _match_trusted_executable(old.get('file'), old)['status'] != 'verified'):
+            fail('CLI baseline digest mismatch / 既有可信基线缺失或与指定摘要不符')
+        if file_identity(executable) == old['file']:
+            fail('CLI baseline unchanged / 当前文件仍是既有基线，无须升级')
+        with AppServer(codex_home=actor['codex_home'], cwd=actor['cwd'], executable=executable,
+                       metadata_only=True, track_producer=True) as observer:
+            launch = _original_cli_source(observer, executable, expected)
+            created = time.time()
+            source = 'original-visible-binding:' + expected['session_uuid'] + ':' + str(actor['binding_version'])
+            baseline = {'file': launch['file'], 'version': launch['version'], 'source_reference': source,
+                        'source_binding': expected, 'process': launch['process'], 'created': created,
+                        'digital_signature_or_upstream_attestation': 'not_claimed',
+                        'previous_baseline_digest': expected_baseline_digest}
+            new_digest = digest(baseline)
+            reason = 'cli_baseline_upgraded_requires_preflight'
+            pending = {'adapter_version': ADAPTER_VERSION, 'checked_at': created, 'status': 'not_verified',
+                       'read_only': True, 'persisted': True, 'model_started': False, 'test_message_sent': False,
+                       'configuration_changed': False, 'binding': expected, 'executable': launch['file'],
+                       'version': launch['version'], 'fingerprint': digest([new_digest, reason]),
+                       'communication': {'status': 'not_verified', 'reason': reason}, 'reasons': [reason],
+                       'capabilities': {}, 'operations': {operation: {'status': 'not_verified', 'reasons': [reason],
+                           'execution_authorized': False} for operation in OPERATIONS}}
+            history_key = 'cli_baseline_history:' + member + ':' + expected_baseline_digest
+            with self.transaction() as db:
+                current = self._binding(db, member, session, cwd)
+                if _expected_binding(_member_binding(current)) != expected:
+                    fail('Original CLI binding changed / 升级查询期间原绑定变化')
+                if self._option(db, key) != old or self._option(db, compatibility_key) != previous:
+                    fail('CLI baseline upgrade raced / 基线或兼容预检已变化，保留较新记录')
+                _require_original_cli_environment(expected)
+                _verify_original_cli_launch(observer, executable, launch)
+                if self._option(db, history_key) is not None:
+                    fail('CLI baseline history already exists / 不覆盖已有基线历史')
+                self._put(db, history_key, {'baseline': old, 'compatibility': previous, 'replaced_at': created,
+                                           'replacement_baseline_digest': new_digest, 'evidence': evidence})
+                self._put(db, key, baseline)
+                self._put(db, compatibility_key, pending)
+                self.event(db, 'cli_baseline_upgraded', member=member, previous_digest=expected_baseline_digest,
+                           baseline_digest=new_digest, history_key=history_key, compatibility_status='not_verified',
+                           existing_executions_unchanged=True, resumed=False)
+            return {'upgraded': True, 'baseline_digest': new_digest, 'history_key': history_key,
+                    'compatibility_status': 'not_verified', 'communication_verified': False,
+                    'permissions_granted': False, 'resumed': False, 'existing_executions_unchanged': True}
 
     def refresh_cli_compatibility(self, member, session, cwd, executable, *, observer=None, force=False):
         """显式授权写入口；doctor不得调用。可信exe来源只读既存记录，不接受JSON自证。"""
@@ -298,8 +339,10 @@ class CompatibilityMixin:
     def cli_compatibility_status(self, member, session, cwd):
         with self.transaction() as db:
             self._binding(db, member, session, cwd)
+            baseline = self._option(db, 'cli_trusted_executable:' + member)
             return {'record': self._option(db, 'cli_compatibility:' + member),
-                    'trust_baseline_present': self._option(db, 'cli_trusted_executable:' + member) is not None,
+                    'trust_baseline_present': baseline is not None,
+                    'trust_baseline_digest': digest(baseline) if baseline is not None else None,
                     'communication_verified_by_probe': False}
 
     def _cli_compatibility_gate(self, db, member, operation):
@@ -381,6 +424,37 @@ class CompatibilityMixin:
                 'status': 'original_binding_preserved' if present else 'needs_validation',
                 'result': 'unknown', 'replayed': False, 'new_cli_substituted': False,
                 'next_action': 'query_original_turn_and_tools' if present else 'reconcile_original_execution_without_replay'}
+
+
+def _require_original_cli_environment(expected):
+    home = os.environ.get('CODEX_HOME') or Path.home() / '.codex'
+    if (os.environ.get('CODEX_THREAD_ID', '').lower() != expected['session_uuid']
+            or canonical_path(home) != expected['codex_home'] or canonical_path(Path.cwd()) != expected['cwd']):
+        fail('Original visible CLI required / 升级只能由准确原窗口本人在原账号和会话目录执行')
+
+
+def _verify_original_cli_launch(observer, executable, launch):
+    verify_launch(launch)
+    if observer.producer_launch != launch or file_identity(executable) != launch['file']:
+        fail('Original CLI executable mismatch / 原绑定查询必须使用所指定的同一原生exe和启动证据')
+
+
+def _original_cli_source(observer, executable, expected):
+    if (not isinstance(observer, AppServer) or getattr(observer, 'metadata_only', None) is not True
+            or getattr(observer, 'backend', None) != 'managed'
+            or not isinstance(getattr(observer, 'producer_launch', None), dict)):
+        fail('Owned readonly observer required / 只接受实际受管只读AppServer的原生进程证据')
+    launch = json.loads(encoded(observer.producer_launch))
+    _verify_original_cli_launch(observer, executable, launch)
+    actual = observer.read_thread(expected['session_uuid'])
+    view = {'session_uuid': session_uuid(actual['id']), 'cwd': canonical_path(actual['cwd']),
+            'model': actual.get('model'), 'modelProvider': actual.get('modelProvider')}
+    home = observer.identity.get('codexHome')
+    if (not isinstance(home, str) or canonical_path(home) != expected['codex_home'] or actual.get('ephemeral')
+            or any(view[key] != expected[key] for key in view)):
+        fail('Original CLI binding not verified / 实际原会话、配置、cwd、模型或提供方不符')
+    _verify_original_cli_launch(observer, executable, launch)
+    return launch
 
 
 def _expected_binding(value):

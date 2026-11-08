@@ -1,0 +1,33 @@
+{
+  "candidate_manifest_sha256": "a10baeda4590c60ade86c4de9d0833938ae816d5cd7e9b7faf89a959f9123394",
+  "candidate_files_match": true,
+  "tests": {
+    "returncode": 0,
+    "tests_run": 38,
+    "stderr": "Ran 38 tests in 1.937s\\r\\nOK",
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "5242aa7e6162c6e5d3f7ee00cf0b8fb9a4930b04b9cc18b18ea9225bdbdce256"
+  },
+  "source_review": "passed",
+  "real_acceptance": false,
+  "overall": "needs_validation",
+  "identity": {
+    "provider": "openai",
+    "model": "gpt-6.1-sol",
+    "session": "01a1b0ae-5e37-7c80-812b-9953f2b0371f",
+    "review_turn": "01a1ba89-030d-70d2-854e-34ff08c920fc"
+  },
+  "reviewer": "C/.codex-lb official reviewer window",
+  "confirmed": [
+    "ready 与 gap 路径均校验 prefix_digest",
+    "新增 ready 状态同尺寸中段改写负例",
+    "response_item 缺 timestamp 拒绝推进",
+    "API turn、正文、毫秒时间唯一关联和去重保持",
+    "legacy event_msg 兼容边界保留"
+  ],
+  "limits": [
+    "未执行真实恢复、VM、VMRS 或 Store",
+    "hosted/流式工具仍 unsupported",
+    "formal=false"
+  ]
+}

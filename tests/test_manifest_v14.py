@@ -3,10 +3,14 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import shutil
+import subprocess
 import tempfile
 import unittest
+import zipfile
 
 from scripts.install_skill import install_skill, package_manifest
+from scripts.package_skill import refresh_manifest
 
 
 class ManifestTests(unittest.TestCase):
@@ -98,6 +102,65 @@ class ManifestTests(unittest.TestCase):
             self.skipTest('Hardlink fixture unavailable: ' + str(error))
         with self.assertRaisesRegex(ValueError, '硬链接'):
             package_manifest(self.source)
+
+    def git(self, *arguments):
+        return subprocess.run(['git','-C',str(self.source),*arguments],check=True,capture_output=True)
+
+    @unittest.skipUnless(shutil.which('git'), 'Git required for archive byte regression')
+    def test_refresh_rejects_git_normalization_without_overwriting_manifest(self):
+        self.git('init','-q')
+        (self.source/'.gitattributes').write_bytes(b'* text=auto eol=lf\n')
+        (self.source/'SKILL.md').write_bytes(b'skill\r\n')
+        manifest=self.source/'package-manifest.json'
+        previous=manifest.read_bytes()
+        with self.assertRaisesRegex(ValueError, 'Git 会改写发行字节'):
+            refresh_manifest(self.source)
+        self.assertEqual(manifest.read_bytes(),previous)
+
+    @unittest.skipUnless(shutil.which('git'), 'Git required for archive byte regression')
+    def test_refresh_matches_committed_archive_and_preserves_explicit_binary_bytes(self):
+        self.git('init','-q')
+        (self.source/'.gitattributes').write_bytes(b'* text=auto eol=lf\nassets/rule.json -text\n')
+        (self.source/'SKILL.md').write_bytes(b'skill\n')
+        (self.source/'assets/rule.json').write_bytes(b'{"rule":2}\r\n')
+        (self.source/'assets/unlisted.bin').write_bytes(b'private sentinel')
+        refreshed=refresh_manifest(self.source)
+        self.assertNotIn('assets/unlisted.bin',refreshed['files'])
+        self.git('add','--','.gitattributes','package-manifest.json',*self.files)
+        self.git('-c','user.name=Manifest Test','-c','user.email=manifest@example.invalid',
+                 '-c','commit.gpgsign=false','commit','-qm','Exact package byte fixture')
+        archive=self.root/'committed.zip'
+        self.git('archive','--format=zip','--output='+str(archive),'HEAD')
+        extracted=self.root/'archive'
+        with zipfile.ZipFile(archive) as bundle:
+            bundle.extractall(extracted)
+        self.assertEqual(package_manifest(extracted),package_manifest(self.source))
+        self.assertEqual((extracted/'assets/rule.json').read_bytes(),b'{"rule":2}\r\n')
+        (extracted/'SKILL.md').write_bytes(b'skill\r\n')
+        with self.assertRaisesRegex(ValueError, '摘要不一致'):
+            package_manifest(extracted)
+
+    @unittest.skipUnless(shutil.which('git'), 'Git required for archive byte regression')
+    def test_refresh_preserves_historical_indexed_crlf_bytes(self):
+        self.git('init','-q')
+        (self.source/'SKILL.md').write_bytes(b'historical\r\n')
+        self.git('-c','core.autocrlf=false','add','--',*self.files)
+        (self.source/'.gitattributes').write_bytes(b'* text=auto eol=lf\n')
+        previous=(self.source/'SKILL.md').read_bytes()
+        refresh_manifest(self.source)
+        self.git('add','--','.gitattributes','package-manifest.json')
+        self.git('-c','user.name=Manifest Test','-c','user.email=manifest@example.invalid',
+                 '-c','commit.gpgsign=false','commit','-qm','Historical byte fixture')
+        archive=self.root/'historical.zip'
+        self.git('archive','--format=zip','--output='+str(archive),'HEAD')
+        extracted=self.root/'historical'
+        with zipfile.ZipFile(archive) as bundle:
+            bundle.extractall(extracted)
+        self.assertEqual((extracted/'SKILL.md').read_bytes(),previous)
+        self.assertEqual(package_manifest(extracted),package_manifest(self.source))
+        (self.source/'SKILL.md').write_bytes(b'changed\r\n')
+        with self.assertRaisesRegex(ValueError,'Git 会改写发行字节'):
+            refresh_manifest(self.source)
 
 
 if __name__ == '__main__':

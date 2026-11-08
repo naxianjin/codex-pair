@@ -1,0 +1,26 @@
+{
+  "tree": "312434e4cac25a21cc239117f12102995427706f",
+  "changed_package_paths": [
+    "package-manifest.json",
+    "references/acceptance-repairs-20261102.md",
+    "references/acceptance-repairs-20261105-settlement.md",
+    "references/cli-compatibility.md",
+    "references/environment-20261102-new-machine.md",
+    "scripts/install_skill.py",
+    "scripts/package_skill.py",
+    "scripts/pair_compatibility.py",
+    "scripts/pair_control_events.py",
+    "scripts/pair_control_runtime.py",
+    "scripts/pair_next_commands.py"
+  ],
+  "archive_sha256": "a8597abeda9ef515dd9f9264da63672c42c3f143c736e6b0855f1eefd1f19548",
+  "archive_manifest_match": true,
+  "package_sha256": "71d52a4e77504334844fc4f63f0f752c38e945e5b538477504b7d18b84ac2b8c",
+  "package_manifest_entries": 132,
+  "zip_manifest_match": true,
+  "formal": false,
+  "limitations": [
+    "temporary index; no install/publish",
+    "real recovery/Host-to-Store not exercised"
+  ]
+}

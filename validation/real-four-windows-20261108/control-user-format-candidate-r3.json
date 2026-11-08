@@ -1,0 +1,16 @@
+{
+  "scope": "C/control-user-format-candidate-r3",
+  "base_commit": "d63248f4c9e0513662ff327cfa8322a97d7f89ac",
+  "files": {
+    "scripts/pair_control_events.py": "85fc4b46bc67cb1edca2f6bc12c379be61f7f802119d47313a6472cdfa5e0367",
+    "scripts/pair_control_runtime.py": "ac453923451134524117e04f6ebb593b23c18817b83f7f056f3e123068872de0",
+    "tests/test_control_user_format.py": "414e946b0481325133524cbcd872650cddf89bdab3dc889d7382afdee6976230",
+    "tests/test_control_rebaseline.py": "161c8b6478bb2c584c961af977fc27041b0f145fe2b72bd40749176e3c8b0ca8",
+    "tests/test_control_events_v14.py": "d84cc267aafdd09dabab8ff6fe757ed948ac6dacdcce403721e0cdc00e9b5d78",
+    "package-manifest.json": "1c7ac3452174e6459a021e5e5390d7243921287fcb95b4a36f0efb248a7257dc"
+  },
+  "tests_run": 38,
+  "tests_returncode": 0,
+  "formal": false,
+  "previous_review": "01a1ba83-0fa1-7eb2-9f4b-ad83bde4c298"
+}

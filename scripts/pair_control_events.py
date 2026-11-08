@@ -139,6 +139,7 @@ class _MemberObserver:
                     return self._gap(member, 'control_source_or_binding_changed', 'Control source identity changed / 日志轮转、替换或身份变化须核对新事件边界', identity)
                 position = self._complete_boundary(stream, opened.st_size, metadata_end)
                 anchor = self._anchor(stream, position)
+                prefix_digest = self._prefix_digest(stream, position)
                 with FileLock(self.store.control_lock, timeout=30), self.store.transaction() as db:
                     self._same_binding(db, member)
                     # 两个启动入口竞争时，只有先登记的入口建立首次基准。
@@ -146,7 +147,7 @@ class _MemberObserver:
                         return {'observed': False, 'reason': 'control_baseline_already_registered'}
                     result = self.store._ingest_recovery_control(db, member['id'], member['session_uuid'], member['binding_version'],
                                                                 identity, position, {}, initial_baseline=True)
-                    self.store._put(db, self.state_key, self._state(member, identity, position, anchor, 'ready'))
+                    self.store._put(db, self.state_key, self._state(member, identity, position, anchor, 'ready', prefix_digest))
                     self.store.event(db, 'control_observer_baseline', member=member['id'], source_identity=identity, position=position,
                                      history_replayed=False, binding_version=member['binding_version'])
                 return dict(result, observed=True, historical_interruptions_replayed=False)
@@ -157,10 +158,15 @@ class _MemberObserver:
                 return self._gap(member, 'control_cursor_state_mismatch', 'Control cursor metadata mismatch / 游标与来源核验记录不一致', identity)
             if self._anchor(stream, position) != prior['anchor']:
                 return self._gap(member, 'control_source_rewritten', 'Control source content changed / 已读边界内容变化，保留门禁等待核对', identity)
+            if not prior.get('prefix_digest'):
+                return self._gap(member, 'control_prefix_integrity_unavailable', 'Control source prefix digest unavailable / 已读控制前缀缺少完整摘要，保留门禁等待重建边界', identity)
+            if self._prefix_digest(stream, position) != prior['prefix_digest']:
+                return self._gap(member, 'control_source_rewritten', 'Control source content changed / 已读控制前缀内容变化，保留门禁等待核对', identity)
             if prior.get('state') == 'gap' and prior.get('reason') != 'member_control_source_unavailable':
                 return {'observed': False, 'reason': prior['reason'], 'requires_explicit_rebaseline': True}
             stream.seek(position)
             records = []
+            api_turns = None
             for _ in range(MAX_POLL_RECORDS):
                 start = stream.tell()
                 line = stream.readline(MAX_RECORD_BYTES + 1)
@@ -172,7 +178,11 @@ class _MemberObserver:
                     stream.seek(start)
                     break
                 record = json.loads(line)
-                event = self._control_event(record, member['id'])
+                if (isinstance(record, dict) and record.get('type') == 'response_item' and isinstance(record.get('payload'), dict)
+                        and record['payload'].get('role') == 'user' and self.client is not None
+                        and api_turns is None):
+                    api_turns = list(self.client.turns(member['session_uuid'], items_view='full'))
+                event = self._control_event(record, member['id'], api_turns=api_turns)
                 records.append((start, stream.tell(), hashlib.sha256(line).hexdigest(), event))
                 if stream.tell() - position >= MAX_RECORD_BYTES:
                     break
@@ -191,6 +201,11 @@ class _MemberObserver:
                 if not saved or saved['position'] != position:
                     return {'observed': False, 'reason': 'control_cursor_advanced_concurrently'}
                 for start, stop, line_digest, event in records:
+                    user_key = None
+                    if event.get('api_item_id'):
+                        user_key = 'control_user_message:' + digest([member['session_uuid'], event['turn_id'], event['api_item_id']])
+                        if self.store._option(db, user_key):
+                            event = {'kind': 'duplicate_user_control'}
                     terminal_key = None
                     if event.get('kind') == 'coordinator_interrupted':
                         terminal_key = 'control_terminal:' + digest([member['session_uuid'], event['turn_id']])
@@ -221,11 +236,13 @@ class _MemberObserver:
                         self.store._record_user_control(db, member['id'], event['text'],
                             event_id='rollout:' + identity + ':' + str(start) + ':' + line_digest,
                             source_identity=identity, session=member['session_uuid'], binding_version=member['binding_version'])
+                    if user_key:
+                        self.store._put(db, user_key, {'source_identity': identity, 'position': stop})
                     if event.get('kind') == 'coordinator_interrupted':
                         pause_ids.append({'turn_id': event['turn_id'], 'generation': result['generation']})
                         self.store._put(db, terminal_key, {'event_digest': digest(event), 'source_identity': identity,
                                                          'position': stop, 'generation': result['generation']})
-                self.store._put(db, self.state_key, self._state(member, identity, end, anchor, 'ready'))
+                self.store._put(db, self.state_key, self._state(member, identity, end, anchor, 'ready', self._prefix_digest(stream, end)))
             return {'observed': True, 'records': len(records), 'interruptions': pause_ids,
                     'all_executors_stopped': False, 'user_key_proven': False}
 
@@ -248,9 +265,47 @@ class _MemberObserver:
                     'user_pause_proven': False}
 
     @staticmethod
-    def _control_event(record, member_id='A'):
+    def _control_event(record, member_id='A', *, api_turns=None):
         if not isinstance(record, dict):
             raise ValueError('Invalid control record / 日志记录不是对象')
+        if record.get('type') == 'response_item':
+            payload = record.get('payload')
+            if not isinstance(payload, dict) or payload.get('type') != 'message' or payload.get('role') != 'user':
+                return {'kind': 'non_control'}
+            content = payload.get('content')
+            metadata = payload.get('internal_chat_message_metadata_passthrough')
+            if (not isinstance(content, list) or len(content) != 1 or not isinstance(content[0], dict)
+                    or content[0].get('type') != 'input_text' or not isinstance(content[0].get('text'), str)
+                    or not isinstance(metadata, dict) or metadata.get('content_item_kinds') != ['user.text']):
+                return {'kind': 'non_control'}
+            attribution = metadata.get('content_item_metadata')
+            if (not isinstance(attribution, list) or len(attribution) != 1 or not isinstance(attribution[0], dict)
+                    or attribution[0].get('provenance') != {'type': 'user'}
+                    or any(source.get(key) for source in (record, payload, metadata, attribution[0], content[0])
+                           for key in ('images', 'local_images', 'attachments', 'forwarded', 'quoted',
+                                       'harness_injected', 'source_tool_namespace'))):
+                return {'kind': 'non_control'}
+            text = content[0]['text']
+            event = _MemberObserver._control_event({'type': 'event_msg', 'payload': {'type': 'user_message', 'message': text}}, member_id)
+            if event['kind'] == 'non_control':
+                return event
+            turn_id = metadata.get('turn_id')
+            created = metadata.get('create_time')
+            if not isinstance(turn_id, str) or not turn_id or type(created) not in (int, float) or not isinstance(record.get('timestamp'), str):
+                raise ValueError('Incomplete original user evidence / 新格式用户事件缺少回合或时间证据')
+            timestamp = datetime.fromisoformat(record['timestamp'].replace('Z', '+00:00'))
+            if timestamp.tzinfo is None or int(timestamp.timestamp() * 1000) != int(created * 1000):
+                raise ValueError('User timestamp mismatch / 新格式用户事件时间不一致')
+            # raw 与公开 API 的消息 ID 不同，按原会话内的准确回合、唯一正文及毫秒时间关联。
+            matches = [item for turn in api_turns or () if turn.get('id') == turn_id
+                       for item in turn.get('items', []) if item.get('type') == 'userMessage'
+                       and isinstance(item.get('content'), list) and len(item['content']) == 1
+                       and isinstance(item['content'][0], dict) and item['content'][0].get('type') in ('text', 'inputText')
+                       and item['content'][0].get('text') == text
+                       and type(item.get('startedAtMs')) is int and item['startedAtMs'] == int(created * 1000)]
+            if len(matches) != 1 or not isinstance(matches[0].get('id'), str) or not matches[0]['id']:
+                raise ValueError('Original API user message required / 新格式用户事件尚无唯一原 API 关联')
+            return dict(event, turn_id=turn_id, api_item_id=matches[0]['id'])
         if record.get('type') != 'event_msg':
             return {'kind': 'non_control'}
         payload = record.get('payload')
@@ -289,10 +344,11 @@ class _MemberObserver:
             raise ValueError('Member binding changed / 读取期间成员绑定已变化')
 
     @staticmethod
-    def _state(member, identity, position, anchor, state):
+    def _state(member, identity, position, anchor, state, prefix_digest=None):
         return {'session': member['session_uuid'], 'binding_version': member['binding_version'],
                 'source_identity': identity, 'position': position, 'anchor': anchor, 'state': state,
-                'observed_at': time.time(), 'tool_boundary_verified': False}
+                'observed_at': time.time(), 'tool_boundary_verified': False,
+                **({'prefix_digest': prefix_digest} if prefix_digest else {})}
 
     @staticmethod
     def _anchor(stream, position):
@@ -302,6 +358,21 @@ class _MemberObserver:
         data = stream.read(position - start)
         stream.seek(current)
         return hashlib.sha256(data).hexdigest()
+
+    @staticmethod
+    def _prefix_digest(stream, position):
+        current = stream.tell()
+        stream.seek(0)
+        value = hashlib.sha256()
+        remaining = position
+        while remaining:
+            chunk = stream.read(min(1024 * 1024, remaining))
+            if not chunk:
+                raise ValueError('Control source prefix truncated / 控制来源前缀已截断')
+            value.update(chunk)
+            remaining -= len(chunk)
+        stream.seek(current)
+        return value.hexdigest()
 
     @staticmethod
     def _complete_boundary(stream, size, metadata_end):

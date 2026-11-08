@@ -49,6 +49,16 @@ def checked_path(path):
 
 def package_manifest(source: Path) -> dict[str, str]:
     source = checked_path(source).resolve(strict=True)
+    document, raw = _manifest_document(source)
+    manifest = document['files']
+    for name, digest in manifest.items():
+        if hashlib.sha256(checked_path(source / name).read_bytes()).hexdigest() != digest:
+            raise ValueError(f'发行清单摘要不一致：{name}')
+    # 清单不自列摘要，复制和ZIP仍携带并复核清单本身。
+    return {**manifest, MANIFEST_NAME: hashlib.sha256(raw).hexdigest()}
+
+
+def _manifest_document(source: Path):
     path = checked_path(source / MANIFEST_NAME)
     info = path.stat(follow_symlinks=False)
     if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
@@ -79,10 +89,7 @@ def package_manifest(source: Path) -> dict[str, str]:
         info = file.stat(follow_symlinks=False)
         if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
             raise ValueError(f'技能包包含非普通文件或硬链接：{name}')
-        if hashlib.sha256(file.read_bytes()).hexdigest() != digest:
-            raise ValueError(f'发行清单摘要不一致：{name}')
-    # 清单不自列摘要，复制和ZIP仍携带并复核清单本身。
-    return {**manifest, MANIFEST_NAME: hashlib.sha256(raw).hexdigest()}
+    return document, raw
 
 
 def _unique_object(pairs):

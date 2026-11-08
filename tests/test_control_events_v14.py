@@ -122,6 +122,17 @@ class ControlEventsV14Tests(unittest.TestCase):
         path.write_bytes(original.replace(b'history', b'changed'))
         self.assertEqual(observer._read_member(member, path)['reason'], 'control_source_rewritten')
 
+    def test_ready_cursor_detects_equal_size_middle_rewrite_before_append(self):
+        member, path, observer = self.source(history=[{'type': 'response_item', 'payload': {'content': 'history'}}])
+        observer._read_member(member, path)
+        original = path.read_bytes()
+        path.write_bytes(original.replace(b'history', b'changed'))
+        self.append(path, {'type': 'response_item', 'payload': {'content': 'new'}})
+        result = observer._read_member(member, path)
+        self.assertEqual(result['reason'], 'control_source_rewritten')
+        with self.store.transaction() as db:
+            self.assertEqual(db.execute('SELECT position FROM control_event_cursors').fetchone()[0], len(original))
+
     def test_same_home_new_session_cannot_consume_old_cursor(self):
         member, path, observer = self.source()
         observer._read_member(member, path)

@@ -1,0 +1,117 @@
+真实业务证据: C:\Users\XOS\AppData\Local\Temp\pair-unit-it4cfcxl\evidence\real-daemon-1794128525828919300\core-result.json
+======================================================================
+ERROR: test_daemon_crash_recovery_releases_os_lock_but_never_replays (tests.test_core.CoreTests.test_daemon_crash_recovery_releases_os_lock_but_never_replays)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Codex_No_Projects\work\github\codex-pair\.codex-pair\worktrees\next-recovery-20261101\tests\test_core.py", line 222, in test_daemon_crash_recovery_releases_os_lock_but_never_replays
+    Daemon(self.store,fake).run(max_ticks=1)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\Codex_No_Projects\work\github\codex-pair\.codex-pair\worktrees\next-recovery-20261101\scripts\pair_core.py", line 1543, in run
+    if self.member_id is None and Path(__file__).parent.parent.joinpath('package-manifest.json').is_file():record_loaded_runtime(self.store)
+                                                                                                           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "D:\Codex_No_Projects\work\github\codex-pair\.codex-pair\worktrees\next-recovery-20261101\scripts\pair_runtime_apply.py", line 111, in record_loaded_runtime
+    manifest=package_manifest(root)
+  File "D:\Codex_No_Projects\work\github\codex-pair\.codex-pair\worktrees\next-recovery-20261101\scripts\install_skill.py", line 56, in package_manifest
+    raise ValueError(f'发行清单摘要不一致：{name}')
+ValueError: 发行清单摘要不一致：scripts/pair_control_events.py
+
+======================================================================
+ERROR: test_daemon_single_instance_and_nonce_liveness (tests.test_core.CoreTests.test_daemon_single_instance_and_nonce_liveness)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Codex_No_Projects\work\github\codex-pair\.codex-pair\worktrees\next-recovery-20261101\tests\test_core.py", line 233, in test_daemon_single_instance_and_nonce_liveness
+    with self.assertRaises(PairError):Daemon(self.store,FakeTransport()).run(max_ticks=1)
+                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\Codex_No_Projects\work\github\codex-pair\.codex-pair\worktrees\next-recovery-20261101\scripts\pair_core.py", line 1543, in run
+    if self.member_id is None and Path(__file__).parent.parent.joinpath('package-manifest.json').is_file():record_loaded_runtime(self.store)
+                                                                                                           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "D:\Codex_No_Projects\work\github\codex-pair\.codex-pair\worktrees\next-recovery-20261101\scripts\pair_runtime_apply.py", line 111, in record_loaded_runtime
+    manifest=package_manifest(root)
+  File "D:\Codex_No_Projects\work\github\codex-pair\.codex-pair\worktrees\next-recovery-20261101\scripts\install_skill.py", line 56, in package_manifest
+    raise ValueError(f'发行清单摘要不一致：{name}')
+ValueError: 发行清单摘要不一致：scripts/pair_control_events.py
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Codex_No_Projects\work\github\codex-pair\.codex-pair\worktrees\next-recovery-20261101\tests\test_core.py", line 239, in test_daemon_single_instance_and_nonce_liveness
+    running.result(timeout=5)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "D:\Anaconda3\Lib\concurrent\futures\_base.py", line 449, in result
+    return self.__get_result()
+           ~~~~~~~~~~~~~~~~~^^
+  File "D:\Anaconda3\Lib\concurrent\futures\_base.py", line 401, in __get_result
+    raise self._exception
+  File "D:\Anaconda3\Lib\concurrent\futures\thread.py", line 59, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "D:\Codex_No_Projects\work\github\codex-pair\.codex-pair\worktrees\next-recovery-20261101\scripts\pair_core.py", line 1543, in run
+    if self.member_id is None and Path(__file__).parent.parent.joinpath('package-manifest.json').is_file():record_loaded_runtime(self.store)
+                                                                                                           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "D:\Codex_No_Projects\work\github\codex-pair\.codex-pair\worktrees\next-recovery-20261101\scripts\pair_runtime_apply.py", line 111, in record_loaded_runtime
+    manifest=package_manifest(root)
+  File "D:\Codex_No_Projects\work\github\codex-pair\.codex-pair\worktrees\next-recovery-20261101\scripts\install_skill.py", line 56, in package_manifest
+    raise ValueError(f'发行清单摘要不一致：{name}')
+ValueError: 发行清单摘要不一致：scripts/pair_control_events.py
+
+======================================================================
+ERROR: test_daemon_start_waits_for_transient_status_probe_lock (tests.test_core.CoreTests.test_daemon_start_waits_for_transient_status_probe_lock)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Codex_No_Projects\work\github\codex-pair\.codex-pair\worktrees\next-recovery-20261101\tests\test_core.py", line 254, in test_daemon_start_waits_for_transient_status_probe_lock
+    running.result(timeout=3)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "D:\Anaconda3\Lib\concurrent\futures\_base.py", line 456, in result
+    return self.__get_result()
+           ~~~~~~~~~~~~~~~~~^^
+  File "D:\Anaconda3\Lib\concurrent\futures\_base.py", line 401, in __get_result
+    raise self._exception
+  File "D:\Anaconda3\Lib\concurrent\futures\thread.py", line 59, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "D:\Codex_No_Projects\work\github\codex-pair\.codex-pair\worktrees\next-recovery-20261101\tests\test_core.py", line 247, in start
+    Daemon(self.store,fake).run(max_ticks=1)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\Codex_No_Projects\work\github\codex-pair\.codex-pair\worktrees\next-recovery-20261101\scripts\pair_core.py", line 1543, in run
+    if self.member_id is None and Path(__file__).parent.parent.joinpath('package-manifest.json').is_file():record_loaded_runtime(self.store)
+                                                                                                           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "D:\Codex_No_Projects\work\github\codex-pair\.codex-pair\worktrees\next-recovery-20261101\scripts\pair_runtime_apply.py", line 111, in record_loaded_runtime
+    manifest=package_manifest(root)
+  File "D:\Codex_No_Projects\work\github\codex-pair\.codex-pair\worktrees\next-recovery-20261101\scripts\install_skill.py", line 56, in package_manifest
+    raise ValueError(f'发行清单摘要不一致：{name}')
+ValueError: 发行清单摘要不一致：scripts/pair_control_events.py
+
+======================================================================
+ERROR: test_stop_keeps_records_and_code_and_does_not_claim (tests.test_core.CoreTests.test_stop_keeps_records_and_code_and_does_not_claim)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Codex_No_Projects\work\github\codex-pair\.codex-pair\worktrees\next-recovery-20261101\tests\test_core.py", line 286, in test_stop_keeps_records_and_code_and_does_not_claim
+    fake=FakeTransport();Daemon(self.store,fake).run()
+                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "D:\Codex_No_Projects\work\github\codex-pair\.codex-pair\worktrees\next-recovery-20261101\scripts\pair_core.py", line 1543, in run
+    if self.member_id is None and Path(__file__).parent.parent.joinpath('package-manifest.json').is_file():record_loaded_runtime(self.store)
+                                                                                                           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "D:\Codex_No_Projects\work\github\codex-pair\.codex-pair\worktrees\next-recovery-20261101\scripts\pair_runtime_apply.py", line 111, in record_loaded_runtime
+    manifest=package_manifest(root)
+  File "D:\Codex_No_Projects\work\github\codex-pair\.codex-pair\worktrees\next-recovery-20261101\scripts\install_skill.py", line 56, in package_manifest
+    raise ValueError(f'发行清单摘要不一致：{name}')
+ValueError: 发行清单摘要不一致：scripts/pair_control_events.py
+
+======================================================================
+ERROR: test_timeout_is_unknown_not_retried_even_after_restart (tests.test_core.CoreTests.test_timeout_is_unknown_not_retried_even_after_restart)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\Codex_No_Projects\work\github\codex-pair\.codex-pair\worktrees\next-recovery-20261101\tests\test_core.py", line 160, in test_timeout_is_unknown_not_retried_even_after_restart
+    restarted=Daemon(self.store,fake);restarted.run(max_ticks=1)
+                                      ~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "D:\Codex_No_Projects\work\github\codex-pair\.codex-pair\worktrees\next-recovery-20261101\scripts\pair_core.py", line 1543, in run
+    if self.member_id is None and Path(__file__).parent.parent.joinpath('package-manifest.json').is_file():record_loaded_runtime(self.store)
+                                                                                                           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "D:\Codex_No_Projects\work\github\codex-pair\.codex-pair\worktrees\next-recovery-20261101\scripts\pair_runtime_apply.py", line 111, in record_loaded_runtime
+    manifest=package_manifest(root)
+  File "D:\Codex_No_Projects\work\github\codex-pair\.codex-pair\worktrees\next-recovery-20261101\scripts\install_skill.py", line 56, in package_manifest
+    raise ValueError(f'发行清单摘要不一致：{name}')
+ValueError: 发行清单摘要不一致：scripts/pair_control_events.py
+
+----------------------------------------------------------------------
+Ran 83 tests in 4.547s
+
+FAILED (errors=5)

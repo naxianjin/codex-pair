@@ -173,35 +173,78 @@ class ControlRuntimeMixin:
         if not prior or prior.get('state')!='gap':fail('Control source has no unresolved gap')
         with AppServer(codex_home=actor['codex_home'],cwd=actor['cwd'],executable=executable,metadata_only=True) as client:
             thread=client.validate(actor);turns=list(client.turns(session,items_view='full'))
-            users=[item for turn in turns for item in turn.get('items',[]) if item.get('type')=='userMessage']
-            if not users or ''.join(part.get('text','') for part in users[-1].get('content',[]) if part.get('type') in ('text','inputText'))!=instruction:
+            controls=CONTINUE_TEXT+PAUSE_TEXT+('继续协作 '+self.pair_id,'暂停协作 '+self.pair_id)
+            # API回合按新到旧分页，同一回合的用户补充按出现顺序排列。
+            api_instruction_ids = {item['id'] for turn in turns for item in turn.get('items', [])
+                if item.get('type') == 'userMessage' and isinstance(item.get('id'), str)
+                and ''.join(part.get('text', '') for part in item.get('content', [])
+                    if part.get('type') in ('text', 'inputText')).strip() == instruction}
+            api_instruction_text = any(item.get('type') == 'userMessage'
+                and ''.join(part.get('text', '') for part in item.get('content', [])
+                    if part.get('type') in ('text', 'inputText')).strip() == instruction
+                for turn in turns for item in turn.get('items', []))
+            latest_api_control = next((text for turn in turns for item in reversed(turn.get('items', []))
+                if item.get('type') == 'userMessage'
+                for text in (''.join(part.get('text', '') for part in item.get('content', [])
+                    if part.get('type') in ('text', 'inputText')).strip(),)
+                if text in controls), None)
+            if not api_instruction_text or latest_api_control != instruction:
                 fail('Original user message unavailable / API尚未确认原窗口的新继续指令')
             path=owned_rollout_path(actor,thread)
             with path.open('rb') as stream:
-                stat=os.fstat(stream.fileno());meta=json.loads(stream.readline(MAX_RECORD_BYTES+1));metadata_end=stream.tell()
-                if meta.get('type')!='session_meta' or meta.get('payload',{}).get('id')!=session:fail('Original source identity mismatch')
+                stat=os.fstat(stream.fileno());first=stream.readline(MAX_RECORD_BYTES+1)
+                if not first.endswith(b'\n') or len(first)>MAX_RECORD_BYTES:fail('Incomplete original session metadata')
+                meta=json.loads(first);metadata_end=stream.tell()
+                if (meta.get('type')!='session_meta' or meta.get('payload',{}).get('id')!=session
+                        or canonical_path(meta['payload'].get('cwd',''))!=canonical_path(cwd)):fail('Original source identity mismatch')
                 identity=digest({'path':canonical_path(path),'device':stat.st_dev,'inode':stat.st_ino})
-                start=max(metadata_end,stat.st_size-MAX_RECORD_BYTES);stream.seek(start)
-                if start>metadata_end:stream.readline()
+                start=metadata_end
+                if prior.get('source_identity')==identity:
+                    start=prior.get('position')
+                    if (type(start) is not int or not metadata_end<=start<=stat.st_size
+                            or _MemberObserver._anchor(stream,start)!=prior.get('anchor')):
+                        fail('Original control boundary changed / 原控制边界已变化，不能跳过缺失记录')
+                stream.seek(start)
                 candidate=None
                 while stream.tell()<stat.st_size:
                     position=stream.tell();line=stream.readline(MAX_RECORD_BYTES+1)
-                    if not line.endswith(b'\n') or len(line)>MAX_RECORD_BYTES:break
-                    record=json.loads(line);event=_MemberObserver._control_event(record,member)
-                    if event.get('kind')=='direct_user_control' and event['text']==instruction:
-                        timestamp=datetime.fromisoformat(record['timestamp'].replace('Z','+00:00'))
-                        if timestamp.tzinfo and timestamp.timestamp()>prior['observed_at']:
-                            candidate={'start':position,'end':stream.tell(),'hash':hashlib.sha256(line).hexdigest()}
+                    if not line.endswith(b'\n') or len(line)>MAX_RECORD_BYTES:fail('Incomplete original control record')
+                    record=json.loads(line)
+                    timestamp=record.get('timestamp')
+                    if not isinstance(timestamp,str):
+                        if (record.get('type') == 'response_item'
+                                and isinstance(record.get('payload'), dict)
+                                and record['payload'].get('role') == 'user'):
+                            fail('Incomplete original control evidence / 原控制记录缺少时间证据')
+                        continue
+                    timestamp=datetime.fromisoformat(timestamp.replace('Z','+00:00'))
+                    if not timestamp.tzinfo:
+                        fail('Ambiguous original control timestamp / 原控制记录时间没有时区')
+                    if timestamp.timestamp()<=prior['observed_at']:
+                        continue
+                    event=_MemberObserver._control_event(record,member,api_turns=turns)
+                    if event.get('kind')=='direct_user_control' and event['text'] in controls:
+                        candidate=({'start':position,'end':stream.tell(),'hash':hashlib.sha256(line).hexdigest(),'event':event}
+                            if event['text']==instruction and ((event.get('api_item_id') in api_instruction_ids)
+                                if event.get('api_item_id') else True) else None)
                 if not candidate:fail('New original user event required / 缺口之后尚无可验证的新用户指令')
+                current=path.stat()
+                if (current.st_dev,current.st_ino)!=(stat.st_dev,stat.st_ino) or current.st_size<stat.st_size:
+                    fail('Original control source changed during read')
                 end=candidate['end'];anchor=_MemberObserver._anchor(stream,end)
+                prefix_digest=_MemberObserver._prefix_digest(stream,end)
         with FileLock(self.control_lock,timeout=30),self.transaction() as db:
             self._binding(db,member,session,cwd)
             if self._option(db,'control_observer:'+member)!=prior:fail('Control gap changed / 重新核对来源')
             db.execute('INSERT OR REPLACE INTO control_event_cursors VALUES(?,?,?,?,?,?)',
                 (member,session,actor['binding_version'],identity,end,self._control_generation(db)))
-            self._put(db,'control_observer:'+member,_MemberObserver._state(actor,identity,end,anchor,'ready'))
+            self._put(db,'control_observer:'+member,_MemberObserver._state(actor,identity,end,anchor,'ready',prefix_digest))
             event_id='rollout:'+identity+':'+str(candidate['start'])+':'+candidate['hash']
             self._record_user_control(db,member,instruction,event_id=event_id,source_identity=identity,session=session,binding_version=actor['binding_version'])
+            event=candidate['event']
+            if event.get('api_item_id'):
+                key='control_user_message:'+digest([session,event['turn_id'],event['api_item_id']])
+                self._put(db,key,{'source_identity':identity,'position':end})
             self.event(db,'control_source_rebaselined',member=member,previous=prior,new_source=identity,position=end,history_replayed=False)
             return {'rebaselined':True,'source_event':event_id,'history_gap_preserved':True,'resumed':False}
 

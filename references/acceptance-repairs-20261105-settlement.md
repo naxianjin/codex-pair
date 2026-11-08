@@ -239,3 +239,11 @@ Invoke-ValidatorRawModuleDiagnostic在terminal receipt前调用真实check-restr
 发布字节修正：ab01d46中Git默认换行规范化使三文件提交摘要与已审CRLF工作副本不同；语义归一后相同，但准确字节审核不可沿用。现为三文件增加-text规则并恢复已审核准确字节，提交前机器逐项核对暂存摘要，保留原提交历史，不改写审核结论。
 
 本地加载字节采集原型独立复审passed（openai/gpt-6.1-sol，01a1b0ae-5e37-7c80-812b-9953f2b0371f）。准确脚本摘要与冻结清单匹配；审核记录loaded-byte-independent-review.json，实测loaded-byte-observations.json。固定数组Assembly.Load、3方法IL、3系统模块磁盘/映像摘要、有效读取及非法程序集拒绝已验证，仅自身进程观察，未接入受限执行器/Store，不认证内存磁盘等价、JIT或正式回执。formal=false。
+
+## 2026-11-08 CLI 0.167 控制来源兼容修复
+
+本轮修复了官方 CLI 0.167 `response_item/message/role=user/content=input_text` 用户记录的控制来源解析。解析要求原日志的 `user` provenance、唯一 `turn_id`、正文和毫秒时间与原会话 API `userMessage` 一致；API 缺失、字段不完整、混合内容或时间不一致时保留 gap，不推进游标。旧 `event_msg/user_message` 路径继续兼容。
+
+重基线改为从同一来源的已核验游标读取完整后缀，不再只扫描最后 4 MiB；缺时间的控制记录不能被静默跳过。已读前缀保存 SHA-256，ready 和 gap 路径都核验该摘要；新增同尺寸中段改写负例，改写后追加记录会保留阻塞。
+
+实际检查：38 项控制定向测试通过；受影响组合回归 160 项通过、2 项既有跳过；候选临时 Git archive 与二次 ZIP 均通过 132 项清单逐文件摘要校验。C 审核窗口为 `.codex-lb`，会话 `01a1b0ae-5e37-7c80-812b-9953f2b0371f`，`openai/gpt-6.1-sol`；准确候选源码审查为 passed，真实恢复仍为 needs_validation。正式恢复、VM/VMRS/Store、hosted 工具和 Host→Store 仍未认证。

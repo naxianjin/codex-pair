@@ -9,6 +9,7 @@ import tempfile
 import threading
 import time
 import unittest
+from unittest.mock import patch
 
 from scripts.pair_core import Daemon, FileLock, PairError, Store, scopes_overlap
 from scripts.pair_transport import AppServer, DeliveryUnknown, SessionBusy, TransportError
@@ -372,64 +373,113 @@ class CoreTests(unittest.TestCase):
             result=subprocess.run(argv,capture_output=True,encoding='utf-8',check=True)
             self.assertEqual(json.loads(result.stdout)['result']['body'],body)
 
+    def test_real_entry_reuses_bridge_and_preserves_review_wait_with_history(self):
+        self.task('history')
+        old=next(m for m in self.store.status()['messages'] if m['task_id']=='history')
+        self.complete(old)
+        self.store.setting('review_required',True)
+        original_status=Store.status
+        fake=FakeTransport(self.store)
+        daemon=Daemon(self.store,fake)
+
+        def external_status(store,*,probe_timeout=0):
+            status=original_status(store)
+            status['runtime'].update(lock_held=True,probe_confirmed=bool(probe_timeout))
+            return status
+
+        def external_tick(seconds):
+            daemon.dispatch_one()
+            for member,message in fake.calls:
+                if message['kind']!='task' or member['id']!='B':continue
+                claimed=self.claim(message['id'])
+                if claimed['claimed']:
+                    self.store.complete('B',self.sessions['B'],self.directories['B'],message['id'],
+                                        claimed['claim_token'],'PAIR_BUSINESS_OK; exit 0; output 1')
+            fake.observation={'turn_id':'fixture-terminal-turn','remote_status':'completed'}
+            daemon.reconcile()
+
+        environment={'CODEX_HOME':str(self.home),'CODEX_THREAD_ID':self.sessions['A'],
+                     'CODEX_PAIR_REAL_PAIR':'test','CODEX_PAIR_REAL_STATE_ROOT':str(self.store.state_root),
+                     'CODEX_PAIR_REAL_CODEX':str(self.root/'codex.exe'),
+                     'CODEX_PAIR_EVIDENCE':str(self.root/'evidence')}
+        with patch.dict(os.environ,environment),patch('tests.test_core.AppServer'),\
+                patch('scripts.pair_core.Store.status',external_status),\
+                patch('tests.test_core.Path.cwd',return_value=Path(self.directories['A'])),\
+                patch('tests.test_core.time.sleep',side_effect=external_tick),\
+                patch('tests.test_core.subprocess.Popen') as process:
+            RealCoreTests('test_real_daemon_claim_and_complete').test_real_daemon_claim_and_complete()
+            process.assert_not_called()
+        tasks=self.store.status()['tasks']
+        probe=next(task for task in tasks if task['id'].startswith('real-daemon-'))
+        self.assertEqual(probe['status'],'review_wait')
+        self.assertEqual(self.store.task('history')['status'],'completed')
+        self.assertEqual(self.store.status()['pair']['status'],'running')
+        self.assertTrue(list((self.root/'evidence').glob('real-daemon-*/core-result.json')))
+
 
 @unittest.skipUnless(os.getenv('CODEX_PAIR_REAL_CORE_TEST')=='1','需要显式启用真实业务闭环测试')
 class RealCoreTests(unittest.TestCase):
     def test_real_daemon_claim_and_complete(self):
         from scripts.pair_core import effective_home
         # 真实可见成员必须先由 A 的 start 和 B 的 accept 绑定原始 CLI。
-        # 这里仅复核该绑定并运行 daemon，不在普通测试进程中创建或伪造成员会话。
+        # 复用 start/accept 已启动的消息桥，不创建或终止外部协作进程。
         pair_id=os.environ.get('CODEX_PAIR_REAL_PAIR')
         state_root=os.environ.get('CODEX_PAIR_REAL_STATE_ROOT')
         if not pair_id or not state_root:
             self.skipTest('需要先在 A/B 原始 CLI 完成 start/accept，并设置 CODEX_PAIR_REAL_PAIR 与 CODEX_PAIR_REAL_STATE_ROOT')
         home=effective_home()
         store=Store(pair_id,home=home,state_root=state_root)
-        existing=store.status()
+        existing=store.status(probe_timeout=5)
         self.assertEqual(existing['pair']['status'],'running',existing)
-        self.assertEqual(len(existing['members']),2,existing)
-        self.assertFalse(existing['tasks'],existing)
+        self.assertIn(len(existing['members']),range(2,5),existing)
+        self.assertTrue(all(store.member(role)['lifecycle']=='active' and store.member(role)['verified']
+                            for role in ('A','B')),existing)
+        self.assertTrue(existing['runtime']['probe_confirmed'],'请先从原窗口启动消息桥；不重复启动 daemon')
         self.assertEqual(os.environ.get('CODEX_THREAD_ID','').lower(),
                          store.member('A')['session_uuid'].lower(),
                          '真实 daemon 测试必须从已绑定的 A 原始 CLI 运行')
+        self.assertEqual(home.resolve(),Path(store.member('A')['codex_home']).resolve())
+        self.assertEqual(Path.cwd().resolve(),Path(store.member('A')['cwd']).resolve())
+        executable=os.environ.get('CODEX_PAIR_REAL_CODEX')
+        self.assertTrue(executable,'请显式设置 CODEX_PAIR_REAL_CODEX 为已核验的原 CLI 绝对路径')
         # 交付前再次通过两个成员各自的账号目录只读核对 session、cwd、模型和 Git 绑定。
         for member in (store.member('A'),store.member('B')):
-            with AppServer(codex_home=member['codex_home'],cwd=member['cwd'],
+            self.assertEqual((member['backend'],member['owned'],member['delivery_mode']),('queue',0,'auto'))
+            with AppServer(codex_home=member['codex_home'],cwd=member['cwd'],executable=executable,
                            metadata_only=True,account_metadata=True) as observer:
                 observer.validate(member)
         evidence=Path(os.environ.get('CODEX_PAIR_EVIDENCE',str(home/'codex-pair'/'live-core-validation')))
-        evidence.mkdir(parents=True,exist_ok=True)
-        script=str(Path(__file__).resolve().parents[1]/'scripts/pair.py')
-        common=[sys.executable,script,'--json','--pair',pair_id,'--state-root',state_root,'--codex-home',str(home)]
         # 本用例只验真实通信；暂停后的恢复另须正式执行器证据，不能由测试夹具放行。
         task_id='real-daemon-'+str(time.time_ns())
-        store.assign(task_id,'真实领取完成闭环','B',['validation/'],body='本任务仅验证通信，不修改项目代码，不运行 Git。先按 claim_argv 领取，claimed=true 后用 complete 提交实质结果 PAIR_BUSINESS_OK。结果文件写入协作状态目录，不写入 worktree。不要发送收到或谢谢。',
-                     acceptance=['结果包含 PAIR_BUSINESS_OK'],required_checks=[{'name':'daemon_probe','command':'python -c "print(1)"','argv':[sys.executable,'-c','print(1)'],'required':True}])
-        logs=(evidence/'core-daemon.stdout').open('wb');errors=(evidence/'core-daemon.stderr').open('wb')
-        daemon=subprocess.Popen(common+['daemon'],stdout=logs,stderr=errors,creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
+        evidence=evidence/task_id
+        evidence.mkdir(parents=True)
+        (evidence/'core-before.json').write_text(json.dumps(existing,ensure_ascii=False,indent=2),encoding='utf-8')
+        store.assign(task_id,'真实领取完成闭环','B',['validation/'],task_kind='verification',body='本任务仅验证通信，不修改项目代码，不运行 Git。先按 claim_argv 领取，claimed=true 后完整读取 body 和 task，实际执行 required_checks 中的 daemon_probe，再用 complete 提交实质结果 PAIR_BUSINESS_OK，注明检查退出码与输出。结果文件写入协作状态目录，不写入 worktree。不自行送审或派生任务；不要发送收到或谢谢。',
+                     pin_member=True,acceptance=['结果包含 PAIR_BUSINESS_OK'],required_checks=[{'name':'daemon_probe','command':'python -c "print(1)"','argv':[sys.executable,'-c','print(1)'],'required':True}])
         try:
-            self.assertTrue(store.status(probe_timeout=5)['runtime']['probe_confirmed'])
+            self.assertEqual(store.task(task_id)['status'],'active',store.status())
             deadline=time.monotonic()+180
-            status=None
             while time.monotonic()<deadline:
-                self.assertIsNone(daemon.poll(),'daemon exited early')
                 status=store.status()
-                task_message=next((m for m in status['messages'] if m['task_id']==task_id),None)
+                task_message=next((m for m in status['messages'] if m['task_id']==task_id and m['kind']=='task'),None)
                 if task_message and task_message['process_status']=='completed' and task_message['remote_status']=='completed':break
                 time.sleep(.25)
-            (evidence/'core-result.json').write_text(json.dumps(status,ensure_ascii=False,indent=2),encoding='utf-8')
-            task_message=next(m for m in status['messages'] if m['task_id']==task_id)
+            task_message=next(m for m in status['messages'] if m['task_id']==task_id and m['kind']=='task')
+            self.assertEqual(task_message['delivery_status'],'accepted',status)
             self.assertEqual(task_message['process_status'],'completed',status)
             self.assertEqual(task_message['remote_status'],'completed',status)
+            self.assertTrue(task_message['turn_id'],status)
             task=next(t for t in status['tasks'] if t['id']==task_id)
-            self.assertEqual(task['status'],'completed')
+            self.assertEqual(task['assignee'],'B')
+            with store.transaction() as db:
+                recipient_version=db.execute('SELECT recipient_version FROM messages WHERE id=?',
+                                             (task_message['id'],)).fetchone()[0]
+            self.assertEqual(recipient_version,store.member('B')['binding_version'])
+            self.assertEqual(task['status'],'review_wait' if task['review_required'] else 'completed')
             self.assertIn('PAIR_BUSINESS_OK',task['result'])
+            self.assertTrue(store.status(probe_timeout=5)['runtime']['probe_confirmed'])
         finally:
-            if daemon.poll() is None:
-                daemon.terminate()
-            try:daemon.wait(timeout=30)
-            except subprocess.TimeoutExpired:daemon.terminate();daemon.wait(timeout=10)
-            logs.close();errors.close()
+            (evidence/'core-result.json').write_text(json.dumps(store.status(),ensure_ascii=False,indent=2),encoding='utf-8')
         print('真实业务证据:',evidence/'core-result.json')
 
 

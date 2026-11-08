@@ -1,0 +1,35 @@
+{
+  "kind": "A_scoped_pause",
+  "user_instruction": "先暂停一小会；其他的窗口可以继续完成",
+  "A": "paused_at_user_request",
+  "others": "may_complete_existing_assignments",
+  "C": {
+    "session": "01a1b0ae-5e37-7c80-812b-9953f2b0371f",
+    "home": "D:\\Codex\\.codex-lb",
+    "provider": "openai",
+    "model": "gpt-6.1-sol",
+    "latest_observed_turn": "01a1ba61-cbff-7220-9e20-fba23e190855",
+    "observed_status": "interrupted",
+    "queue_only_receipts": [
+      "01a1ba62-05f9-7c80-8955-86b2b5ce63de",
+      "01a1ba65-daad-73a1-bd02-1089e67e3d35"
+    ],
+    "no_final_review_received": true
+  },
+  "candidate": "validation/real-four-windows-20261108/control-user-format-candidate.json",
+  "candidate_sha256": "91826decc3dbb2e169237476e7c1c6ae06ec12a01c70f329592b1392b64b8ee3",
+  "checks": {
+    "targeted": "37 tests OK",
+    "combined_exec_session": 68234,
+    "combined_result": "159 tests OK (skipped=2), exit_code=0; original process terminal collected"
+  },
+  "state": "original pair remains paused; no business resume",
+  "publication": "uncommitted and unpushed; source review pending",
+  "resume": [
+    "check-checkpoint with exact --codex before work",
+    "collect original combined test terminal",
+    "collect C exact frozen candidate review; preserve interrupted history",
+    "continue archive validation with temporary index only after review; preserve historical CRLF blobs",
+    "do not treat C queue receipts or isolated tests as real recovery/formal acceptance"
+  ]
+}

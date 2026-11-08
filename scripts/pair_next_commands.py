@@ -28,6 +28,7 @@ COMMANDS = {
     'register-recovery-relation':'register_recovery_relation',
     'import-recovery-history':'import_recovery_history',
     'refresh-cli-compatibility': 'refresh_cli_compatibility',
+    'upgrade-cli-baseline': 'upgrade_cli_baseline',
     'cli-compatibility-status': 'cli_compatibility_status',
     'inspect-cli-execution': 'inspect_cli_execution',
     'inspect-remaining-work': 'inspect_remaining_work',

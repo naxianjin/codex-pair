@@ -1,4 +1,5 @@
-"""CLI兼容性隔离回归；本轮仅编写，不执行候选或这些测试。"""
+"""CLI兼容性与显式基线升级的隔离回归。"""
+from contextlib import contextmanager
 import json
 import os
 from pathlib import Path
@@ -7,10 +8,11 @@ import tempfile
 import unittest
 from unittest.mock import patch, Mock
 
-from scripts.pair_compatibility import compatibility_probe, CompatibilityMixin, CompatibilityMonitor, safe_preflight
+from scripts.pair_compatibility import compatibility_probe, CompatibilityMixin, CompatibilityMonitor, safe_preflight, OPERATIONS
 from scripts.pair_core import PairError
 from scripts.pair_producer import file_identity, SUPPORTED_VERSIONS
 from scripts.pair_transport import AppServer
+from scripts.pair_stages import digest
 from tests import test_core
 from tests.compatibility_fixture import MetadataObserver
 
@@ -267,6 +269,209 @@ class CompatibilityStoreTests(unittest.TestCase):
         with patch('scripts.pair_compatibility.verify_launch'), self.assertRaisesRegex(PairError, 'binding not verified'):
             self.store._register_original_cli_baseline(*self.actor(), observer, executable=executable)
         self.assertIsNone(self.store.setting('cli_trusted_executable:A'))
+
+    def prepare_cli_upgrade(self, *, previous=True):
+        old_executable = self.root / 'old.exe'
+        old_executable.write_bytes(b'old native fixture, never executed')
+        with patch('scripts.pair_compatibility.verify_launch'):
+            self.store._register_original_cli_baseline(*self.actor(), self.original_observer_fixture(old_executable),
+                                                       executable=old_executable)
+        old = self.store.setting('cli_trusted_executable:A')
+        self.assertEqual(self.store.cli_compatibility_status(*self.actor())['trust_baseline_digest'], digest(old))
+        if previous:
+            self.store.setting('cli_compatibility:A', {'binding': old['source_binding'], 'fingerprint': 'old-fingerprint',
+                'status': 'preflight_ready', 'operations': {operation: {'status': 'preflight_ready'} for operation in OPERATIONS}})
+        candidate = self.root / 'new.exe'
+        candidate.write_bytes(b'new native fixture, never executed')
+        return old, candidate
+
+    @contextmanager
+    def upgrade_observer(self, executable):
+        actor = self.store.member('A')
+        observer = self.original_observer_fixture(executable)
+        with (patch.dict(os.environ, {'CODEX_THREAD_ID': actor['session_uuid'], 'CODEX_HOME': actor['codex_home']}),
+              patch('scripts.pair_compatibility.Path.cwd', return_value=Path(actor['cwd'])),
+              patch.object(AppServer, '__init__', return_value=None) as start,
+              patch.object(AppServer, '__enter__', return_value=observer),
+              patch.object(AppServer, 'close') as close,
+              patch('scripts.pair_compatibility.verify_launch') as verify):
+            yield observer, start, close, verify
+
+    def test_upgrade_pins_owned_observer_archives_and_blocks_all_operations(self):
+        old, candidate = self.prepare_cli_upgrade()
+        previous = self.store.setting('cli_compatibility:A')
+        self.store.request_pause(*self.actor(), reason='用户要求暂停', idempotency_key='upgrade-pause')
+        self.store.setting('cli_execution:old-turn', {'execution_id': 'old-turn', 'executable': old['file'], 'turn_id': 'original-turn'})
+        self.store.setting('control_observer:A', {'state': 'gap', 'source': 'original-source'})
+        self.store.assign('preserved-task', '保留历史任务', 'B', ['src/preserved.py'])
+        before = self.store.status()
+        recovery = self.store.recovery_status(*self.actor())
+        execution = self.store.setting('cli_execution:old-turn')
+        control = self.store.setting('control_observer:A')
+        Path(old['file']['path']).unlink()
+        with self.upgrade_observer(candidate) as (_, start, close, verify):
+            result = self.store.upgrade_cli_baseline(*self.actor(), candidate, expected_baseline_digest=digest(old),
+                                                     evidence='已固定候选与独立审核证据引用')
+        actor = self.store.member('A')
+        start.assert_called_once_with(codex_home=actor['codex_home'], cwd=actor['cwd'], executable=candidate,
+                                      metadata_only=True, track_producer=True)
+        close.assert_called_once()
+        self.assertEqual(verify.call_count, 3)
+        saved = self.store.setting('cli_trusted_executable:A')
+        history = self.store.setting(result['history_key'])
+        self.assertEqual(saved['file'], file_identity(candidate))
+        self.assertEqual(saved['previous_baseline_digest'], digest(old))
+        self.assertEqual(result['baseline_digest'], digest(saved))
+        self.assertEqual(history['baseline'], old)
+        self.assertEqual(history['compatibility'], previous)
+        self.assertEqual(history['replacement_baseline_digest'], digest(saved))
+        pending = self.store.setting('cli_compatibility:A')
+        self.assertEqual(pending['status'], 'not_verified')
+        self.assertEqual(pending['communication']['status'], 'not_verified')
+        with self.store.transaction() as db:
+            for operation in OPERATIONS:
+                self.assertEqual(pending['operations'][operation]['status'], 'not_verified')
+                self.assertFalse(pending['operations'][operation]['execution_authorized'])
+                self.assertTrue(self.store._cli_compatibility_gate(db, 'A', operation))
+        self.assertEqual(self.store.setting('cli_execution:old-turn'), execution)
+        self.assertEqual(self.store.setting('control_observer:A'), control)
+        self.assertEqual(self.store.recovery_status(*self.actor()), recovery)
+        self.assertEqual(self.store.status()['pair'], before['pair'])
+        self.assertEqual(self.store.status()['tasks'], before['tasks'])
+        self.assertFalse(result['resumed'])
+        self.assertFalse(result['permissions_granted'])
+
+    def test_upgrade_without_old_preflight_still_writes_blocking_record(self):
+        old, candidate = self.prepare_cli_upgrade(previous=False)
+        with self.upgrade_observer(candidate):
+            result = self.store.upgrade_cli_baseline(*self.actor(), candidate, expected_baseline_digest=digest(old), evidence='独立审核引用')
+        self.assertIsNone(self.store.setting(result['history_key'])['compatibility'])
+        self.assertIsNotNone(self.store.setting('cli_compatibility:A'))
+        with self.store.transaction() as db:
+            self.assertTrue(all(self.store._cli_compatibility_gate(db, 'A', operation) for operation in OPERATIONS))
+
+    def test_upgrade_rejects_wrong_digest_before_launch(self):
+        old, candidate = self.prepare_cli_upgrade()
+        with self.upgrade_observer(candidate) as (_, start, _, _), self.assertRaisesRegex(PairError, 'baseline digest mismatch'):
+            self.store.upgrade_cli_baseline(*self.actor(), candidate, expected_baseline_digest='0' * 64, evidence='审核引用')
+        start.assert_not_called()
+        self.assertEqual(self.store.setting('cli_trusted_executable:A'), old)
+
+    def test_upgrade_rejects_unchanged_baseline_before_launch(self):
+        old, _ = self.prepare_cli_upgrade()
+        with self.upgrade_observer(old['file']['path']) as (_, start, _, _), self.assertRaisesRegex(PairError, 'baseline unchanged'):
+            self.store.upgrade_cli_baseline(*self.actor(), old['file']['path'], expected_baseline_digest=digest(old), evidence='审核引用')
+        start.assert_not_called()
+
+    def test_upgrade_rejects_json_evidence_and_unknown_observer_parameter(self):
+        old, candidate = self.prepare_cli_upgrade()
+        with self.upgrade_observer(candidate) as (_, start, _, _):
+            with self.assertRaisesRegex(PairError, 'Safe evidence required'):
+                self.store.upgrade_cli_baseline(*self.actor(), candidate, expected_baseline_digest=digest(old), evidence={'verified': True})
+            with self.assertRaisesRegex(TypeError, 'observer'):
+                self.store.upgrade_cli_baseline(*self.actor(), candidate, expected_baseline_digest=digest(old),
+                                                evidence='审核引用', observer={'verified': True})
+        start.assert_not_called()
+
+    def test_upgrade_rejects_wrong_current_window_home_or_cwd_before_launch(self):
+        old, candidate = self.prepare_cli_upgrade()
+        for change in ('session', 'home', 'cwd'):
+            with self.subTest(change=change), self.upgrade_observer(candidate) as (_, start, _, _):
+                environment = {'CODEX_THREAD_ID': self.sessions['B']} if change == 'session' else {'CODEX_HOME': str(self.project)} if change == 'home' else {}
+                directory = self.project if change == 'cwd' else Path(self.directories['A'])
+                with patch.dict(os.environ, environment), patch('scripts.pair_compatibility.Path.cwd', return_value=directory), \
+                        self.assertRaisesRegex(PairError, 'Original visible CLI required'):
+                    self.store.upgrade_cli_baseline(*self.actor(), candidate, expected_baseline_digest=digest(old), evidence='审核引用')
+                start.assert_not_called()
+        self.assertEqual(self.store.setting('cli_trusted_executable:A'), old)
+
+    def test_upgrade_rejects_forged_observer(self):
+        old, candidate = self.prepare_cli_upgrade()
+        with self.upgrade_observer(candidate) as (_, _, close, _), \
+                patch.object(AppServer, '__enter__', return_value={'verified': True, 'producer_launch': {'file': file_identity(candidate)}}), \
+                self.assertRaisesRegex(PairError, 'Owned readonly observer required'):
+            self.store.upgrade_cli_baseline(*self.actor(), candidate, expected_baseline_digest=digest(old), evidence='审核引用')
+        close.assert_called_once()
+        self.assertEqual(self.store.setting('cli_trusted_executable:A'), old)
+
+    def test_upgrade_rejects_live_identity_mismatch(self):
+        old, candidate = self.prepare_cli_upgrade()
+        for field, value in (('id', self.sessions['B']), ('cwd', str(self.project)), ('model', 'another-model'),
+                             ('modelProvider', 'deepseek'), ('ephemeral', True), ('home', str(self.project))):
+            with self.subTest(field=field), self.upgrade_observer(candidate) as (observer, _, _, _):
+                if field == 'home':
+                    observer.identity['codexHome'] = value
+                else:
+                    observer.read_thread.return_value[field] = value
+                with self.assertRaisesRegex(PairError, 'binding not verified'):
+                    self.store.upgrade_cli_baseline(*self.actor(), candidate, expected_baseline_digest=digest(old), evidence='审核引用')
+        self.assertEqual(self.store.setting('cli_trusted_executable:A'), old)
+
+    def test_upgrade_rejects_binding_change_during_query(self):
+        old, candidate = self.prepare_cli_upgrade()
+        with self.upgrade_observer(candidate) as (observer, _, _, _):
+            actual = observer.read_thread.return_value
+            def changed(_):
+                with self.store.transaction() as db:
+                    db.execute("UPDATE members SET binding_version=binding_version+1 WHERE id='A'")
+                return actual
+            observer.read_thread.side_effect = changed
+            with self.assertRaisesRegex(PairError, 'binding changed'):
+                self.store.upgrade_cli_baseline(*self.actor(), candidate, expected_baseline_digest=digest(old), evidence='审核引用')
+        self.assertEqual(self.store.setting('cli_trusted_executable:A'), old)
+        self.assertIsNone(self.store.setting('cli_baseline_history:A:' + digest(old)))
+
+    def test_upgrade_rejects_file_or_launch_change_during_query(self):
+        old, candidate = self.prepare_cli_upgrade()
+        for change in ('file', 'launch'):
+            with self.subTest(change=change), self.upgrade_observer(candidate) as (observer, _, _, _):
+                actual = observer.read_thread.return_value
+                def changed(_):
+                    if change == 'file':
+                        candidate.write_bytes(b'changed during original metadata query')
+                    else:
+                        observer.producer_launch['process']['pid'] += 1
+                    return actual
+                observer.read_thread.side_effect = changed
+                with self.assertRaisesRegex(PairError, 'executable mismatch'):
+                    self.store.upgrade_cli_baseline(*self.actor(), candidate, expected_baseline_digest=digest(old), evidence='审核引用')
+        self.assertEqual(self.store.setting('cli_trusted_executable:A'), old)
+
+    def test_upgrade_preserves_racing_baseline_or_preflight(self):
+        old, candidate = self.prepare_cli_upgrade()
+        for key in ('cli_trusted_executable:A', 'cli_compatibility:A'):
+            with self.subTest(key=key), self.upgrade_observer(candidate) as (observer, _, _, _):
+                self.store.setting('cli_trusted_executable:A', old)
+                actual = observer.read_thread.return_value
+                replacement = dict(old, source_reference='newer-source') if key.startswith('cli_trusted') else {'status': 'newer-check'}
+                def changed(_):
+                    self.store.setting(key, replacement)
+                    return actual
+                observer.read_thread.side_effect = changed
+                with self.assertRaisesRegex(PairError, 'upgrade raced'):
+                    self.store.upgrade_cli_baseline(*self.actor(), candidate, expected_baseline_digest=digest(old), evidence='审核引用')
+                self.assertEqual(self.store.setting(key), replacement)
+        self.assertIsNone(self.store.setting('cli_baseline_history:A:' + digest(old)))
+
+    def test_upgrade_history_and_records_roll_back_together(self):
+        old, candidate = self.prepare_cli_upgrade()
+        previous = self.store.setting('cli_compatibility:A')
+        with self.upgrade_observer(candidate), patch.object(self.store, 'event', side_effect=RuntimeError('event write failed')), \
+                self.assertRaisesRegex(RuntimeError, 'event write failed'):
+            self.store.upgrade_cli_baseline(*self.actor(), candidate, expected_baseline_digest=digest(old), evidence='审核引用')
+        self.assertEqual(self.store.setting('cli_trusted_executable:A'), old)
+        self.assertEqual(self.store.setting('cli_compatibility:A'), previous)
+        self.assertIsNone(self.store.setting('cli_baseline_history:A:' + digest(old)))
+
+    def test_upgrade_propagates_native_process_reverification_failure(self):
+        old, candidate = self.prepare_cli_upgrade()
+        with self.upgrade_observer(candidate) as (_, _, close, verify):
+            verify.side_effect = [None, None, ValueError('Producer process or executable changed')]
+            with self.assertRaisesRegex(ValueError, 'Producer process or executable changed'):
+                self.store.upgrade_cli_baseline(*self.actor(), candidate, expected_baseline_digest=digest(old), evidence='审核引用')
+        close.assert_called_once()
+        self.assertEqual(self.store.setting('cli_trusted_executable:A'), old)
+        self.assertIsNone(self.store.setting('cli_baseline_history:A:' + digest(old)))
 
     def test_missing_original_executable_preserves_unknown_and_no_replay(self):
         key = 'cli_execution:old-execution'

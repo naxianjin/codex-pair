@@ -6,14 +6,15 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import subprocess
 import tempfile
 import zipfile
 
 try:
-    from .install_skill import package_manifest,checked_path,path_stat,PACKAGE_ROOTS,MANIFEST_NAME
+    from .install_skill import package_manifest,checked_path,path_stat,PACKAGE_ROOTS,MANIFEST_NAME,_manifest_document
     from .pair_audit_adapter import CLOUDFLARE_ASSETS
 except ImportError:
-    from install_skill import package_manifest,checked_path,path_stat,PACKAGE_ROOTS,MANIFEST_NAME
+    from install_skill import package_manifest,checked_path,path_stat,PACKAGE_ROOTS,MANIFEST_NAME,_manifest_document
     from pair_audit_adapter import CLOUDFLARE_ASSETS
 
 
@@ -36,6 +37,31 @@ REQUIRED={'SKILL.md','agents/openai.yaml','references/onboarding.md','references
     'assets/upstream/ocr/WORKFLOW.md','assets/upstream/ocr/system_rules.json',
     'scripts/pair_validator_worker.py','scripts/pair_reader_assembly.py'}
 REQUIRED.update('assets/upstream/cloudflare/'+name for name in CLOUDFLARE_ASSETS)
+
+
+def refresh_manifest(source):
+    """只更新既有清单；Git 会改写的源字节必须先由维护者明确修正。"""
+    source=checked_path(source).resolve(strict=True)
+    document,_=_manifest_document(source)
+    subprocess.run(['git','-C',str(source),'rev-parse','--is-inside-work-tree'],
+                   check=True,capture_output=True)
+    files={}
+    for relative in document['files']:
+        data=checked_path(source/relative).read_bytes()
+        clean=subprocess.run(['git','-C',str(source),'hash-object','--path='+relative,'--stdin'],
+                             input=data,check=True,capture_output=True).stdout
+        raw=subprocess.run(['git','-C',str(source),'hash-object','--no-filters','--stdin'],
+                           input=data,check=True,capture_output=True).stdout
+        if clean!=raw:
+            indexed=subprocess.run(['git','-C',str(source),'rev-parse','--verify',':'+relative],
+                                   capture_output=True)
+            if indexed.returncode or indexed.stdout!=raw:
+                raise ValueError('Git 会改写发行字节，请先修正换行或属性：'+relative)
+        files[relative]=hashlib.sha256(data).hexdigest()
+    path=checked_path(source/MANIFEST_NAME)
+    path.write_text(json.dumps({'schema_version':1,'files':files},ensure_ascii=False,indent=2)+'\n',
+                    encoding='utf-8',newline='\n')
+    return {'manifest':str(path),'files':package_manifest(source)}
 
 
 def build_package(source, output):
@@ -110,9 +136,12 @@ def _build_package(source,output,checksum,manifest,recovery,archive,sums,publish
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--source',default=str(Path(__file__).resolve().parent.parent))
-    parser.add_argument('--output',required=True)
+    action=parser.add_mutually_exclusive_group(required=True)
+    action.add_argument('--output')
+    action.add_argument('--refresh-manifest',action='store_true',help='按 Git 不会改写的字节更新既有发行清单')
     args=parser.parse_args()
-    print(json.dumps(build_package(args.source,args.output),ensure_ascii=False,indent=2))
+    result=refresh_manifest(args.source) if args.refresh_manifest else build_package(args.source,args.output)
+    print(json.dumps(result,ensure_ascii=False,indent=2))
 
 
 if __name__=='__main__':main()
