@@ -1,20 +1,27 @@
 """开发工作树中的固定受限运行对账；文件自洽不能替代正式认证。"""
 import base64
 import datetime
+import ctypes
 import hashlib
 import json
 import os
 from pathlib import Path
 import re
 import stat
+import subprocess
+import uuid
 import xml.etree.ElementTree as ET
 
 try:
     from .pair_auxiliary_runtime import saved_validator_inputs
+    from .pair_producer import file_identity
     from .pair_validator_worker import validator_request, verify_validator_result
+    from .pair_validator_admission import admit_validator_run, validator_admission_boundary
 except ImportError:
     from pair_auxiliary_runtime import saved_validator_inputs
+    from pair_producer import file_identity
     from pair_validator_worker import validator_request, verify_validator_result
+    from pair_validator_admission import admit_validator_run, validator_admission_boundary
 
 
 _PACKAGE_ROOT = Path(__file__).resolve().parents[1]
@@ -27,6 +34,7 @@ _SOURCES = {'Invoke-ValidatorRawModuleDiagnostic.ps1', 'Test-RootTrace.ps1',
             'run-raw-module-etw.ps1', 'check-combined-evidence.py',
             'check-restricted-raw-modules.py'}
 _CONTROLS = {'runner.cs', 'entry.py', 'reader.cs', 'reset.ps1'}
+_WORKER_SOURCES = {'pair_validator_worker.py', 'pair_reader_assembly.py'}
 _TOOLS = {'powershell': r'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe',
           'mscorlib': r'C:\Windows\Microsoft.NET\Framework64\v4.0.30319\mscorlib.dll',
           'python': r'C:\PairLab\Tools\python\python.exe',
@@ -34,6 +42,72 @@ _TOOLS = {'powershell': r'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.
 _LIMITS = {'Processes': 16, 'ProcessMiB': 384, 'JobMiB': 512,
            'CPUSeconds': 120, 'WallSeconds': 180, 'DiskMiB': 64}
 
+
+
+def dispatch_restricted_validator_run(store, member, session, cwd, execution_id, lease):
+    """固定开发执行器先持久登记准入，再启动一次；不自动重试未知结果。"""
+    source = _PACKAGE_ROOT / 'validation/bytecode-provenance-20261105'
+    if not source.is_dir():
+        raise ValueError('Restricted diagnostic requires its development validation tree; installed host capability unavailable')
+    inventory, sources, hashes, baseline, tools, controls = _diagnostic_sources(source)
+    shell, identity = _admission_tools(source, inventory, hashes, tools)
+    run_id = uuid.uuid4().hex
+    admitted = admit_validator_run(store, member, session, cwd, execution_id, lease,
+                                  run_id=run_id, tool_identity=identity)
+    command = _prepare_restricted_validator_inputs(store, member, session, cwd,
+        execution_id, lease, run_id=run_id, admitted=admitted, identity=identity, shell=shell)
+    with validator_admission_boundary(store, member, session, cwd, execution_id, lease,
+            run_id=run_id, tool_identity=identity, purpose='dispatch') as permission:
+        if not permission['dispatch_allowed']:
+            return dict(permission, replayed=False)
+        environment = os.environ.copy()
+        environment.update(command['env'])
+        process = subprocess.Popen(command['argv'], cwd=command['cwd'], env=environment,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+    # 只在创建进程边界持控制锁；等待期间仍允许用户登记暂停。
+    try:
+        _, error = process.communicate(timeout=300)
+    except subprocess.TimeoutExpired as error:
+        raise RuntimeError('Restricted validator controller state unknown; reconcile original run ' + run_id) from error
+    if process.returncode:
+        raise RuntimeError('Restricted validator controller failed; preserve original run ' + run_id
+                           + ': ' + error.decode('utf-8', errors='replace')[:2000])
+    return {'run_id': run_id, 'dispatched': True, 'replayed': False,
+            'controller_exit_code': process.returncode, 'formal': False,
+            'formal_checks_verified': False, 'status': 'needs_validation'}
+
+
+def _prepare_restricted_validator_inputs(store, member, session, cwd, execution_id, lease, *,
+                                         run_id, admitted, identity, shell):
+    """旧宿主与官方 command/exec 使用同一份固定输入和命令。"""
+    source = _PACKAGE_ROOT / 'validation/bytecode-provenance-20261105'
+    directory = _RUN_ROOT.parent / 'prepared' / run_id
+    directory.mkdir(parents=True, exist_ok=False)
+    request = admitted['request']
+    prepared = saved_validator_inputs(store, member, session, cwd, execution_id, lease)
+    for item in prepared['inputs']:
+        (directory / (item['contract']['input_field'] + '.json')).write_bytes(item['input_bytes'])
+    for name, expected in request['files'].items():
+        path = directory / name
+        if not path.exists():
+            path.write_bytes(_read(_PACKAGE_ROOT / 'assets/audit' / name, 5 * 1024 * 1024))
+        if _sha(path.read_bytes()) != expected:
+            raise ValueError('Prepared restricted validator input changed')
+    for name in _WORKER_SOURCES:
+        data = _read(_PACKAGE_ROOT / 'scripts' / name, 5 * 1024 * 1024)
+        if _sha(data) != identity['worker' if name == 'pair_validator_worker.py' else 'reader_assembly']:
+            raise ValueError('Prepared restricted validator implementation changed')
+        (directory / name).write_bytes(data)
+    (directory / 'request.json').write_text(_canonical(request), encoding='utf-8')
+    return {'argv': [str(shell), '-NoLogo', '-NoProfile', '-NonInteractive',
+            '-ExecutionPolicy', 'RemoteSigned', '-File', str(source / 'Invoke-ValidatorRawModuleDiagnostic.ps1'),
+            '-InputDirectory', str(directory), '-SourceInventory',
+            str(source / 'raw-module-source-inventory-loaded-reader.json'),
+            '-EvidenceProfile', 'loaded-reader-v2', '-RunId', run_id],
+            'cwd': str(_PACKAGE_ROOT),
+            # PowerShell 7 的继承路径会把不兼容的 Core 模块交给 Windows PowerShell。
+            'env': {'PSModulePath': str(shell.parent / 'Modules')}}
 
 def reconcile_restricted_validator_run(store, member, session, cwd, execution_id, lease, *, run_id):
     """仅接受固定运行引用，复算当前报告绑定后保存诊断观察。"""
@@ -49,24 +123,7 @@ def reconcile_restricted_validator_run(store, member, session, cwd, execution_id
     native_bytes = _read(run / 'native.json', 8 * 1024 * 1024)
     artifact_bytes = _read(run / 'artifact.json', 1048576)
     host, receipt, native, artifact = map(_json, (host_bytes, receipt_bytes, native_bytes, artifact_bytes))
-    inventory_bytes = _read(source / 'raw-module-source-inventory-loaded-reader.json', 65536)
-    inventory = _json(inventory_bytes)
-    if (set(inventory) != {'formal', 'profile', 'files'} or inventory['formal'] is not False
-            or inventory['profile'] != 'loaded-reader-v1'
-            or set(_hashes(inventory['files'])) != _SOURCES):
-        raise ValueError('Restricted source inventory mismatch')
-    sources = {name: _read(source / name, 5 * 1024 * 1024) for name in _SOURCES}
-    source_hashes = {name: _sha(data) for name, data in sources.items()}
-    if _hashes(inventory['files']) != source_hashes:
-        raise ValueError('Restricted source digest mismatch')
-    baseline = _json(sources['root-identity-baseline.json'])
-    tools, controls = _hashes(baseline.get('tools')), _hashes(baseline.get('controls'))
-    baseline_limits = dict(zip(('processes', 'process_memory_mib', 'job_memory_mib',
-                               'cpu_seconds', 'wall_seconds', 'disk_quota_mib'), _LIMITS.values()))
-    if (set(tools) != set(_TOOLS.values()) or set(controls) != _CONTROLS
-            or baseline.get('vm_id') != '3d337311-e8b0-4d7e-a746-f21f72e4cdb6'
-            or _canonical(baseline.get('limits')) != _canonical(baseline_limits)):
-        raise ValueError('Restricted diagnostic baseline mismatch')
+    inventory_bytes, sources, source_hashes, baseline, tools, controls = _diagnostic_sources(source)
     if (set(host) != {'Run', 'VM', 'SourceInventorySHA256', 'ControllerSHA256', 'Files',
                       'EvidenceProfile', 'Formal', 'Limits'}
             or set(receipt) != {'Run', 'State', 'NativeSHA256', 'SourceInventorySHA256',
@@ -74,7 +131,7 @@ def reconcile_restricted_validator_run(store, member, session, cwd, execution_id
             or set(native) != {'Run', 'Files', 'Tools', 'Native', 'Trace'}
             or host['Run'] != run_id or receipt['Run'] != run_id or native['Run'] != run_id
             or host['Formal'] is not False or receipt['Formal'] is not False
-            or host['EvidenceProfile'] != 'loaded-reader-v1' or receipt['State'] != 'terminal'
+            or host['EvidenceProfile'] != _json(inventory_bytes)['profile'] or receipt['State'] != 'terminal'
             or host['VM'] != baseline['vm_id']
             or _canonical(host['Limits']) != _canonical(_LIMITS)
             or not isinstance(native['Trace'], dict) or native['Trace'].get('Formal') is not False
@@ -100,7 +157,7 @@ def reconcile_restricted_validator_run(store, member, session, cwd, execution_id
         raise ValueError('Restricted native resource observation invalid')
     request = validator_request(prepared, node_sha256=tools[_TOOLS['node']])
     files = _hashes(host['Files'])
-    if (set(files) != set(request['files']) | _CONTROLS | {'request.json', 'pair_validator_worker.py'}
+    if (set(files) != set(request['files']) | _CONTROLS | {'request.json'} | _WORKER_SOURCES
             or _hashes(native['Files']) != files):
         raise ValueError('Restricted snapshot file set mismatch')
     inputs = {name: _read(run / 'input' / name, 65536 if name == 'request.json' else 5 * 1024 * 1024)
@@ -108,8 +165,8 @@ def reconcile_restricted_validator_run(store, member, session, cwd, execution_id
     if {name: _sha(data) for name, data in inputs.items()} != files:
         raise ValueError('Restricted snapshot digest mismatch')
     expected_files = dict(request['files'], **controls)
-    expected_files['pair_validator_worker.py'] = _sha(_read(
-        _PACKAGE_ROOT / 'scripts/pair_validator_worker.py', 5 * 1024 * 1024))
+    for name in _WORKER_SOURCES:
+        expected_files[name] = _sha(_read(_PACKAGE_ROOT / 'scripts' / name, 5 * 1024 * 1024))
     if any(files[name] != value for name, value in expected_files.items()):
         raise ValueError('Restricted current input or control binding mismatch')
     if _canonical(_json(inputs['request.json'])) != _canonical(request):
@@ -128,17 +185,18 @@ def reconcile_restricted_validator_run(store, member, session, cwd, execution_id
     if any(result['exit_code'] == 0 and not observations.get(result['validator'])
            for result in artifact['results']):
         raise ValueError('Restricted loaded reader observation missing')
-    trace_verified = _verify_trace(native, observations, sources, source)
+    trace_verified = _verify_trace(native, observations, sources, source, profile=host['EvidenceProfile'])
     # 完整 ETW 与 Base64 留在运行目录，Store 保存可回溯摘要，避免重复放大证据。
     terminal = {key: value for key, value in native['Native'].items() if key != 'ArtifactBase64'}
-    terminal['HostObservation'] = {'run_id': run_id, 'evidence_profile': 'loaded-reader-v1',
+    terminal['HostObservation'] = {'run_id': run_id, 'evidence_profile': host['EvidenceProfile'],
         'host_request_sha256': _sha(host_bytes), 'receipt_sha256': _sha(receipt_bytes),
         'native_sha256': _sha(native_bytes), 'artifact_sha256': _sha(artifact_bytes),
         'source_inventory_sha256': inventory_sha, 'trace_verification': trace_verified,
         'formal_checks_verified': False}
     identity = {name: tools[path] for name, path in _TOOLS.items()}
     identity.update(controller=controller_sha, source_inventory=inventory_sha,
-                    worker=expected_files['pair_validator_worker.py'])
+                    worker=expected_files['pair_validator_worker.py'],
+                    reader_assembly=expected_files['pair_reader_assembly.py'])
     result = store.record_validator_run(member, session, cwd, execution_id, lease,
                                         run_id, request, terminal, artifact, identity)
     return dict(result, **verified, status='needs_validation',
@@ -146,7 +204,59 @@ def reconcile_restricted_validator_run(store, member, session, cwd, execution_id
                                   'jit_content_unverified', 'formal_receipt_unverified'])
 
 
-def _verify_trace(native, observations, sources, source):
+
+
+def reconcile_admitted_validator_run(store, member, session, cwd, execution_id, lease, *, run_id):
+    """暂停或授权代次变化后只收回已登记运行，不能再派发或授正式通过。"""
+    source = _PACKAGE_ROOT / 'validation/bytecode-provenance-20261105'
+    inventory, _, hashes, _, tools, _ = _diagnostic_sources(source)
+    _, identity = _admission_tools(source, inventory, hashes, tools)
+    with validator_admission_boundary(store, member, session, cwd, execution_id, lease,
+            run_id=run_id, tool_identity=identity, purpose='reconcile') as permission:
+        result = reconcile_restricted_validator_run(store, member, session, cwd,
+                                                    execution_id, lease, run_id=run_id)
+    return dict(result, admission_snapshot_digest=permission['snapshot_digest'],
+                controls_changed=permission['controls_changed'], reconciliation_only=True)
+
+
+def _admission_tools(source, inventory, hashes, tools):
+    directory = ctypes.create_unicode_buffer(32768)
+    length = ctypes.windll.kernel32.GetWindowsDirectoryW(directory, len(directory))
+    if not length or length >= len(directory):
+        raise OSError('Host Windows directory unavailable')
+    shell = Path(directory.value) / 'System32/WindowsPowerShell/v1.0/powershell.exe'
+    identity = {name: tools[path] for name, path in _TOOLS.items()}
+    identity.update(controller=hashes['Invoke-ValidatorRawModuleDiagnostic.ps1'],
+                    source_inventory=_sha(inventory), host_shell=file_identity(shell)['sha256'])
+    for name in _WORKER_SOURCES:
+        identity['worker' if name == 'pair_validator_worker.py' else 'reader_assembly'] = _sha(
+            _read(_PACKAGE_ROOT / 'scripts' / name, 5 * 1024 * 1024))
+    return shell, identity
+
+
+def _diagnostic_sources(source):
+    inventory_bytes = _read(source / 'raw-module-source-inventory-loaded-reader.json', 65536)
+    inventory = _json(inventory_bytes)
+    if (set(inventory) != {'formal', 'profile', 'files'} or inventory['formal'] is not False
+            or inventory['profile'] not in ('loaded-reader-v1', 'loaded-reader-v2')
+            or set(_hashes(inventory['files'])) != _SOURCES):
+        raise ValueError('Restricted source inventory mismatch')
+    sources = {name: _read(source / name, 5 * 1024 * 1024) for name in _SOURCES}
+    source_hashes = {name: _sha(data) for name, data in sources.items()}
+    if _hashes(inventory['files']) != source_hashes:
+        raise ValueError('Restricted source digest mismatch')
+    baseline = _json(sources['root-identity-baseline.json'])
+    tools, controls = _hashes(baseline.get('tools')), _hashes(baseline.get('controls'))
+    baseline_limits = dict(zip(('processes', 'process_memory_mib', 'job_memory_mib',
+                               'cpu_seconds', 'wall_seconds', 'disk_quota_mib'), _LIMITS.values()))
+    if (set(tools) != set(_TOOLS.values()) or set(controls) != _CONTROLS
+            or baseline.get('vm_id') != '3d337311-e8b0-4d7e-a746-f21f72e4cdb6'
+            or _canonical(baseline.get('limits')) != _canonical(baseline_limits)):
+        raise ValueError('Restricted diagnostic baseline mismatch')
+    return inventory_bytes, sources, source_hashes, baseline, tools, controls
+
+
+def _verify_trace(native, observations, sources, source, *, profile='loaded-reader-v1'):
     """复用已核对的检查器，再绑定进程生命周期；不认证观察内容。"""
     trace = native['Trace']
     if (not isinstance(trace.get('Xml'), str) or not isinstance(trace.get('Summary'), str)
@@ -163,7 +273,7 @@ def _verify_trace(native, observations, sources, source):
     for name in ('check-combined-evidence.py', 'check-restricted-raw-modules.py'):
         namespace = {'__name__': 'restricted_diagnostic_checker', '__file__': str(source / name)}
         exec(compile(sources[name], str(source / name), 'exec'), namespace)
-        checked.append(namespace['check'](native, profile='loaded-reader-v1'))
+        checked.append(namespace['check'](native, profile=profile))
     lost = re.findall(r'(?m)^Total Events[^\S\r\n]+Lost[^\S\r\n]+(\d+)[ \t\r]*$', trace['Summary'])
     if lost != ['0']:
         raise ValueError('Restricted ETW loss count missing, ambiguous or nonzero')

@@ -29,7 +29,7 @@ try {
  $arguments=New-Object object[] 1
  $arguments[0]=$LiteralPath
  $bytes=$type.GetMethod('Read').Invoke($null,$arguments)
- $observation=@{schema_version=1;formal=$false;pid=$PID;process_creation_utc=(Get-Process -Id $PID).StartTime.ToUniversalTime().ToString('o');source_sha256=(Hash-Bytes $sourceBytes);assembly_input_sha256=(Hash-Bytes $assemblyBytes);mvid=$type.Module.ModuleVersionId.ToString();methods=$methods}
+ $observation=@{schema_version=1;formal=$false;pid=$PID;process_creation_utc=(Get-Process -Id $PID).StartTime.ToUniversalTime().ToString('o');source_sha256=(Hash-Bytes $sourceBytes);assembly_input_sha256=(Hash-Bytes $assemblyBytes);assembly_input_base64=[Convert]::ToBase64String($assemblyBytes);mvid=$type.Module.ModuleVersionId.ToString();methods=$methods}
  [Console]::Error.WriteLine('PAIR_READER_OBSERVATION:'+($observation | ConvertTo-Json -Depth 4 -Compress))
  $stdout=[Console]::OpenStandardOutput()
  $stdout.Write($bytes,0,$bytes.Length)

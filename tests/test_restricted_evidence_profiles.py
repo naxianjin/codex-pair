@@ -4,6 +4,7 @@ import importlib.util
 import json
 from pathlib import Path
 import unittest
+import xml.etree.ElementTree as ET
 
 
 ROOT = Path(__file__).resolve().parents[1] / 'validation/bytecode-provenance-20261105'
@@ -17,6 +18,33 @@ def load(name):
 
 
 class RestrictedEvidenceProfilesTests(unittest.TestCase):
+    def test_parser_profile_keeps_previous_image_count_and_rejects_deleted_image(self):
+        from tests.test_validator_host import trace_fixture
+        data = trace_fixture()
+        combined = load('check-combined-evidence')
+        raw = load('check-restricted-raw-modules')
+        ns = {'e': 'http://schemas.microsoft.com/win/2004/08/events/event'}
+        document = ET.fromstring(data['Trace']['Xml'])
+        image = next(event for event in document
+                     if event.findtext('e:System/e:EventID', namespaces=ns) == '5'
+                     and any(item.get('Name') == 'ProcessID' and (item.text or '').strip() == '3936'
+                             for item in event.findall('e:EventData/e:Data', ns)))
+        event = copy.deepcopy(image)
+        path = r'\Device\HarddiskVolume4\PairLab\Tools\python\DLLs\_uuid.pyd'
+        next(item for item in event.findall('e:EventData/e:Data', ns)
+             if item.get('Name') == 'ImageName').text = path
+        document.append(event)
+        data['Trace']['Xml'] = ET.tostring(document, encoding='unicode')
+        data['Trace']['Images'].append({'Image': path, 'SHA256': 'a' * 64})
+        self.assertEqual(combined.check(data, profile='loaded-reader-v2'), (13, 52, 111))
+        self.assertEqual(raw.check(data, profile='loaded-reader-v2')['module_pairs'], 52)
+        with self.assertRaises(ValueError):
+            combined.check(data, profile='loaded-reader-v1')
+        document.remove(event)
+        data['Trace']['Xml'] = ET.tostring(document, encoding='unicode')
+        with self.assertRaises(ValueError):
+            combined.check(data, profile='loaded-reader-v2')
+
     def test_historical_profile_retains_exact_pair_and_image_counts(self):
         combined = load('check-combined-evidence')
         raw = load('check-restricted-raw-modules')

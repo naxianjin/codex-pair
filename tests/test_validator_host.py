@@ -12,6 +12,7 @@ import xml.etree.ElementTree as ET
 
 from scripts import pair_validator_host as host
 from scripts.pair_validator_worker import validator_request, verify_validator_result
+from tests.reader_fixture import reader_observation
 
 
 def sha(data):
@@ -88,6 +89,7 @@ class ValidatorHostTests(unittest.TestCase):
         self.source.mkdir(parents=True)
         (self.package / 'scripts').mkdir()
         (self.package / 'scripts/pair_validator_worker.py').write_bytes(b'fixed worker')
+        (self.package / 'scripts/pair_reader_assembly.py').write_bytes(b'fixed parser')
         self.run_id = 'a' * 32
         self.runs = self.root / 'runs'
         self.run = self.runs / self.run_id
@@ -113,7 +115,8 @@ class ValidatorHostTests(unittest.TestCase):
         self.worker_request = validator_request(self.prepared, node_sha256=self.tools[host._TOOLS['node']].lower())
         snapshot = dict(assets, **{'findings.json': b'[]', 'coverage_ledger.json': b'[]',
                                   'request.json': self.encode(self.worker_request),
-                                  'pair_validator_worker.py': b'fixed worker'})
+                                  'pair_validator_worker.py': b'fixed worker',
+                                  'pair_reader_assembly.py': b'fixed parser'})
         snapshot.update({name: ('control ' + name).encode() for name in host._CONTROLS})
         for name, data in snapshot.items():
             (self.run / 'input' / name).write_bytes(data)
@@ -138,14 +141,8 @@ class ValidatorHostTests(unittest.TestCase):
             'ControllerSHA256': self.inventory['files']['Invoke-ValidatorRawModuleDiagnostic.ps1'].upper(),
             'Files': {name: sha(data).upper() for name, data in snapshot.items()}}
         self.write(self.run / 'request.json', self.outer)
-        observation = {'schema_version': 1, 'formal': False, 'pid': 3948,
-            'process_creation_utc': '2026-11-06T03:39:19.4908710Z',
-            'source_sha256': sha(assets['WindowsSafeInput.cs']),
-            'assembly_input_sha256': 'a' * 64, 'mvid': '12345678-1234-1234-1234-123456789abc',
-            'methods': [{'metadata_token': 0x6000000 + index, 'signature': signature,
-                         'il_sha256': 'b' * 64, 'il_bytes': 10} for index, signature in enumerate(
-                            ('IntPtr OpenRoot(System.String)', 'Byte[] Read(System.String)',
-                             'Byte[] ReadBytes(IntPtr, System.String)'), 1)]}
+        observation = reader_observation(sha(assets['WindowsSafeInput.cs']), pid=3948,
+                                         process_creation_utc='2026-11-06T03:39:19.4908710Z')
         observed = {}
         results = []
         trace = trace_fixture()
@@ -283,7 +280,8 @@ class ValidatorHostTests(unittest.TestCase):
 
     def test_current_inputs_sources_controls_and_report_are_required(self):
         for path in (self.run / 'input/findings.json', self.run / 'input/runner.cs',
-                     self.package / 'scripts/pair_validator_worker.py', self.source / 'Test-RootTrace.ps1'):
+                     self.package / 'scripts/pair_validator_worker.py',
+                     self.package / 'scripts/pair_reader_assembly.py', self.source / 'Test-RootTrace.ps1'):
             original = path.read_bytes()
             path.write_bytes(original + b' changed')
             with self.subTest(path=path.name), self.assertRaises(ValueError):
@@ -411,7 +409,7 @@ class ValidatorHostTests(unittest.TestCase):
 
     def test_rehashed_changed_controls_inputs_and_false_formal_are_rejected(self):
         originals = {name: (self.run / 'input' / name).read_bytes() for name in
-                     ('findings.json', 'runner.cs', 'pair_validator_worker.py', 'request.json')}
+                     ('findings.json', 'runner.cs', 'pair_validator_worker.py', 'pair_reader_assembly.py', 'request.json')}
         for name, data in originals.items():
             (self.run / 'input' / name).write_bytes(data + b' ')
             self.outer['Files'][name] = sha(data + b' ')
@@ -550,6 +548,72 @@ class ValidatorHostTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'changed during read'):
                 self.reconcile()
         self.assertEqual(self.store.calls, [])
+
+
+class AdmittedHostTests(unittest.TestCase):
+    def setUp(self):
+        from tests.test_validator_admission import ValidatorAdmissionTests
+        self.case = ValidatorAdmissionTests()
+        self.case.setUp()
+        self.addCleanup(self.case.doCleanups)
+        self.fixture = self.case.fixture
+        self.temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temporary.cleanup)
+        self.root = Path(self.temporary.name)
+        package = Path(__file__).resolve().parents[1]
+        self.patch = patch.object(host, '_RUN_ROOT', self.root / 'runs')
+        self.patch.start()
+        self.addCleanup(self.patch.stop)
+        self.package = package
+        self.shell = Path(os.environ.get('SYSTEMROOT', r'C:\Windows')) / 'System32/WindowsPowerShell/v1.0/powershell.exe'
+
+    def test_dispatch_uses_admission_before_external_process_and_preserves_fixed_dependency_bytes(self):
+        from scripts.pair_core import FileLock
+        from scripts.pair_validator_admission import verify_validator_admission
+        from unittest.mock import Mock
+        starts = []
+        def start(argv, **options):
+            self.assertEqual(options['env']['PSModulePath'], str(Path(argv[0]).parent / 'Modules'))
+            run_id = argv[argv.index('-RunId') + 1]
+            with self.fixture.store.transaction() as db:
+                record = self.fixture.store._option(db, 'validator_admission:' + run_id)
+            self.assertEqual(record['state'], 'dispatching')
+            self.assertEqual(record['run_id'], run_id)
+            # 控制锁覆盖本机控制器创建，等待进程时已释放。
+            from scripts.pair_core import PairError
+            with self.assertRaises(PairError):
+                with FileLock(self.fixture.store.control_lock):
+                    self.fail('Controller started outside admission boundary')
+            directory = Path(argv[argv.index('-InputDirectory') + 1])
+            for name in host._WORKER_SOURCES:
+                self.assertEqual((directory / name).read_bytes(), (self.package / 'scripts' / name).read_bytes())
+            self.assertEqual(json.loads((directory / 'request.json').read_bytes()), record['snapshot']['request'])
+            starts.append((run_id, record))
+            child = Mock(returncode=0)
+            def completed(**kwargs):
+                with FileLock(self.fixture.store.control_lock):
+                    pass
+                return b'', b''
+            child.communicate.side_effect = completed
+            return child
+        with patch.object(host.subprocess, 'Popen', side_effect=start):
+            result = host.dispatch_restricted_validator_run(self.fixture.store, *self.fixture.actor(),
+                        self.case.ticket['execution_id'], self.case.ticket['lease'])
+        self.assertEqual(len(starts), 1)
+        self.assertTrue(result['dispatched'])
+        self.assertFalse(result['formal_checks_verified'])
+        permission = verify_validator_admission(self.fixture.store, *self.fixture.actor(),
+            self.case.ticket['execution_id'], self.case.ticket['lease'], run_id=starts[0][0],
+            tool_identity=starts[0][1]['snapshot']['tool_identity'], purpose='dispatch')
+        self.assertFalse(permission['dispatch_allowed'])
+
+    def test_pause_before_dispatch_starts_no_process(self):
+        from scripts.pair_core import PairError
+        self.fixture.store.request_pause(*self.fixture.actor(), reason='Host fixture pause', idempotency_key='host-pause')
+        with patch.object(host.subprocess, 'Popen') as start, self.assertRaises(PairError):
+            host.dispatch_restricted_validator_run(self.fixture.store, *self.fixture.actor(),
+                self.case.ticket['execution_id'], self.case.ticket['lease'])
+        start.assert_not_called()
 
 
 if __name__ == '__main__':

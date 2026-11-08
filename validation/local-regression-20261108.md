@@ -1,23 +1,23 @@
 # 本地回归记录（2026-11-08）
 
-基线工作树：`feat/next-recovery-20261101`，HEAD `a1719eb`。本轮没有修改业务源码；保留工作树中已有的未提交验证现场。
+基线工作树：`feat/next-recovery-20261101`，本轮候选包含 Host→Store 诊断回执绑定和正式补充记录接线；保留工作树中已有的未提交验证现场。
 
 实际执行：
 
-- 定向 admission/dispatch/owned Store/Host/receipt/core/多账户/reader/CLI 兼容：151 项，0 失败，0 错误，1 项按正式真实栈条件跳过。
-- 全量正常模式：1383 项，0 失败，0 错误，3 项跳过，退出码 0。
-- 全量优化模式（`python -O`）：1383 项，0 失败，0 错误，3 项跳过，退出码 0。
+- 定向 admission/dispatch/owned Store/Host/receipt/core/多账户/reader/CLI 兼容：256 项，0 失败，0 错误，1 项按正式真实栈条件跳过。
+- 全量正常模式：1389 项，0 失败，0 错误，3 项跳过，退出码 0；完整日志见 `validation/full-regression-20261108-r2.log`。
+- 本轮专项组合（准入、回执、调度、owned Store、正式补充、结算、打包、安装和 CLI 兼容）：119 项，0 失败，0 错误。
 - 源码编译检查：`python -m compileall -q -f scripts tests`，退出码 0。
 - 安装/打包/清单专项：26 项，0 失败，0 错误，退出码 0。
 - DeepSeek 提供方/身份/额度隔离专项：16 项，0 失败，0 错误，退出码 0。
 - 系统映像一致性、FOTHK、受限验证器、动态读取和证据 profile：65 项，0 失败，0 错误，退出码 0。
 - 真实 Codex transport 隔离测试：1 项通过，退出码 0；Unicode app-server 消息、空闲/忙碌 queue 回执均已写入隔离证据目录 `validation/real-transport-20261108/`。
 - 真实 daemon 业务闭环：已执行但失败于实现的 `Original visible CLI required` 身份门禁；没有伪造 session 或重放。
-- 真实双 CLI 集成：已执行预检但因未设置 `CODEX_PAIR_HOME_B` 退出；未发送业务消息。
+- 真实双 CLI 集成：预检和身份门禁均未形成业务消息；缺少可核实的 `CODEX_PAIR_HOME_B`/原始可见 CLI 绑定时不继续。
 
 跳过项均为显式真实环境门禁：真实 daemon 业务闭环、真实双 CLI 集成、真实 Codex transport；本轮未设置 `CODEX_PAIR_REAL_CORE_TEST`、`CODEX_PAIR_REAL_INTEGRATION` 或 `CODEX_PAIR_REAL_TEST`，也未启动新模型会话、VM 或活动 Store。
 
-正式缺口保持不变：可信原生启动、系统初始化与完整系统映像等价、实际验证器 workload 的动态/JIT 内容、正式 Host→Store 回执接线、正式动态调度与发行安装。所有本地结果仍为 `formal=false / needs_validation`，不能替代已核实身份的独立审核或真实窗口验收。
+正式缺口保持不变：可信原生启动、系统初始化与完整系统映像等价、实际验证器 workload 的动态/JIT 内容、真实官方 Host→Store 回执、正式动态调度与发行安装。新增的 Host→Store 仅完成本地不可变绑定、幂等和结算消费接线；缺少真实官方来源时仍为 `formal=false / needs_validation`，不能替代已核实身份的独立审核或真实窗口验收。
 
 本轮 Host→Store 接线补充（本地、非正式）：
 

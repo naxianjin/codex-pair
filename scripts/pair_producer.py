@@ -10,7 +10,7 @@ import subprocess
 
 ALPHA = '0.163.0-alpha.11'
 # 精确版本候选；新增构建仍须独立实录审核后才能部署。
-STRICT_VERSIONS = (ALPHA, '0.166.0-alpha.5.1', '0.166.0-alpha.6')
+STRICT_VERSIONS = (ALPHA, '0.166.0-alpha.5.1', '0.166.0-alpha.6', '0.167.0-alpha.3.2')
 SUPPORTED_VERSIONS = ('0.163.0', *STRICT_VERSIONS)
 KEY = 'reviewer_producer:'
 

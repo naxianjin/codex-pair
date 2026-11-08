@@ -1,0 +1,30 @@
+{
+  "provenance": {
+    "cli_version": "0.167.0-alpha.3.2",
+    "actual_pair_verified_before_sanitization": true,
+    "sanitization": "Only item ID, cwd and local evidence directory replaced; quoting preserved.",
+    "formal": false
+  },
+  "api": {
+    "id": "exec-00000000-0000-0000-0000-000000000167",
+    "type": "commandExecution",
+    "command": "\"C:\\\\Program Files\\\\PowerShell\\\\7\\\\pwsh.exe\" -Command \"Get-ChildItem 'D:/fixture/review' -Force | Select-Object Name,Length,LastWriteTime\"",
+    "cwd": "C:\\fixture",
+    "source": "unifiedExecStartup",
+    "status": "completed",
+    "exitCode": 0
+  },
+  "raw": {
+    "id": "exec-00000000-0000-0000-0000-000000000167",
+    "type": "CommandExecution",
+    "command": [
+      "C:\\Program Files\\PowerShell\\7\\pwsh.exe",
+      "-Command",
+      "Get-ChildItem 'D:/fixture/review' -Force | Select-Object Name,Length,LastWriteTime"
+    ],
+    "cwd": "file:///C:/fixture",
+    "source": "unified_exec_startup",
+    "status": "completed",
+    "exit_code": 0
+  }
+}

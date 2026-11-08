@@ -9,8 +9,8 @@ module.exports = function readWindowsInput(file, maxBytes) {
   const shell = path.join(systemRoot, "System32", "WindowsPowerShell", "v1.0", "powershell.exe");
   const result = spawnSync(shell, ["-NoLogo", "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "RemoteSigned",
     "-File", path.join(__dirname, "read-windows-input.ps1"), "-LiteralPath", path.resolve(file)],
-    { shell: false, windowsHide: true, timeout: 15000, maxBuffer: Math.max(maxBytes + 1, 8192) });
-  if (result.error || result.status !== 0 || result.stdout.length > maxBytes || result.stderr.length > 8192) {
+    { shell: false, windowsHide: true, timeout: 15000, maxBuffer: Math.max(maxBytes + 1, 65536) });
+  if (result.error || result.status !== 0 || result.stdout.length > maxBytes || result.stderr.length > 65536) {
     throw new Error("Windows handle-based input read failed or exceeded its limit");
   }
   let observation;

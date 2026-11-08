@@ -121,7 +121,8 @@ def prepare(directory):
             (inputs / name).write_bytes((ROOT / 'assets/audit' / name).read_bytes())
         if hashlib.sha256((inputs / name).read_bytes()).hexdigest() != digest:
             raise ValueError('Diagnostic input digest mismatch')
-    (inputs / 'pair_validator_worker.py').write_bytes((ROOT / 'scripts/pair_validator_worker.py').read_bytes())
+    for name in ('pair_validator_worker.py', 'pair_reader_assembly.py'):
+        (inputs / name).write_bytes((ROOT / 'scripts' / name).read_bytes())
     write_new(inputs / 'request.json', request)
     write_new(directory / 'fixture.json', {'schema_version': 1, 'formal': False, 'fixture_only': True,
               'execution_id': ticket['execution_id'], 'lease': ticket['lease'],

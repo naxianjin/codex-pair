@@ -1,4 +1,4 @@
-﻿param([Parameter(Mandatory)][string]$InputDirectory,[Parameter(Mandatory)][string]$SourceInventory,[ValidateSet("historical","loaded-reader-v1")][string]$EvidenceProfile="historical")
+﻿param([Parameter(Mandatory)][string]$InputDirectory,[Parameter(Mandatory)][string]$SourceInventory,[ValidateSet("historical","loaded-reader-v1","loaded-reader-v2")][string]$EvidenceProfile="historical",[ValidatePattern('^[0-9a-f]{32}$')][string]$RunId)
 $ErrorActionPreference='Stop'
 $sourceLocks=New-Object 'System.Collections.Generic.List[System.IDisposable]'
 try {
@@ -34,11 +34,11 @@ try{
  if(Test-Path -LiteralPath $pending){throw 'Unconfirmed prior execution; reconcile before retry'}
  $vm=Get-VM -Name $vmName
  if($vm.Id.ToString() -ne '3d337311-e8b0-4d7e-a746-f21f72e4cdb6' -or @(Get-VMNetworkAdapter -VMName $vmName).Count -ne 0 -or $vm.State -ne 'Running'){throw 'VM identity/network/state mismatch'}
- $run=[guid]::NewGuid().ToString('N')
+ $run=if($RunId){$RunId}else{[guid]::NewGuid().ToString('N')}
  $output=Join-Path $base "runs\$run"
  New-Item -ItemType Directory -Path $output | Out-Null
  $snapshot=Join-Path $output 'input';New-Item -ItemType Directory $snapshot | Out-Null
- $files=@('findings.json','coverage_ledger.json','request.json','pair_validator_worker.py','validate-findings.cjs','validate-coverage-ledger.cjs','report-schema.json','read-windows-input.cjs','read-windows-input.ps1','WindowsSafeInput.cs')
+ $files=@('findings.json','coverage_ledger.json','request.json','pair_validator_worker.py','pair_reader_assembly.py','validate-findings.cjs','validate-coverage-ledger.cjs','report-schema.json','read-windows-input.cjs','read-windows-input.ps1','WindowsSafeInput.cs')
  foreach($name in $files){Copy-Item -LiteralPath (Join-Path $InputDirectory $name) -Destination (Join-Path $snapshot $name)}
  $sources=@{'runner.cs'="$PSScriptRoot\PairValidatorIdentityDiagnostic.cs";'reader.cs'="$lab\runner-v2\PairArtifactReader.cs";'reset.ps1'="$lab\runner-v2\Reset-Scratch.ps1";'entry.py'="$base\run-entry.py"}
  foreach($name in $sources.Keys){Copy-Item -LiteralPath $sources[$name] -Destination (Join-Path $snapshot $name)}

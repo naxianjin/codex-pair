@@ -8,7 +8,7 @@ import xml.etree.ElementTree as ET
 
 
 def check(data, *, profile="historical"):
-    expected_pairs, expected_images = {"historical": (46, 106), "loaded-reader-v1": (52, 110)}[profile]
+    expected_pairs, expected_images = {"historical": (46, 106), "loaded-reader-v1": (52, 110), "loaded-reader-v2": (52, 111)}[profile]
     ns = {'e': 'http://schemas.microsoft.com/win/2004/08/events/event'}
     rows = []
     for event in ET.fromstring(data['Trace']['Xml']).findall('e:Event', ns):

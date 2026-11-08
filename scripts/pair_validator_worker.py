@@ -1,4 +1,5 @@
 """可信隔离执行器调用的固定 CJS 工作入口；自身不提供隔离或正式放行证明。"""
+import base64
 import hashlib
 import ctypes
 import json
@@ -7,6 +8,16 @@ import re
 from pathlib import Path
 import stat
 import subprocess
+
+if __package__:
+    from .pair_reader_assembly import parse_assembly
+else:
+    # -I 不搜索脚本目录；执行器固定并核对同目录依赖的字节。
+    import importlib.util
+    spec = importlib.util.spec_from_file_location('pair_reader_assembly', Path(__file__).with_name('pair_reader_assembly.py'))
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    parse_assembly = module.parse_assembly
 
 
 def validator_request(prepared, *, node_sha256):
@@ -87,11 +98,11 @@ def reader_observations(stderr, source_sha256):
     for line in stderr.splitlines():
         if not line.startswith(_READER_PREFIX):
             continue
-        if len(line.encode('utf-8')) > 8192:
+        if len(line.encode('utf-8')) > 65536:
             raise ValueError('Reader observation exceeded limit')
         value = json.loads(line[len(_READER_PREFIX):])
         fields = {'schema_version', 'formal', 'pid', 'process_creation_utc',
-                  'source_sha256', 'assembly_input_sha256', 'mvid', 'methods'}
+                  'source_sha256', 'assembly_input_sha256', 'assembly_input_base64', 'mvid', 'methods'}
         if (not isinstance(value, dict) or set(value) != fields
                 or type(value['schema_version']) is not int or value['schema_version'] != 1
                 or value['formal'] is not False or type(value['pid']) is not int or value['pid'] <= 0
@@ -100,6 +111,8 @@ def reader_observations(stderr, source_sha256):
                 or value['source_sha256'] != source_sha256
                 or not isinstance(value['assembly_input_sha256'], str)
                 or not re.fullmatch(r'[0-9a-f]{64}', value['assembly_input_sha256'])
+                or not isinstance(value['assembly_input_base64'], str)
+                or not value['assembly_input_base64']
                 or not isinstance(value['mvid'], str)
                 or not re.fullmatch(r'[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}', value['mvid'])
                 or not isinstance(value['methods'], list) or len(value['methods']) != 3):
@@ -117,6 +130,19 @@ def reader_observations(stderr, source_sha256):
                 or {m['signature'] for m in methods} != {'IntPtr OpenRoot(System.String)',
                     'Byte[] Read(System.String)', 'Byte[] ReadBytes(IntPtr, System.String)'}):
             raise ValueError('Reader method set mismatch')
+        try:
+            assembly = base64.b64decode(value['assembly_input_base64'], validate=True)
+        except ValueError as error:
+            raise ValueError('Reader assembly encoding invalid') from error
+        if base64.b64encode(assembly).decode('ascii') != value['assembly_input_base64']:
+            raise ValueError('Reader assembly encoding is not canonical')
+        parsed = parse_assembly(assembly, value['assembly_input_sha256'])
+        expected_methods = [{key: item[key] for key in ('metadata_token', 'signature', 'il_sha256', 'il_bytes')}
+                            for item in parsed['methods']]
+        if (parsed['mvid'] != value['mvid']
+                or sorted(expected_methods, key=lambda item: item['metadata_token'])
+                   != sorted(methods, key=lambda item: item['metadata_token'])):
+            raise ValueError('Reader assembly content observation mismatch')
         observations.append(value)
     if len(observations) > 2 or len({(v['pid'], v['process_creation_utc']) for v in observations}) != len(observations):
         raise ValueError('Reader process observations duplicated or excessive')
