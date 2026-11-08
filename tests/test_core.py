@@ -402,11 +402,14 @@ class CoreTests(unittest.TestCase):
                      'CODEX_PAIR_REAL_PAIR':'test','CODEX_PAIR_REAL_STATE_ROOT':str(self.store.state_root),
                      'CODEX_PAIR_REAL_CODEX':str(self.root/'codex.exe'),
                      'CODEX_PAIR_EVIDENCE':str(self.root/'evidence')}
-        with patch.dict(os.environ,environment),patch('tests.test_core.AppServer'),\
+        # unittest discover may load this file as ``test_core`` rather than
+        # ``tests.test_core``; patch the module that owns the nested test.
+        module = sys.modules[__name__]
+        with patch.dict(os.environ,environment),patch.object(module,'AppServer'),\
                 patch('scripts.pair_core.Store.status',external_status),\
-                patch('tests.test_core.Path.cwd',return_value=Path(self.directories['A'])),\
-                patch('tests.test_core.time.sleep',side_effect=external_tick),\
-                patch('tests.test_core.subprocess.Popen') as process:
+                patch.object(module.Path,'cwd',return_value=Path(self.directories['A'])),\
+                patch.object(module.time,'sleep',side_effect=external_tick),\
+                patch.object(module.subprocess,'Popen') as process:
             RealCoreTests('test_real_daemon_claim_and_complete').test_real_daemon_claim_and_complete()
             process.assert_not_called()
         tasks=self.store.status()['tasks']
