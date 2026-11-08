@@ -9,6 +9,8 @@
 - 全量优化模式（`python -O`）：1383 项，0 失败，0 错误，3 项跳过，退出码 0。
 - 源码编译检查：`python -m compileall -q -f scripts tests`，退出码 0。
 - 安装/打包/清单专项：26 项，0 失败，0 错误，退出码 0。
+- DeepSeek 提供方/身份/额度隔离专项：16 项，0 失败，0 错误，退出码 0。
+- 系统映像一致性、FOTHK、受限验证器、动态读取和证据 profile：65 项，0 失败，0 错误，退出码 0。
 
 跳过项均为显式真实环境门禁：真实 daemon 业务闭环、真实双 CLI 集成、真实 Codex transport；本轮未设置 `CODEX_PAIR_REAL_CORE_TEST`、`CODEX_PAIR_REAL_INTEGRATION` 或 `CODEX_PAIR_REAL_TEST`，也未启动新模型会话、VM 或活动 Store。
 
