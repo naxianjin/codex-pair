@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "scope": "bounded guest source repair and failed inventory reconciliation",
+  "formal": false,
+  "overall": "needs_validation",
+  "review": {
+    "provider": "apinebula",
+    "model": "gpt-6.1-sol",
+    "provider_class": "third_party",
+    "verdict": "passed_source_only",
+    "report_sha256": "2453f78820768ecf0a816303a9f293adb9a6567ddff4b2d46ba107177a3aae55",
+    "fixed_inputs": 101,
+    "source_copies": 29,
+    "reference_checks": 164,
+    "coordinator_checks": 329,
+    "calls_with_outputs": 20,
+    "managed": 51,
+    "PS_fixtures": 40,
+    "independent_adversarial": 20,
+    "python_normal": 3,
+    "python_optimized": 3,
+    "actual_catch_managed": 7,
+    "ps_ast_files": 7,
+    "retained_review_fixture_failures": 2
+  },
+  "stable_findings": {
+    "D2-GH-001": "resolved_source_only",
+    "D2-GH-002": "resolved_source_only"
+  },
+  "failed_inventory": {
+    "executions": 1,
+    "exit_code": 1,
+    "failure": "Wait-VM Heartbeat timeout, integration services disabled",
+    "guest_session_reached": false,
+    "payload_launched": false,
+    "guest_inventory_obtained": false,
+    "vm_off_confirmed": true,
+    "no_network_adapters": true,
+    "pending_archived_as_failure": true,
+    "failure_settlement_exit_code": 0
+  },
+  "new_boot_candidate": {
+    "source_review": "pending",
+    "lifecycle_mock_checks": 10,
+    "reconciliation_mock_checks": 11,
+    "vm_executed": false
+  },
+  "remaining_acceptance_areas": 8,
+  "candidate_integrated_into_runtime": false,
+  "active_installation_changed": false
+}
