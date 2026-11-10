@@ -60,7 +60,7 @@
     "pending_closed": true,
     "actual_guest_inventory": true,
     "saved_acl_adversarial_checks": 11,
-    "four_cases_source_plan_review": "pending",
+    "four_cases_source_plan_review": "passed_source_pure_only",
     "four_native_cases_executed": false
   },
   "remaining_acceptance_areas": 8,
@@ -78,5 +78,41 @@
     "evidence_sha256": "330ef0fd75b64109665412552f33ec41895e3c65729639abab05782f2aaaf7d3",
     "runtime_reads": false,
     "M3_M6_complete": false
+  },
+  "four_case_plan_r1": {
+    "source_review": "passed_source_pure_only",
+    "review_report_sha256": "b19e3e5fc1cbd3215ef34b209c091313c3b39992bb121c443b9c74d3c2f99bac",
+    "fixed_inputs": 196,
+    "source_copies": 6,
+    "review_pure_cases": 53,
+    "prepared_files": 44,
+    "full_bindings": 4,
+    "coordinator_checks": 1099,
+    "coordinator_reference_checks": 883,
+    "calls_with_outputs": 16,
+    "native_execution_authorized_by_review": false
+  },
+  "four_case_prestart_failure": {
+    "id": "PS51-MODULEPATH-1",
+    "driver_executions": 1,
+    "case_process_exit_code": 1,
+    "reconciliation_exit_code": 1,
+    "failure": "Get-FileHash not recognized in Windows PowerShell 5.1 with inherited PowerShell 7 PSModulePath",
+    "failure_before_vm_start": true,
+    "cases_started": 0,
+    "guest_output_absent": true,
+    "vm_off_confirmed_under_exclusive_lease": true,
+    "network_adapters": 0,
+    "pending_absent": true,
+    "original_execution_replayed": false,
+    "native_default_environment_diagnostic_exit_codes": [
+      1,
+      0
+    ],
+    "candidate_fix_review": "pending",
+    "candidate_driver_pure_checks": 16,
+    "candidate_driver_pure_passed": 16,
+    "first_fixture_long_path_failure_retained": true,
+    "formal": false
   }
 }
