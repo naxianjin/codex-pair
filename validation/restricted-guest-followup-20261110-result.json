@@ -488,7 +488,7 @@
     "other_job_unknown_pending_preserved": true,
     "known_encoding_source_blocker": "PS51-SOURCE-DECODE-1"
   },
-  "latest_followup_scope": "encoding/prepared source accepted; policy diagnostic blocked report and token r3 review running; failed-attempt settlement not eligible",
+  "latest_followup_scope": "C settlement r3 still blocked; settlement r4 awaiting C review; D policy r3 bounded report has additional coordinator blocker; token r5 and host repairs await review; no new real execution",
   "job_failure_actual_attempt_r3": {
     "stable_issue": "GUEST-SCRIPT-POLICY-1",
     "driver_executions": 1,
@@ -551,8 +551,8 @@
       "POLICY-DIAG-RESPONSE-1"
     ],
     "actual_pure_reproduction": "first mock process returned; stdout save PermissionError skipped reconciliation",
-    "r2_repair": "author_checks_passed_independent_report_blocked_no_coordinator_acceptance",
-    "token_execution_driver_same_cleanup_pattern": "r3_author_repair_passed_independent_D_review_running"
+    "r2_repair": "blocked_exact_original_turn_complete_and_rejection_evidence_verified",
+    "token_execution_driver_same_cleanup_pattern": "r4_failure_retained_r5_author_repair_passed_independent_review_pending"
   },
   "token_observation_r1_independent_review": {
     "provider": "apinebula",
@@ -677,7 +677,9 @@
     },
     "old_pair_stopped": true,
     "resumed_old_pair": false,
-    "formal": false
+    "formal": false,
+    "historical_snapshot": true,
+    "superseded_by": "parallel_C_D_followup_snapshot"
   },
   "guest_policy_readonly_diagnostic_r2": {
     "author_checks": {
@@ -701,7 +703,7 @@
     "ExecutionPolicyChanged": false,
     "OriginalPendingChanged": false,
     "formal": false,
-    "repair_r3": "in_progress_no_real_diagnostic_execution"
+    "repair_r3": "bounded_D_report_present_execution_withheld_stderr_gap_r4_author_passed_queued"
   },
   "token_driver_r3_repair": {
     "stable_issue": "POLICY-DIAG-CLEANUP-1",
@@ -711,11 +713,14 @@
     "Python_AST_files": 3,
     "old_files_unchanged": 891,
     "original_failures_preserved": true,
-    "independent_review": "running_in_original_D",
-    "review_accepted": false,
+    "independent_review": "accepted_source_pure_only",
+    "review_accepted": true,
     "VMExecuted": false,
     "TokenAPIsExecuted": false,
-    "formal": false
+    "formal": false,
+    "review_scope": "finally cleanup, exception chain and exact-source pure checks only",
+    "later_process_context_gap_open": true,
+    "native_execution_allowed_by_this_review": false
   },
   "original_job_r3_tool_terminal": {
     "all_exact_wrapper_calls_terminal": true,
@@ -733,7 +738,7 @@
   },
   "failed_job_settlement_r2": {
     "source_implemented": true,
-    "source_review": "queued_in_original_C_not_ready_template_only",
+    "source_review": "blocked_source_template_exact_turn_complete_rejection_evidence_verified",
     "author_checks": {
       "eligibility": 25,
       "file_execution_and_fault_injection": 24,
@@ -756,6 +761,415 @@
     "test_passed": false,
     "original_run_replay_allowed": false,
     "formal": false,
-    "final_live_evidence_review_required": true
+    "final_live_evidence_review_required": true,
+    "report_sha256": "44ae768791767e9e3fc8c0657f8d11375805a818a7ba36b786f443525c5afdaa",
+    "final_receipt_sha256": "a151cefcc2c4bc727ca2824d6170aac7fc64402f611bcc736232bd05f22822a8",
+    "blocker_ids": [
+      "FAILED-SETTLEMENT-DIAGNOSTIC-BINDING-1",
+      "FAILED-SETTLEMENT-REVIEW-GATE-1",
+      "FAILED-SETTLEMENT-VM-ERROR-1"
+    ],
+    "diagnostic_binding_false_accepts": 8,
+    "review_gate_before_checker_load": false,
+    "VM_error_plus_evidence_save_loses_process_state": true,
+    "coordinator_evidence_checks": 6349,
+    "coordinator_references": 3285,
+    "coordinator_fixed_inputs": 3043,
+    "coordinator_calls_with_outputs": 16,
+    "repair_r3": "blocked_source_template_VM_error_still_open_r4_now_in_C_review"
+  },
+  "token_driver_r3_independent_review": {
+    "provider": "apinebula",
+    "model": "gpt-6.1-sol",
+    "provider_class": "third_party",
+    "verdict": "accepted_source_pure_only",
+    "report_sha256": "f34f9997f5e4e0a379bea1333802bbec57a3532019597a2fb537f07cafb78c73",
+    "final_receipt_sha256": "45f7f67815ab7fe67da18b39bbf734f7d92d5b863bc1f374bc8c53ca78d1b1a1",
+    "author_pure_cases": 30,
+    "author_pure_passed": 30,
+    "independent_AST_checks": 84,
+    "independent_AST_passed": 84,
+    "old_defect_reproductions": 6,
+    "r3_checks": 78,
+    "groups_overlap_not_unique_scenario_total": true,
+    "source_and_saved_evidence_checks": 2502,
+    "saved_ACL_checker_exit_code": 0,
+    "ACL_result_is_saved_evidence_only": true,
+    "coordinator_checks": 12007,
+    "coordinator_references": 4676,
+    "fixed_inputs": 2440,
+    "calls_with_outputs": 28,
+    "exact_original_turn_complete": true,
+    "all_original_calls_terminal": true,
+    "acceptance_scope": "finally cleanup, exception chain and exact-source pure checks only",
+    "generic_acceptor_failure_retained": "KeyError: 'review_work_finished'",
+    "acceptor_corrected_for_actual_final_receipt_layout": true,
+    "report_and_candidate_unchanged_by_acceptor_repair": true,
+    "later_process_context_gap_open": true,
+    "native_execution_allowed_by_this_review": false,
+    "VMExecuted": false,
+    "TokenAPIsExecuted": false,
+    "formal": false
+  },
+  "token_driver_r3_additional_context_gap": {
+    "scope": "exact driver AST with synthetic process results and evidence-save failures",
+    "reproduction_result_sha256": "58cfada059770e170f227f3afa0fd4c7fa0109edf473d9473e4ea110a93bb8d3",
+    "cases": 2,
+    "reproduced": 2,
+    "modes": [
+      "exit_code_7_plus_stdout_save_failure",
+      "timeout_plus_stdout_save_failure"
+    ],
+    "cleanup_still_attempted": true,
+    "other_stream_independently_saved": true,
+    "exact_exit_or_timed_out_context_lost": true,
+    "r3_frozen_source_preserved": true,
+    "r4_repair": "r4_sort_order_failure_retained_stderr_gap_reproduced_r5_author_repair_pending_review",
+    "original_entrypoint_executed": false,
+    "VMExecuted": false,
+    "TokenAPIsExecuted": false,
+    "blocks_real_execution": true,
+    "formal": false
+  },
+  "failed_job_settlement_r3": {
+    "author_result_sha256": "be97e5d84d9c3cef0751f09a8fd50ade036bae7e0a80911ff1979317eb1e1d76",
+    "author_groups": [
+      {
+        "name": "eligibility",
+        "count": 25,
+        "passed": 25
+      },
+      {
+        "name": "execution",
+        "count": 24,
+        "passed": 24
+      },
+      {
+        "name": "vm-boundary",
+        "count": 14,
+        "passed": 14
+      },
+      {
+        "name": "lease",
+        "count": 7,
+        "passed": 7
+      },
+      {
+        "name": "extra-eligibility",
+        "count": 25,
+        "passed": 25
+      },
+      {
+        "name": "extra-gate",
+        "count": 6,
+        "passed": 6
+      },
+      {
+        "name": "extra-vm-errors",
+        "count": 7,
+        "passed": 7
+      },
+      {
+        "name": "extra-files",
+        "count": 8,
+        "passed": 8
+      }
+    ],
+    "final_count_sum": 116,
+    "count_sum_is_not_unique_scenarios": true,
+    "final_processes": 8,
+    "all_final_processes_exit_zero": true,
+    "Python_AST_files": 7,
+    "all_author_checks_passed": true,
+    "original_C_false_accepts_now_rejected": 8,
+    "coherent_positive_bound_to_original_eleven_pins": true,
+    "review_acceptance_checked_before_runpy": true,
+    "VM_query_failure_state_and_partial_streams_preserved_in_author_checks": true,
+    "coordinator_author_reference_checks": 9482,
+    "author_evidence_ack_is_not_acceptance": true,
+    "review_member": "C",
+    "review_provider": "openai",
+    "review_model": "gpt-6.1-sol",
+    "review_provider_class": "official_openai",
+    "source_review": "blocked_source_template_exact_turn_complete_rejection_evidence_verified",
+    "queue_exit_code": 0,
+    "review_fixed_inputs": 12705,
+    "queue_accepted_is_completed": false,
+    "Ready": false,
+    "Diagnostic": null,
+    "live_eligibility": false,
+    "actual_settlement_executed": false,
+    "original_pending_mutated": false,
+    "VMExecuted": false,
+    "NativeEntryExecuted": false,
+    "native_outcome": "unknown",
+    "test_passed": false,
+    "original_run_replay_allowed": false,
+    "template_review_cannot_allow_live_settlement": true,
+    "final_exact_live_evidence_review_required": true,
+    "formal": false,
+    "report_sha256": "7e7e09d2b2857ea618fb3f9d30e76476a95aab2d85c5d50299e17808ee6b19cf",
+    "final_receipt_sha256": "bcbf794f2df5d58a10e1eb78a382f6c9065f253bee886816d0276d481008a3eb",
+    "blockers": [
+      "FAILED-SETTLEMENT-VM-ERROR-1"
+    ],
+    "stderr_unwritable_failures_reproduced": 2,
+    "coordinator_checks": 18687,
+    "coordinator_references": 5776,
+    "coordinator_copies": 80,
+    "coordinator_calls_with_outputs": 17,
+    "source_template_accepted": false,
+    "diagnostic_binding_repaired_as_reviewed": true,
+    "review_gate_repaired_as_reviewed": true,
+    "author_targeted_findings": [
+      "FAILED-SETTLEMENT-DIAGNOSTIC-BINDING-1",
+      "FAILED-SETTLEMENT-REVIEW-GATE-1",
+      "FAILED-SETTLEMENT-VM-ERROR-1"
+    ]
+  },
+  "guest_policy_readonly_diagnostic_r3": {
+    "author_result_sha256": "41ee2affd743c50d4b41dd8bce8ef03909e7c6e3ccddade9000ea767bc27f83b",
+    "stable_source_findings": [
+      "POLICY-DIAG-CLEANUP-1-C-HOST",
+      "POLICY-DIAG-CLEANUP-1-C-DRIVER",
+      "POLICY-DIAG-RESPONSE-1-C-OWNERSHIP"
+    ],
+    "author_checks": {
+      "baseline_lifecycle": 27,
+      "baseline_driver": 21,
+      "response_contract": 136,
+      "PS_AST": 2,
+      "PS51_semantic_files": 5,
+      "combination_lifecycle": 28,
+      "combination_driver": 7,
+      "python_AST_files": 5
+    },
+    "all_author_checks_passed": true,
+    "groups_overlap_not_unique_cumulative_total": true,
+    "coordinator_author_evidence_checks": 3819,
+    "coordinator_author_references": 3815,
+    "author_evidence_ack_is_not_acceptance": true,
+    "review_member": "D",
+    "review_provider": "apinebula",
+    "review_model": "gpt-6.1-sol",
+    "review_provider_class": "third_party",
+    "legacy_output_directory_role_label_does_not_identify_reviewer": true,
+    "source_review": "bounded_report_present_coordinator_execution_acceptance_withheld",
+    "queue_exit_code": 0,
+    "review_fixed_inputs": 4831,
+    "queue_accepted_is_completed": false,
+    "live_execution_ready": false,
+    "actual_guest_policy_observed": false,
+    "VMExecuted": false,
+    "NativeEntryExecuted": false,
+    "PolicyChanged": false,
+    "OriginalPendingChanged": false,
+    "UnknownReplayed": false,
+    "formal": false,
+    "reported_verdict": "accepted_source_pure_only",
+    "report_sha256": "27d125e447fc649e44362577bc443e6b1f6144b4859201bf3ec82738d13e26b8",
+    "coordinator_additional_stderr_failures_reproduced": 2,
+    "coordinator_execution_acceptance": false,
+    "r4_stderr_repair": "author_checks_passed_queued_D_review"
+  },
+  "host_error_context_repairs": {
+    "candidates": [
+      {
+        "candidate": "job-assignment-failure-host-r5",
+        "author_result_sha256": "f200f09dfb9ffd3a99f42c5fcbd466609cd90c7e6de70efddefd9bdcc53dc1f2",
+        "all_author_checks_passed": true,
+        "driver_normal": {
+          "count": 39,
+          "passed": 39
+        },
+        "driver_optimized": {
+          "count": 39,
+          "passed": 39,
+          "explicit_checks_only": true,
+          "boundary_asserts_disabled": true,
+          "not_additional_unique_scenarios": true
+        },
+        "preflight": {
+          "count": 9,
+          "passed": 9
+        },
+        "original_driver_context_missing_cases": 30,
+        "original_failure_evidence_preserved": true,
+        "coordinator_author_reference_checks": 4405,
+        "author_evidence_ack_is_not_acceptance": true,
+        "Ready": false,
+        "source_review": "pending",
+        "VMExecuted": false,
+        "NativeEntryExecuted": false
+      },
+      {
+        "candidate": "restricted-fourcase-host-r7",
+        "author_result_sha256": "f9c59c81314679abd2e124db74ab75624493d60d0884edd8fe007a398baa398a",
+        "all_author_checks_passed": true,
+        "driver_normal": {
+          "count": 39,
+          "passed": 39
+        },
+        "driver_optimized": {
+          "count": 39,
+          "passed": 39,
+          "explicit_checks_only": true,
+          "boundary_asserts_disabled": true,
+          "not_additional_unique_scenarios": true
+        },
+        "preflight": {
+          "count": 9,
+          "passed": 9
+        },
+        "original_driver_context_missing_cases": 30,
+        "original_failure_evidence_preserved": true,
+        "coordinator_author_reference_checks": 4477,
+        "author_evidence_ack_is_not_acceptance": true,
+        "Ready": false,
+        "source_review": "pending",
+        "VMExecuted": false,
+        "NativeEntryExecuted": false
+      }
+    ],
+    "shared_PS_checks": 38,
+    "shared_PS_passed": 38,
+    "shared_PS_checks_not_counted_per_candidate": true,
+    "old_PS_defects_reproduced": 6,
+    "original_inputs_unchanged": 1406,
+    "Ready": false,
+    "source_review": "pending",
+    "VMExecuted": false,
+    "NativeEntryExecuted": false,
+    "TokenAPIsExecuted": false,
+    "PolicyChanged": false,
+    "OriginalPendingChanged": false,
+    "old_pair_resumed": false,
+    "formal": false,
+    "historical_snapshot_retained": true
+  },
+  "parallel_C_D_followup_snapshot": {
+    "observed_utc": "2026-11-10T14:05:26.006126+00:00",
+    "historical_snapshot_retained": true,
+    "user_authorized_concurrent_C_D": true,
+    "B_new_work": false,
+    "C": {
+      "provider": "openai",
+      "model": "gpt-6.1-sol",
+      "provider_class": "official_openai",
+      "scope": "failed-job settlement r3 source template review",
+      "previous_settlement_r2": "blocked_and_rejection_evidence_verified",
+      "queue_exit_code": 0,
+      "fixed_inputs": 12705,
+      "final_report_observed": false,
+      "coordinator_accepted": false
+    },
+    "D": {
+      "provider": "apinebula",
+      "model": "gpt-6.1-sol",
+      "provider_class": "third_party",
+      "quota": "unknown",
+      "scope": "guest policy diagnostic r3 source/pure review",
+      "previous_token_r3": "accepted_source_pure_only_later_context_gap_open",
+      "queue_exit_code": 0,
+      "fixed_inputs": 4831,
+      "final_report_observed": false,
+      "coordinator_accepted": false
+    },
+    "queue_accepted_is_completed": false,
+    "old_pair_stopped": true,
+    "resumed_old_pair": false,
+    "formal": false,
+    "overall": "needs_validation"
+  },
+  "parallel_C_D_later_update": {
+    "utc": "2026-11-10T15:41:53.481914+00:00",
+    "C_previous_review_complete": true,
+    "C_previous_verdict": "blocked_source_template",
+    "C_next_scope": "settlement r4 source template review started",
+    "D_current_scope": "policy r4 source/pure independent review queued",
+    "B_new_work": false,
+    "old_pair_stopped": true,
+    "formal": false
+  },
+  "failed_job_settlement_r4_author": {
+    "result_sha256": "1efc5c90b502ddd39db73b401eaa54a94e2d769a7c34244632e6648cd0e5e8e8",
+    "processes_terminal": 13,
+    "final_successful_processes": 12,
+    "retained_wrapper_failure": 1,
+    "new_stderr_cases": 36,
+    "same_cases_repeated_under_optimization": true,
+    "original_group_count_sum": 116,
+    "C_file_channel_cases": 48,
+    "counts_overlap": true,
+    "coordinator_checks": 3762,
+    "coordinator_references": 3756,
+    "source_review": "queued_original_C_turn_started_no_final_report_yet",
+    "Ready": false,
+    "Diagnostic": null,
+    "VMExecuted": false,
+    "actual_settlement_executed": false,
+    "formal": false,
+    "queue_exit_code": 0,
+    "fixed_review_inputs": 3633,
+    "queue_accepted_is_completed": false
+  },
+  "token_driver_r5_author": {
+    "result_sha256": "dd9fd024046db41f4ea4886efcd063f794332fe49da3d52ebf4928b83c268d2e",
+    "prepared_mismatch_was_sort_order_only": true,
+    "prepared_file_count": 12,
+    "original_r4_failure_retained": true,
+    "driver_cases": 39,
+    "stderr_cases": 14,
+    "normal_and_optimized_exit_zero": true,
+    "optimized_is_not_additional_unique_cases": true,
+    "source_review": "pending",
+    "Ready": false,
+    "VMExecuted": false,
+    "formal": false
+  },
+  "guest_policy_diagnostic_r4_author": {
+    "result_sha256": "7768088ff0915abbdcfacdfa8d3e39d12673f26d93b7b6614c4e4870132a98c3",
+    "driver_sha256": "6afd04619e884cba327bfd3f004560601a83b511af57cbff01b87e52cb91ec22",
+    "driver_cases": 21,
+    "combined_cases": 7,
+    "stderr_cases": 48,
+    "stderr_repeated_under_optimization": true,
+    "main_cleanup_cases": 4,
+    "final_checks": 30,
+    "hash_references": 1786,
+    "counts_overlap": true,
+    "source_review": "queued_original_D_no_final_report_yet",
+    "queue_exit_code": 0,
+    "fixed_review_inputs": 1797,
+    "queue_accepted_is_completed": false,
+    "provider": "apinebula",
+    "provider_class": "third_party",
+    "quota": "unknown",
+    "Ready": false,
+    "VMExecuted": false,
+    "OriginalPendingChanged": false,
+    "UnknownReplayed": false,
+    "formal": false
+  },
+  "host_stderr_repairs_author": {
+    "candidates": [
+      {
+        "candidate": "job-assignment-failure-host-r6",
+        "result_sha256": "b8f9c5b676c9e5dfcdfe0b5ccc67b9cfb7f0e906c9fe686369d584580179c684"
+      },
+      {
+        "candidate": "restricted-fourcase-host-r8",
+        "result_sha256": "9c8ab659ca02cdb278a764641a894f5cd824830fbc4e581f872defa165d2315e"
+      }
+    ],
+    "original_driver_cases_each": 39,
+    "new_stage_and_cleanup_cases_each": 26,
+    "normal_and_optimized_exit_zero": true,
+    "optimized_is_not_additional_unique_cases": true,
+    "source_review": "pending",
+    "Ready": false,
+    "VMExecuted": false,
+    "OriginalPendingChanged": false,
+    "formal": false
   }
 }
