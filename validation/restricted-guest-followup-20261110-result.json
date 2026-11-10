@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "scope": "bounded source reviews, encoding repair preparation, saved harmless policy observations and unresolved guest execution blockers",
+  "scope": "bounded source/pure review acceptance, concurrent C/D reviews and unresolved guest execution evidence",
   "formal": false,
   "overall": "needs_validation",
   "review": {
@@ -436,7 +436,7 @@
     "all_author_checks_passed": true,
     "initial_wire_fixture_failure_preserved": true,
     "fixture_only_correction": true,
-    "source_review": "queued_pending_independent_result",
+    "source_review": "accepted_source_pure_only",
     "native_entry_executed": false,
     "token_APIs_executed": false,
     "VM_executed": false,
@@ -488,7 +488,7 @@
     "other_job_unknown_pending_preserved": true,
     "known_encoding_source_blocker": "PS51-SOURCE-DECODE-1"
   },
-  "latest_followup_scope": "report type repair candidates and pure child-token observation preparation",
+  "latest_followup_scope": "encoding/prepared source accepted; policy diagnostic blocked report and token r3 review running; failed-attempt settlement not eligible",
   "job_failure_actual_attempt_r3": {
     "stable_issue": "GUEST-SCRIPT-POLICY-1",
     "driver_executions": 1,
@@ -525,14 +525,15 @@
     "lost_CmdletBinding_and_sourceTexts_initialization": true,
     "old_frozen_sources_unchanged": true,
     "native_runtime_effect_proved": false,
-    "new_encoding_repair": "prepared_author_checks_passed_pending_independent_review",
-    "independent_review": false,
+    "new_encoding_repair": "accepted_exact_source_pure_only",
+    "independent_review": true,
     "formal": false,
     "new_BOM_only_invoker_sha256": "66f0321a997509e10129268a2712e19929465d065782a4bb4c007db19f5b7909",
     "job_fourcase_new_prepared_files": 55,
     "token_new_prepared_files": 11,
     "old_files_unchanged": 1538,
-    "new_native_execution": false
+    "new_native_execution": false,
+    "review_report_sha256": "15ae9ab79eea27ab080a6af8a703d13e339247834a22a59cc5e7bfdf5efa735c"
   },
   "guest_policy_readonly_diagnostic_candidate": {
     "lifecycle_mock": 22,
@@ -550,8 +551,8 @@
       "POLICY-DIAG-RESPONSE-1"
     ],
     "actual_pure_reproduction": "first mock process returned; stdout save PermissionError skipped reconciliation",
-    "r2_repair": "in_progress",
-    "token_execution_driver_same_cleanup_pattern": "known_pending_separate_repair"
+    "r2_repair": "author_checks_passed_independent_report_blocked_no_coordinator_acceptance",
+    "token_execution_driver_same_cleanup_pattern": "r3_author_repair_passed_independent_D_review_running"
   },
   "token_observation_r1_independent_review": {
     "provider": "apinebula",
@@ -599,5 +600,162 @@
     "persistent_policy_change": false,
     "VMExecuted": false,
     "formal": false
+  },
+  "encoding_prepared_r1_independent_review": {
+    "provider": "apinebula",
+    "model": "gpt-6.1-sol",
+    "provider_class": "third_party",
+    "verdict": "accepted_source_pure_only",
+    "report_sha256": "15ae9ab79eea27ab080a6af8a703d13e339247834a22a59cc5e7bfdf5efa735c",
+    "final_receipt_sha256": "22b6ef765649e1986537bc44704a83dffcf64068fabf97a5e041615c13061040",
+    "fixed_inputs": 926,
+    "coordinator_checks": 5262,
+    "coordinator_references": 2475,
+    "calls_with_outputs": 28,
+    "prepared_payloads": 66,
+    "prepared_manifests": 3,
+    "semantic_source_and_prepared": 14,
+    "semantic_host_context": 6,
+    "pure_report_checker_count_sum": 242,
+    "checker_sum_is_not_unique_scenarios": true,
+    "driver_AST_mock": 16,
+    "finally_mock": 8,
+    "host_mock_including_original32": 47,
+    "independent_processes": 22,
+    "exit_zero": 19,
+    "preserved_harness_failures": 3,
+    "excluded_execution_blocker": "POLICY-DIAG-CLEANUP-1",
+    "excluded_execution_blocker_open": true,
+    "token_execution_gate_satisfied": false,
+    "native_execution_allowed_by_this_review": false,
+    "VMExecuted": false,
+    "TokenAPIsExecuted": false,
+    "formal": false
+  },
+  "parallel_C_D_review_snapshot": {
+    "observed_utc": "2026-11-10T13:25:31.778890+00:00",
+    "user_authorized_concurrent_C_D": true,
+    "B_new_work": false,
+    "C": {
+      "provider": "openai",
+      "model": "gpt-6.1-sol",
+      "provider_class": "official_openai",
+      "scope": "readonly guest policy diagnostic r2 source/pure review",
+      "report_written": true,
+      "report_verdict": "blocked",
+      "source_acceptance_flag": false,
+      "coordinator_accepted": false,
+      "report_sha256": "935213d73c3966386b22196b787c9f1757882e219dc5739923d2b5d4f1f49aee",
+      "blocker_ids": [
+        "POLICY-DIAG-CLEANUP-1-C-HOST",
+        "POLICY-DIAG-CLEANUP-1-C-DRIVER",
+        "POLICY-DIAG-RESPONSE-1-C-OWNERSHIP"
+      ],
+      "report_delivery_is_not_acceptance": true,
+      "review_completed": true,
+      "coordinator_rejection_evidence_verified": true,
+      "coordinator_evidence_checks": 4877,
+      "coordinator_references": 1096,
+      "coordinator_fixed_inputs": 3707,
+      "coordinator_calls_with_outputs": 25,
+      "next_scope": "not-ready settlement r2 source template independent review",
+      "next_queue_exit_code": 0,
+      "next_fixed_inputs": 3043,
+      "next_review_completed": false
+    },
+    "D": {
+      "provider": "apinebula",
+      "model": "gpt-6.1-sol",
+      "provider_class": "third_party",
+      "quota": "unknown",
+      "scope": "token r3 driver source/pure review",
+      "queue_exit_code": 0,
+      "fixed_inputs": 2440,
+      "exact_original_turn_started": true,
+      "review_completed": false,
+      "queue_accepted_is_completed": false
+    },
+    "old_pair_stopped": true,
+    "resumed_old_pair": false,
+    "formal": false
+  },
+  "guest_policy_readonly_diagnostic_r2": {
+    "author_checks": {
+      "lifecycle": 27,
+      "driver": 21,
+      "response_contract": 136,
+      "PS_AST_files": 2,
+      "PS51_semantic_files": 5,
+      "Python_AST_files": 4,
+      "checker_processes": 5,
+      "all_exit_zero": true
+    },
+    "source_review": "blocked_exact_original_turn_complete_and_rejection_evidence_verified",
+    "blocker_ids": [
+      "POLICY-DIAG-CLEANUP-1-C-HOST",
+      "POLICY-DIAG-CLEANUP-1-C-DRIVER",
+      "POLICY-DIAG-RESPONSE-1-C-OWNERSHIP"
+    ],
+    "blockers_keep_original_parent_issue": true,
+    "VMExecuted": false,
+    "ExecutionPolicyChanged": false,
+    "OriginalPendingChanged": false,
+    "formal": false,
+    "repair_r3": "in_progress_no_real_diagnostic_execution"
+  },
+  "token_driver_r3_repair": {
+    "stable_issue": "POLICY-DIAG-CLEANUP-1",
+    "source_sha256": "5ce061a082e9135ed8e72a5504f6ea2fbf7876a53833178a4f142a210912314b",
+    "author_pure_driver_cases": 30,
+    "author_pure_driver_passed": 30,
+    "Python_AST_files": 3,
+    "old_files_unchanged": 891,
+    "original_failures_preserved": true,
+    "independent_review": "running_in_original_D",
+    "review_accepted": false,
+    "VMExecuted": false,
+    "TokenAPIsExecuted": false,
+    "formal": false
+  },
+  "original_job_r3_tool_terminal": {
+    "all_exact_wrapper_calls_terminal": true,
+    "call_output_pairs": 3,
+    "driver_exit_code": 1,
+    "saved_evidence_checks": 65,
+    "original_inputs_unchanged": 13,
+    "native_outcome": "unknown",
+    "native_absence_authenticated": false,
+    "test_passed": false,
+    "pending_mutated": false,
+    "VMExecuted": false,
+    "unknown_replayed": false,
+    "formal": false
+  },
+  "failed_job_settlement_r2": {
+    "source_implemented": true,
+    "source_review": "queued_in_original_C_not_ready_template_only",
+    "author_checks": {
+      "eligibility": 25,
+      "file_execution_and_fault_injection": 24,
+      "VM_boundary": 14,
+      "private_windows_lease": 7,
+      "count": 70,
+      "passed": 70,
+      "all_exit_zero": true
+    },
+    "initial_fixture_failures_preserved": 2,
+    "Ready": false,
+    "Diagnostic": null,
+    "eligible": false,
+    "real_archive_executed": false,
+    "original_pending_mutated": false,
+    "original_vm_lock_accessed": false,
+    "VMExecuted": false,
+    "original_outcome": "failed_native_outcome_unknown",
+    "native_outcome": "unknown",
+    "test_passed": false,
+    "original_run_replay_allowed": false,
+    "formal": false,
+    "final_live_evidence_review_required": true
   }
 }
