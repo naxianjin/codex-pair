@@ -59,7 +59,18 @@ A 在项目内新建测试夹具目录并只为该目录配置受限账号权限
 
 ## GitHub 发行
 
-目标仓库为 `https://github.com/naxianjin/codex-pair.git`，发布分支为 `feat/next-recovery-20261101`，标签为 `v1.4.0-preview.1`。本版标记 prerelease，保留 v1.3.1 历史标签与附件，不更改 main 或默认分支。提交、远端推送和附件下载核对将在实际操作后追加登记。
+目标仓库为 `https://github.com/naxianjin/codex-pair.git`，发布分支为 `feat/next-recovery-20261101`，标签为 `v1.4.0-preview.1`。本版标记 prerelease，保留 v1.3.1 历史标签与附件，不更改 main 或默认分支。
+
+发行提交 [`f6831a3b9ee22a95856043d288794233991d7f59`](https://github.com/naxianjin/codex-pair/commit/f6831a3b9ee22a95856043d288794233991d7f59) 已推送，标签指向该提交。[发行页](https://github.com/naxianjin/codex-pair/releases/tag/v1.4.0-preview.1)已公开，状态为 prerelease、非 draft，附件为 ZIP 和 `SHA256SUMS.txt`。本节和机器摘要是在实际发布后追加的协调回执，不改写标签或附件。
+
+| 远端附件 | 字节数 | SHA256 |
+| --- | ---: | --- |
+| `codex-pair-v1.4.0-preview.1.zip` | 723057 | `f81d614010b93c8a63d26a9ed14ed7eb9b57f09da7afcf48093517e3f66909ec` |
+| `SHA256SUMS.txt` | 98 | `e67b7ca2bb18f0e18d00cca9932cf1fb9bc34d43b8c864ceb5645267033e0969` |
+
+从 GitHub 重新下载两个附件，与本地已审包逐字节核对一致；远端 API 的大小、摘要及 uploaded 状态相符。下载 ZIP 的 CRC、133 个清单摘要、准确标签中的全部文件及 6 处实际安装内容均一致。再核旧技能备份、14 项受保护文件和 452 项固定源码，全部保持一致。v1.3.1 仍是最新稳定发行，旧附件大小和摘要未变，main 未变。
+
+首次本地下载核对脚本在比较 Windows 扩展路径与普通路径时出现 `StopIteration`；此前的远端、附件和标签核对已通过。修正本地路径表示比较后完整核对通过，没有重复安装、推送或创建发行。失败工具输出保留。本轮脱敏机器摘要见 [release-preview-20261110-result.json](release-preview-20261110-result.json)；原始输出、私有配置摘要和备份路径只在本机保存。
 
 ## 剩余条件
 

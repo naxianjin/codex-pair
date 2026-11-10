@@ -1,0 +1,109 @@
+{
+  "schema_version": 1,
+  "version": "v1.4.0-preview.1",
+  "release_kind": "prerelease",
+  "repository": "https://github.com/naxianjin/codex-pair",
+  "branch": "feat/next-recovery-20261101",
+  "baseline_commit": "991834cb093996347f47a5b22f84364965a738c8",
+  "release_commit": "f6831a3b9ee22a95856043d288794233991d7f59",
+  "release_url": "https://github.com/naxianjin/codex-pair/releases/tag/v1.4.0-preview.1",
+  "assets": [
+    {
+      "name": "codex-pair-v1.4.0-preview.1.zip",
+      "bytes": 723057,
+      "sha256": "f81d614010b93c8a63d26a9ed14ed7eb9b57f09da7afcf48093517e3f66909ec"
+    },
+    {
+      "name": "SHA256SUMS.txt",
+      "bytes": 98,
+      "sha256": "e67b7ca2bb18f0e18d00cca9932cf1fb9bc34d43b8c864ceb5645267033e0969"
+    }
+  ],
+  "checks": [
+    {
+      "tests_run": 24,
+      "exit_code": 0,
+      "skipped": 0,
+      "argv_suffix": [
+        "-m",
+        "unittest",
+        "-v",
+        "tests.test_install",
+        "tests.test_package",
+        "tests.test_package_paths",
+        "tests.test_producer_environment"
+      ]
+    },
+    {
+      "tests_run": 1434,
+      "exit_code": 0,
+      "skipped": 3,
+      "argv_suffix": [
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "tests",
+        "-v"
+      ]
+    }
+  ],
+  "overlapping_test_sets": true,
+  "fixed_source_files_unchanged": 452,
+  "runtime_implementation_and_tests_unchanged_from_baseline": true,
+  "independent_review": {
+    "model": "gpt-6.1-sol",
+    "model_provider": "apinebula",
+    "provider_class": "third_party",
+    "scope": "bounded prerelease readiness",
+    "accepted": true,
+    "report": {
+      "bytes": 12126,
+      "sha256": "653f02eff79a44bfb5b285b8ae45d7d6790bedce5ec58024832cd16c9457fb73"
+    },
+    "original_turn_complete": true,
+    "tool_calls": 16,
+    "tool_outputs": 16,
+    "file_references_verified": 118,
+    "original_failed_run_preserved": true,
+    "environment_prerequisite_proved_and_retest_passed": true
+  },
+  "installation": {
+    "effective_homes": 6,
+    "files_per_home": 133,
+    "old_skill_backups_match": true,
+    "protected_files_unchanged": 14,
+    "help_checks": 48,
+    "all_help_exit_zero": true,
+    "actual_window_loaded_version_verified": false
+  },
+  "remote_verification": {
+    "is_prerelease": true,
+    "crc_and_all_manifest_files_verified": 133,
+    "tag_files_equal_download": true,
+    "installed_homes_match_download": 6,
+    "stable_latest_unchanged": "v1.3.1",
+    "old_release_assets_unchanged": true,
+    "main_unchanged": true
+  },
+  "incidents_preserved": [
+    "D2-PR-001: original independent 24-test run had 23 passed and 1 failed; proved inaccessible XOS ancestor (NTSTATUS 0xC0000022), then original tests passed using an accessible temporary fixture",
+    "Two local preparation failures before installer invocation: long extraction path and malformed local driver path literal",
+    "Local verification StopIteration from comparing extended and ordinary Windows paths; corrected comparison and completed verification"
+  ],
+  "old_pair_resumed": false,
+  "active_bridge_replacement": false,
+  "open_acceptance_areas": [
+    "daemon",
+    "dualCLI",
+    "realtransport",
+    "nativeStart",
+    "fullsystemimage",
+    "dynamicJIT",
+    "formalHostStore",
+    "formalschedulingreleaseinstall"
+  ],
+  "formal": false,
+  "overall": "needs_validation",
+  "completed_utc": "2026-11-10T07:47:09.596012+00:00"
+}
