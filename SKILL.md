@@ -5,13 +5,15 @@ description: 让用户已打开的两个到四个Codex CLI分工、交接和独�
 
 # Codex Pair
 
+当前安装包版本为 `v1.4.0-preview.1`，属于部分验证的预发行版。整体为 `formal=false / needs_validation`，真实 daemon、双 CLI、transport、可信原生启动、完整系统映像、动态/JIT、正式 Host→Store 和正式调度发行安装共 8 个范围尚未关闭。先读[本版安装与验证说明](references/pre-release-20261110.md)；安装成功不能作为这些范围的放行证据。
+
 本项目只对接官方发布的Codex CLI，保留原账号、模型、权限和用户选定窗口。原生接口未覆盖的控制能力必须明确标注；不以定制CLI、观察事件或提示词代替已验证的执行门禁。官方接口的准确范围见[官方CLI控制](references/official-cli-control.md)。
 
 此目录包含下一版候选。已完成部分断网 Hyper-V 隔离回归，准确范围见 CHANGELOG.md；真实原窗口及完整能力验收仍未完成。先读[本轮状态与缺口](references/next-version-status.md)，以日期较新的实际记录为准；开发或审查这个 skill 不代表启动协作。安装副本一致不代表原窗口或活动桥已加载新版，也不能把接口存在、AST解析或模拟夹具作为真实协作通过的依据。
 
 按用途读参考：阻塞只读查询、暂停、继续及限定恢复用[诊断与控制](references/recovery-v14.md)；辅助审核用[辅助池](references/auxiliary-pool.md)和[审查适配](references/audit-adapter.md)；CLI变化用[兼容性预检](references/cli-compatibility.md)。[182项验收与30项调度规则](references/next-version-matrix.md)逐项保留，全部未判为本轮动态通过。
 
-已安装v1.3.0支持用户已打开的A/B窗口，可邀请已有C/D及一个受管独立官方GPT审核会话。该基线的正常使用链已有实际验证；下一版静态候选及历史完整故障矩阵不能沿用这个结论。基线安装方式见README.md，后续检查见POST_RELEASE_TESTS.md；两份文件已纳入新发行清单。安装与实际运行入口分别核对。
+历史v1.3.0基线支持用户已打开的A/B窗口，可邀请已有C/D及一个受管独立官方GPT审核会话。该基线的正常使用链已有实际验证；当前预发行及历史完整故障矩阵不能沿用这个结论。安装方式见README.md，后续检查见POST_RELEASE_TESTS.md；两份文件已纳入发行清单。安装与实际运行入口分别核对。
 
 先读[命令与输入](references/team-commands.md)，接管测试时读[详细验证交接](references/validation-handoff-four-cli.md)。旧双窗口协议的领取、分页、交付和未知对账仍适用；旧文档“只能两个”“不新建任何模型会话”和9%新轮次默认值仅描述v1.2.1，不能覆盖本轮明确规格。
 

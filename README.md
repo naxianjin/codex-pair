@@ -1,10 +1,10 @@
 # codex-pair
 
-> 当前目录对应 v1.3.1 发行候选；真实双 CLI 验收仍需在用户指定窗口中单独完成。能力、检查范围与未完成项见[开发状态](references/next-version-status.md)。
+> 当前版本为 **v1.4.0-preview.1 预发行版**，用于安装和继续验证已完成部分测试的技能。整体仍为 `formal=false / needs_validation`；8 个验收范围尚未关闭，见[本版说明](references/pre-release-20261110.md)。
 
 让你已经打开的 Codex CLI 窗口共同完成一个项目。A 负责分工和协调，B 接受邀请后执行任务；需要时可邀请已有的 C、D 窗口加入。各窗口保留自己的会话、账号配置、模型和权限，通过本地消息桥接收任务、提问和交付结果。
 
-> 本说明适用于 v1.3.1 及当前仓库源码：支持最多四个可见成员、独立审核和范围收尾。[v1.3.1 发行版](https://github.com/naxianjin/codex-pair/releases/tag/v1.3.1) 已提供 ZIP 安装包和 SHA256 校验文件。旧发行包保持原样。
+> 本版提供 [v1.4.0-preview.1 ZIP 和 SHA256 校验文件](https://github.com/naxianjin/codex-pair/releases/tag/v1.4.0-preview.1)。v1.3.1 历史发行保持原样；预发行不代表正式验收通过。
 
 这是个人维护项目，并非 OpenAI 官方项目。
 
@@ -24,16 +24,18 @@
 
 ## 安装与更新
 
-以下源码安装方式适用于仓库中已完成整合的版本。安装前确认你取得的是目标版本，不把旧下载包当成最新源码。
+从本版发行页下载 ZIP 和 `SHA256SUMS.txt`，核对 ZIP 的 SHA256 后解压。进入解压后的 `codex-pair` 目录，使用包内安装器；也可以取得准确标签的源码：
 
 ```powershell
-git clone https://github.com/naxianjin/codex-pair.git
+git clone --branch v1.4.0-preview.1 --single-branch https://github.com/naxianjin/codex-pair.git
 Set-Location codex-pair
 $pairAccountRoot = if ($env:CODEX_HOME) { $env:CODEX_HOME } else { Join-Path $env:USERPROFILE '.codex' }
 python scripts/install_skill.py --source . --home $pairAccountRoot
 ```
 
 使用实际的 Python 可执行程序，避免 WindowsApps 占位入口。安装器将技能写入当前配置的 `skills/codex-pair`，备份旧版并核对文件摘要；不会修改认证或模型配置。其他成员使用各自真实的配置环境，不要为了协作把几个窗口改到同一个账号目录。
+
+多个配置目录可在同一条安装命令中重复传入 `--home <配置目录>`。每个目标的旧技能保存在该配置目录的 `codex-pair-skill-backups` 中。安装和恢复方法、准确验证范围见[本版说明](references/pre-release-20261110.md)。
 
 已有仓库先检查未提交改动，再获取更新。已有协作升级时，先核实在途任务和结果、保存现场，再安全停止旧桥并从新入口恢复；不要直接覆盖正在运行的副本，也不要用旧版打开新数据库。磁盘安装完成不代表已有窗口或消息桥已经加载新版：窗口要读取新的 `SKILL.md`，桥也要确认实际运行入口。
 
