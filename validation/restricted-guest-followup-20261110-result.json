@@ -40,12 +40,43 @@
     "failure_settlement_exit_code": 0
   },
   "new_boot_candidate": {
-    "source_review": "pending",
+    "source_review": "passed_source_pure_only",
     "lifecycle_mock_checks": 10,
     "reconciliation_mock_checks": 11,
-    "vm_executed": false
+    "vm_executed": false,
+    "review_report_sha256": "e41c6c82081ccdc6048ee68bdd3fee55d36b9170ebc2f2094b8e5720ee76b94a",
+    "review_mock_checks": 41,
+    "review_ps_ast_files": 10,
+    "fixed_review_inputs": 229,
+    "coordinator_checks": 753,
+    "coordinator_references": 508,
+    "new_inventory_started": true,
+    "new_inventory_result": "passed_inventory_only",
+    "payload_executed": false,
+    "new_inventory_exit_code": 0,
+    "new_host_reconciliation_exit_code": 0,
+    "vm_off_confirmed": true,
+    "network_adapters": 0,
+    "pending_closed": true,
+    "actual_guest_inventory": true,
+    "saved_acl_adversarial_checks": 11,
+    "four_cases_source_plan_review": "pending",
+    "four_native_cases_executed": false
   },
   "remaining_acceptance_areas": 8,
   "candidate_integrated_into_runtime": false,
-  "active_installation_changed": false
+  "active_installation_changed": false,
+  "m4_three_disk_functions": {
+    "extract_exit_code": 0,
+    "fixed_inputs_unchanged": 143,
+    "functions": 3,
+    "bytes": 269,
+    "instructions": 92,
+    "arithmetic_checks": 133,
+    "direct_branches": 15,
+    "calls_not_expanded": 2,
+    "evidence_sha256": "330ef0fd75b64109665412552f33ec41895e3c65729639abab05782f2aaaf7d3",
+    "runtime_reads": false,
+    "M3_M6_complete": false
+  }
 }
