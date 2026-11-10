@@ -374,7 +374,8 @@ class AppServer:
         self._evidence = evidence
         executable_argv = codex_command(executable)
         if track_producer and backend!='managed':raise TransportError('Producer tracking requires owned process / 仅跟踪本控制器拥有的进程')
-        launch = prepare_launch(executable_argv) if track_producer else None
+        env = self._process_environment(codex_home)
+        launch = prepare_launch(executable_argv, env=env) if track_producer else None
         argv = executable_argv + ['app-server']
         if config_overrides:
             if backend != 'managed' or not isinstance(config_overrides, dict):
@@ -385,9 +386,6 @@ class AppServer:
                     raise TransportError('Invalid config override / 只接受明确配置键及布尔、整数、字符串值')
                 argv += ['-c', key + '=' + json.dumps(value, ensure_ascii=False)]
         argv += ['proxy'] if backend == 'shared' else ['--listen', 'stdio://']
-        env = control_environment(codex_home) if metadata_only else os.environ.copy()
-        if codex_home is not None:
-            env['CODEX_HOME'] = str(codex_home)
         self._stderr = []
         self._diagnostic_stage='process_start'
         self._last_success_rpc=None
@@ -420,6 +418,12 @@ class AppServer:
         except BaseException:
             self.close()
             raise
+
+    def _process_environment(self, codex_home):
+        env = control_environment(codex_home) if self.metadata_only else os.environ.copy()
+        if codex_home is not None:
+            env['CODEX_HOME'] = str(codex_home)
+        return env
 
     def _record(self, direction, value):
         if self._evidence:

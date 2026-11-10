@@ -112,11 +112,11 @@ def process_identity(pid):
     finally: kernel.CloseHandle(handle)
 
 
-def prepare_launch(argv):
+def prepare_launch(argv, *, env=None):
     if len(argv) != 1 or Path(argv[0]).suffix.lower() != '.exe':
         raise ValueError('Producer tracking requires a native executable')
     before = file_identity(argv[0])
-    result = subprocess.run([before['path'],'--version'],capture_output=True,text=True,timeout=15,
+    result = subprocess.run([before['path'],'--version'],capture_output=True,text=True,timeout=15,env=env,
                             creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
     match = re.fullmatch(r'codex-cli ([^\s]+)\s*',result.stdout)
     if result.returncode or not match or match[1] not in SUPPORTED_VERSIONS or file_identity(before['path']) != before:

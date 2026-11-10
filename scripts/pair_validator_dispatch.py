@@ -132,7 +132,10 @@ class _CommandServer(AppServer):
     """仅拆开固定 command/exec 的发送与等待，不开放其他异步写接口。"""
     def __init__(self, **options):
         self.connection_id = uuid.uuid4().hex
-        super().__init__(process_factory=_start_official_process, **options)
+        super().__init__(process_factory=subprocess.Popen, **options)
+
+    def _process_environment(self, codex_home):
+        return _official_environment(codex_home)
 
     def reserve_command(self):
         with self._condition:
@@ -164,12 +167,16 @@ def _current_tools():
     return host._admission_tools(source, inventory, hashes, tools)
 
 
-def _start_official_process(argv, **options):
+def _official_environment(codex_home):
     # 空 home 不继承模型凭据、原会话身份或外部执行服务器。
-    environment = control_environment(options['env']['CODEX_HOME'])
+    environment = control_environment(codex_home)
     for key in ('CODEX_EXEC_SERVER_URL', 'CODEX_AUTH_JSON'):
         environment.pop(key, None)
-    options['env'] = environment
+    return environment
+
+
+def _start_official_process(argv, **options):
+    options['env'] = _official_environment(options['env']['CODEX_HOME'])
     return subprocess.Popen(argv, **options)
 
 
