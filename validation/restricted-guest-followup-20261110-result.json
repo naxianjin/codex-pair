@@ -169,10 +169,38 @@
     "session_attempts_per_execution": 1,
     "lifecycle_mock_checks": 10,
     "extra_saved_checks": 2,
-    "source_review": "pending",
-    "vm_executed": false,
+    "source_review": "passed_repair_r2_source_pure_only",
+    "vm_executed": true,
     "service_or_system_configuration_changed": false,
-    "formal": false
+    "formal": false,
+    "review_report_sha256": "5eccabf80f0ae04f8a5ec19367e44ebb5de24b0e184b634797c645999c1aae48",
+    "review_behavior_checks": 48,
+    "review_behavior_passed": 48,
+    "coordinator_checks": 1328,
+    "coordinator_references": 860,
+    "calls_with_outputs": 11,
+    "fixed_inputs": 156,
+    "prior_review": "blocked_44_of_46",
+    "prior_findings_preserved": [
+      "D2-CONN-001",
+      "D2-CONN-002"
+    ],
+    "repair_round": 1,
+    "actual_execution_started": true,
+    "actual_result": "passed_single_readonly_inventory",
+    "review_stage_vm_executed": false,
+    "actual_execution_ended": true,
+    "process_exit_code": 0,
+    "host_reconciliation_exit_code": 0,
+    "saved_acl_exit_code": 0,
+    "connection_seconds": 0.519965,
+    "actual_session_attempts": 1,
+    "inventory_fields_equal_prior": true,
+    "vm_off_confirmed": true,
+    "network_adapters": 0,
+    "pending_closed": true,
+    "payload_executed": false,
+    "sixty_seconds_general_solution_proved": false
   },
   "m4_directory_finder": {
     "rva": "0x35a8b0",
@@ -188,5 +216,58 @@
     "runtime_reads": false,
     "formal": false,
     "M3_M6_complete": false
+  },
+  "job_failure_candidate": {
+    "test_only_native_argument": "NULL Job handle",
+    "expected_native_error_code": 6,
+    "historical_error5_reproduced": false,
+    "new_binding_prepared": true,
+    "prepared_files": 11,
+    "checker_cases": 19,
+    "driver_mock_cases": 16,
+    "managed_checks": 51,
+    "host_cleanup_mock_cases": 8,
+    "PS_AST_files": 6,
+    "source_review": "blocked_D2-JOB-001",
+    "native_entry_executed": false,
+    "original_library_resolution_failure_retained": true,
+    "product_modified": false,
+    "formal": false,
+    "review_report_sha256": "78b7bad1bf5eafce303cdfb341b0557b8c26034e81469bace27910fcefc9d5f8",
+    "independent_adversarial": {
+      "count": 31,
+      "passed": 18,
+      "false_accepts": 13,
+      "actual_json_roundtrip_same": true,
+      "native_host_terminal_false_accepts_in_pure_mock": 2
+    }
+  },
+  "job_failure_scalar_repair": {
+    "stable_issue": "D2-JOB-001",
+    "repair_round": 1,
+    "author_checks": {
+      "original": 19,
+      "wire_json_scalar": 47,
+      "driver_mock": 16,
+      "PS_AST": 8
+    },
+    "all_author_checks_passed": true,
+    "source_review": "pending",
+    "native_executed": false,
+    "formal": false
+  },
+  "four_case_scalar_repair": {
+    "stable_issue": "PS-GUEST-SCALAR-1",
+    "same_cause_as": "D2-JOB-001",
+    "wire_json_checker_cases": 115,
+    "driver_mock_cases": 16,
+    "host_finally_mock_cases": 8,
+    "PS_AST_files": 4,
+    "all_author_checks_passed": true,
+    "host_unchanged_from_prepared_r3": true,
+    "prepared_44_unchanged": true,
+    "source_review": "pending",
+    "native_executed": false,
+    "formal": false
   }
 }
