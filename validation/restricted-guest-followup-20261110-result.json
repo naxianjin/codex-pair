@@ -109,10 +109,84 @@
       1,
       0
     ],
-    "candidate_fix_review": "pending",
+    "candidate_fix_review": "passed_source_pure_only",
     "candidate_driver_pure_checks": 16,
     "candidate_driver_pure_passed": 16,
     "first_fixture_long_path_failure_retained": true,
     "formal": false
+  },
+  "m4_input_builder_and_counter": {
+    "functions": 2,
+    "bytes": 725,
+    "instructions": 219,
+    "arithmetic_checks": 96,
+    "fixed_inputs_unchanged_per_extraction": 143,
+    "extract_exit_codes": [
+      0,
+      0
+    ],
+    "evidence_sha256": [
+      "1a3dbdbaeb77f35298446aa76f3a1e7ed71bcc4563e259ce8b065601002c954a",
+      "a10a5d58177f8ee20f7c65cee2a14e78eb9ad668e5a43ef9fa1881328b018c21"
+    ],
+    "runtime_reads": false,
+    "M3_M6_complete": false,
+    "decoder_semantics_fully_authenticated": false
+  },
+  "four_case_environment_fix_r2": {
+    "review_report_sha256": "0f62c9210f7dc23194463c5faf9453e9ac2ef5975edbd545c40cdd10e70225a4",
+    "coordinator_checks": 4327,
+    "fixed_inputs": 652,
+    "reference_checks": 2360,
+    "calls_with_outputs": 19,
+    "pure_driver_cases": 16,
+    "environment_cases": 4,
+    "source_only": true,
+    "parent_environment_changed": false
+  },
+  "four_case_session_failure": {
+    "stable_issue": "PSD-SESSION-OPEN-1",
+    "driver_executions": 1,
+    "case_process_exit_code": 1,
+    "host_reconciliation_exit_code": 0,
+    "failure": "New-PSSession PSSessionOpenFailed / PSRemotingDataStructureException",
+    "cases_dispatched": 0,
+    "case_intents": 0,
+    "vm_started": true,
+    "vm_off_confirmed": true,
+    "network_adapters": 0,
+    "pending_archived_as_failure": true,
+    "failure_settlement_exit_code": 0,
+    "original_execution_replayed": false,
+    "source_failure_line": 42,
+    "failure_boundary_sha256": "bf78ec6d69eb2dab1324180029ae0979c594ae5df97313d2aa85ba8a25856142",
+    "formal": false
+  },
+  "connection_diagnostic_candidate": {
+    "scope": "single readonly guest inventory without payload",
+    "root_cause_confirmed": false,
+    "boot_grace_seconds": 60,
+    "session_attempts_per_execution": 1,
+    "lifecycle_mock_checks": 10,
+    "extra_saved_checks": 2,
+    "source_review": "pending",
+    "vm_executed": false,
+    "service_or_system_configuration_changed": false,
+    "formal": false
+  },
+  "m4_directory_finder": {
+    "rva": "0x35a8b0",
+    "bytes": 388,
+    "instructions": 99,
+    "arithmetic_checks": 49,
+    "evidence_sha256": "ec4b773e81bbf848833088aeacf8bc5f803e55f68bc17c66fc759ee604cb729f",
+    "extract_exit_code": 0,
+    "extractor_before_after_inputs": 3,
+    "extractor_before_after_equal": true,
+    "historical_143_inputs_postcheck_equal": true,
+    "historical_postcheck_is_not_same_execution_before_after": true,
+    "runtime_reads": false,
+    "formal": false,
+    "M3_M6_complete": false
   }
 }
